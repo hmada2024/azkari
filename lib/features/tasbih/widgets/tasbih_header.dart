@@ -1,4 +1,5 @@
-import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
+// lib/features/tasbih/widgets/tasbih_header.dart
+import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class TasbihHeader extends ConsumerWidget {
         Text(
           'السبحة',
           style: TextStyle(
-            fontSize: context.responsiveSize(22), // [تحسين] ✨
+            fontSize: context.responsiveSize(22),
             fontWeight: FontWeight.bold,
             color: theme.primaryColor,
           ),
@@ -57,7 +58,6 @@ class TasbihHeader extends ConsumerWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(50),
         child: Container(
-          // [تحسين] ✨: استخدام الـ extension الجديد
           padding: EdgeInsets.all(context.responsiveSize(10)),
           decoration: BoxDecoration(
               shape: BoxShape.circle,
@@ -66,7 +66,7 @@ class TasbihHeader extends ConsumerWidget {
           child: Icon(
             icon,
             color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
-            size: context.responsiveSize(24), // [تحسين] ✨
+            size: context.responsiveSize(24),
           ),
         ),
       ),

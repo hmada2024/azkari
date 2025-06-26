@@ -1,4 +1,5 @@
-import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
+// lib/features/tasbih/widgets/tasbih_counter_button.dart
+import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,6 @@ class TasbihCounterButton extends ConsumerWidget {
         HapticFeedback.lightImpact();
       },
       child: Container(
-        // [تحسين] ✨: استخدام الـ extension الجديد
         width: context.screenWidth * 0.6,
         height: context.screenWidth * 0.6,
         decoration: BoxDecoration(
@@ -47,7 +47,7 @@ class TasbihCounterButton extends ConsumerWidget {
           child: Text(
             count.toString(),
             style: TextStyle(
-              fontSize: context.responsiveSize(75), // [تحسين] ✨
+              fontSize: context.responsiveSize(75),
               fontWeight: FontWeight.bold,
               color: isDarkMode ? Colors.white : theme.primaryColor,
             ),

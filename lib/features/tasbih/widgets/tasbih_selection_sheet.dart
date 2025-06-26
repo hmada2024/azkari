@@ -37,7 +37,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
                       onPressed: () {
-                        Navigator.pop(context); // أغلق الـ bottom sheet أولاً
+                        Navigator.pop(context);
                         _showAddTasbihDialog(context, ref);
                       },
                     ),
@@ -114,17 +114,14 @@ class TasbihSelectionSheet extends ConsumerWidget {
             ),
             FilledButton(
               child: const Text('إضافة'),
-              // ✨ [تحسين]: جعل الدالة async لانتظار اكتمال العملية قبل إظهار رسالة النجاح.
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
                   await ref
                       .read(tasbihStateProvider.notifier)
                       .addTasbih(controller.text.trim());
 
-                  // أغلق مربع الحوار أولاً
                   if (dialogContext.mounted) Navigator.pop(dialogContext);
 
-                  // ✨ [تحسين]: إضافة تغذية راجعة للمستخدم (SnackBar) لتأكيد نجاح الإضافة.
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -161,7 +158,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 backgroundColor: Colors.red,
               ),
               child: const Text('حذف'),
-              // ✨ [تحسين]: جعل الدالة async لانتظار اكتمال عملية الحذف.
               onPressed: () async {
                 await ref
                     .read(tasbihStateProvider.notifier)
@@ -169,7 +165,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
 
-                // ✨ [تحسين]: إضافة تغذية راجعة للمستخدم لتأكيد نجاح الحذف.
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
