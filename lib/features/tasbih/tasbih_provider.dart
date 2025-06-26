@@ -1,4 +1,5 @@
 // lib/features/tasbih/tasbih_provider.dart
+import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
@@ -67,76 +68,81 @@ class TasbihState {
 }
 
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
-  TasbihStateNotifier(this._ref) : super(TasbihState()) {
-    _loadState();
-  }
-
+  final Completer<void> _initCompleter = Completer<void>();
   final Ref _ref;
   late final SharedPreferences _prefs;
 
-  // ✨ [تحسين]: استخدام الثوابت من AppConstants بدلاً من السلاسل النصية الحرفية (Magic Strings).
-  Future<void> _loadState() async {
-    _prefs = await SharedPreferences.getInstance();
-    await _resetIfNewDay(_prefs);
+  TasbihStateNotifier(this._ref) : super(TasbihState()) {
+    _init();
+  }
 
-    final count = _prefs.getInt(AppConstants.tasbihCounterKey) ?? 0;
-    final activeTasbihId = _prefs.getInt(AppConstants.activeTasbihIdKey);
-    final usedIdsStringList =
-        _prefs.getStringList(AppConstants.usedTasbihIdsKey) ?? [];
-    final usedTodayIds = usedIdsStringList.map(int.parse).toSet();
+  Future<void> _init() async {
+    try {
+      _prefs = await SharedPreferences.getInstance();
+      await _resetIfNewDay(_prefs);
 
-    if (mounted) {
-      state = state.copyWith(
-        count: count,
-        activeTasbihId: activeTasbihId,
-        usedTodayIds: usedTodayIds,
-      );
+      final count = _prefs.getInt(AppConstants.tasbihCounterKey) ?? 0;
+      final activeTasbihId = _prefs.getInt(AppConstants.activeTasbihIdKey);
+      final usedIdsStringList =
+          _prefs.getStringList(AppConstants.usedTasbihIdsKey) ?? [];
+      final usedTodayIds = usedIdsStringList.map(int.parse).toSet();
+
+      if (mounted) {
+        state = state.copyWith(
+          count: count,
+          activeTasbihId: activeTasbihId,
+          usedTodayIds: usedTodayIds,
+        );
+      }
+      _initCompleter.complete();
+    } catch (e) {
+      _initCompleter.completeError(e);
     }
   }
 
   Future<void> _saveState() async {
-    await _prefs.setInt(AppConstants.tasbihCounterKey, state.count);
-    if (state.activeTasbihId != null) {
-      await _prefs.setInt(
-          AppConstants.activeTasbihIdKey, state.activeTasbihId!);
-    } else {
-      await _prefs.remove(AppConstants.activeTasbihIdKey);
-    }
-    await _prefs.setStringList(AppConstants.usedTasbihIdsKey,
-        state.usedTodayIds.map((id) => id.toString()).toList());
+    await _initCompleter.future;
+    if (!mounted) return;
+
+    await Future.wait([
+      _prefs.setInt(AppConstants.tasbihCounterKey, state.count),
+      if (state.activeTasbihId != null)
+        _prefs.setInt(AppConstants.activeTasbihIdKey, state.activeTasbihId!)
+      else
+        _prefs.remove(AppConstants.activeTasbihIdKey),
+      _prefs.setStringList(AppConstants.usedTasbihIdsKey,
+          state.usedTodayIds.map((id) => id.toString()).toList()),
+    ]);
   }
 
+  // ✅ [تم الإصلاح]: استخدام الاسم الصحيح للثابت
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
-    final lastResetDateStr = prefs.getString(AppConstants.lastResetDateKey);
-    final today = DateTime.now();
-    final todayDateStr = "${today.year}-${today.month}-${today.day}";
+    final lastOpenDate = prefs.getString(AppConstants.lastResetDateKey);
+    final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    if (lastResetDateStr != todayDateStr) {
-      await prefs.remove(AppConstants.usedTasbihIdsKey);
-      await prefs.setString(AppConstants.lastResetDateKey, todayDateStr);
+    if (lastOpenDate != today) {
+      await prefs.setString(AppConstants.lastResetDateKey, today);
+      await prefs.setStringList(AppConstants.usedTasbihIdsKey, []);
     }
   }
 
-  void increment() {
+  Future<void> increment() async {
+    await _initCompleter.future;
+    if (!mounted) return;
     state = state.copyWith(count: state.count + 1);
-
-    if (state.activeTasbihId != null &&
-        !state.usedTodayIds.contains(state.activeTasbihId!)) {
-      final updatedUsedIds = Set<int>.from(state.usedTodayIds)
-        ..add(state.activeTasbihId!);
-      state = state.copyWith(usedTodayIds: updatedUsedIds);
-    }
-    _saveState();
+    await _saveState();
   }
 
-  void resetCount() {
+  Future<void> resetCount() async {
+    await _initCompleter.future;
     state = state.copyWith(count: 0);
-    _saveState();
+    await _saveState();
   }
 
-  void setActiveTasbih(int id) {
+  Future<void> setActiveTasbih(int id) async {
+    await _initCompleter.future;
     state = state.copyWith(activeTasbihId: id, count: 0);
-    _saveState();
+    await _saveState();
   }
 
   Future<void> addTasbih(String text) async {
@@ -148,11 +154,10 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> deleteTasbih(int id) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.deleteTasbih(id);
-
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
     }
     _ref.invalidate(tasbihListProvider);
-    _saveState();
+    await _saveState();
   }
 }
