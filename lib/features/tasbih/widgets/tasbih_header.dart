@@ -1,5 +1,4 @@
-// lib/features/tasbih/widgets/tasbih_header.dart
-import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:flutter/material.dart';
@@ -22,7 +21,7 @@ class TasbihHeader extends ConsumerWidget {
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              backgroundColor: Colors.transparent, // لجعل الحواف دائرية
+              backgroundColor: Colors.transparent,
               builder: (_) => const TasbihSelectionSheet(),
             );
           },
@@ -30,7 +29,7 @@ class TasbihHeader extends ConsumerWidget {
         Text(
           'السبحة',
           style: TextStyle(
-            fontSize: SizeConfig.getResponsiveSize(22),
+            fontSize: context.responsiveSize(22), // [تحسين] ✨
             fontWeight: FontWeight.bold,
             color: theme.primaryColor,
           ),
@@ -51,7 +50,6 @@ class TasbihHeader extends ConsumerWidget {
     required String tooltip,
     required VoidCallback onPressed,
   }) {
-    // ... (الكود نفسه بدون تغيير)
     final theme = Theme.of(context);
     return Tooltip(
       message: tooltip,
@@ -59,7 +57,8 @@ class TasbihHeader extends ConsumerWidget {
         onTap: onPressed,
         borderRadius: BorderRadius.circular(50),
         child: Container(
-          padding: EdgeInsets.all(SizeConfig.getResponsiveSize(10)),
+          // [تحسين] ✨: استخدام الـ extension الجديد
+          padding: EdgeInsets.all(context.responsiveSize(10)),
           decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: theme.cardColor,
@@ -67,7 +66,7 @@ class TasbihHeader extends ConsumerWidget {
           child: Icon(
             icon,
             color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
-            size: SizeConfig.getResponsiveSize(24),
+            size: context.responsiveSize(24), // [تحسين] ✨
           ),
         ),
       ),

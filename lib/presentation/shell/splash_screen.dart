@@ -1,18 +1,14 @@
-// lib/presentation/splash_screen.dart
+// lib/presentation/shell/splash_screen.dart
 import 'package:azkari/data/repositories/app_shell.dart';
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart'; // ✨ استيراد جديد
+import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // ✨ استيراد جديد
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SplashScreen extends ConsumerWidget {
-  // ✨ تحويل إلى ConsumerWidget
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ استمع إلى حالة أول provider نحتاجه في التطبيق
-    // عندما يكون جاهزاً (data)، ننتقل إلى الشاشة الرئيسية.
-    // Riverpod سيقوم تلقائيًا بتهيئة الاعتماديات (databaseProvider).
     ref.listen<AsyncValue<List<String>>>(categoriesProvider, (previous, next) {
       next.whenData((data) {
         if (data.isNotEmpty) {
@@ -23,7 +19,6 @@ class SplashScreen extends ConsumerWidget {
       });
     });
 
-    // ✨ واجهة الانتظار
     return const Scaffold(
       backgroundColor: Colors.teal,
       body: Center(

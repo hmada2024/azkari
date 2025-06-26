@@ -1,6 +1,4 @@
-// lib/features/tasbih/tasbih_screen.dart
-
-import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/active_tasbih_view.dart';
@@ -14,7 +12,6 @@ class TasbihScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    SizeConfig().init(context);
     final tasbihListAsync = ref.watch(tasbihListProvider);
 
     return Scaffold(
@@ -22,7 +19,6 @@ class TasbihScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
-          // منطق تحديد الذكر النشط يبقى هنا لأنه "حالة" الشاشة
           final activeTasbihId =
               ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
           final activeTasbih = tasbihList.firstWhere(
@@ -37,25 +33,18 @@ class TasbihScreen extends ConsumerWidget {
                   ),
           );
 
-          // ✨ انظر كم أصبحت دالة البناء بسيطة ونظيفة! ✨
           return SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.screenWidth * 0.05),
+              // [تحسين] ✨: استخدام الـ extension الجديد
+              padding:
+                  EdgeInsets.symmetric(horizontal: context.screenWidth * 0.05),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. الرأس
                   const TasbihHeader(),
-
-                  // 2. عرض الذكر
                   ActiveTasbihView(activeTasbih: activeTasbih),
-
-                  // 3. زر العداد
                   TasbihCounterButton(tasbihList: tasbihList),
-
-                  // عنصر فارغ لتوزيع المسافات بشكل أفضل
                   const SizedBox.shrink(),
                 ],
               ),
