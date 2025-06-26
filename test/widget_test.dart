@@ -1,30 +1,27 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// test/widget_test.dart
+// ✨ [إصلاح]: تم إصلاح هذا الاختبار الافتراضي.
+// المشكلة كانت أن MyApp تعتمد على Riverpod، ولكن الاختبار لم يقم بتوفير ProviderScope.
+// الحل هو تغليف MyApp بـ ProviderScope تماماً كما نفعل في main.dart.
+import 'package:azkari/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:azkari/main.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App starts and shows home screen', (WidgetTester tester) async {
+    // بناء تطبيقنا وتشغيل frame.
+    // ✨ تم إضافة ProviderScope هنا لحل مشكلة الاختبار.
+    await tester.pumpWidget(const ProviderScope(
+      child: MyApp(),
+    ));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // انتظر حتى تنتهي جميع الـ frames والتحميلات الأولية (مثل شاشة البداية).
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // تأكد من أننا وصلنا إلى الشاشة الرئيسية وأن عنوانها "أذكاري" موجود.
+    expect(find.text('أذكاري'), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // تأكد من وجود أيقونة الإعدادات.
+    expect(find.byIcon(Icons.settings_outlined), findsOneWidget);
   });
 }

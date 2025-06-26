@@ -19,23 +19,48 @@ class SplashScreen extends ConsumerWidget {
     "أذكارك حصنك المنيع، فلا تهجره.",
   ];
 
+  // ✨ [تحسين]: استخلاص منطق الانتقال في دالة منفصلة لتجنب التكرار وجعل الكود أنظف.
+  void _navigateToHome(BuildContext context) {
+    // استخدمنا مدة تأخير ثابتة لضمان بقاء الشاشة قليلاً حتى لو كانت البيانات سريعة التحميل.
+    Future.delayed(const Duration(seconds: 1), () {
+      if (context.mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const AppShell()),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final randomMessage =
         _inspirationalMessages[Random().nextInt(_inspirationalMessages.length)];
 
-    ref.listen<AsyncValue<List<String>>>(categoriesProvider, (previous, next) {
-      next.whenData((data) {
-        if (data.isNotEmpty) {
-          Future.delayed(const Duration(milliseconds: 1000), () {
-            if (context.mounted) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const AppShell()),
-              );
-            }
-          });
-        }
-      });
+    // ✨ [تحسين]: التعامل مع جميع حالات الـ Provider (النجاح والخطأ) لمنع التطبيق من التعليق.
+    // هذا يضمن أنه حتى لو فشل تحميل البيانات، لن تظل شاشة البداية معلقة إلى الأبد.
+    ref.listen<AsyncValue<dynamic>>(categoriesProvider, (previous, next) {
+      next.when(
+        loading: () {
+          // لا حاجة لعمل أي شيء هنا، نحن بالفعل في شاشة التحميل.
+        },
+        error: (error, stackTrace) {
+          // في حالة حدوث خطأ، نعرض رسالة للمستخدم ثم ننتقل إلى الشاشة الرئيسية.
+          // هذا أفضل من ترك التطبيق معلقًا.
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('حدث خطأ في تهيئة التطبيق: $error'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            _navigateToHome(context);
+          }
+        },
+        data: (data) {
+          // في حالة النجاح، ننتقل إلى الشاشة الرئيسية.
+          _navigateToHome(context);
+        },
+      );
     });
 
     return Scaffold(

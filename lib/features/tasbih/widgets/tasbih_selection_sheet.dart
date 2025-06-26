@@ -9,7 +9,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // جلب البيانات اللازمة مباشرة هنا
     final tasbihList = ref.watch(tasbihListProvider).asData?.value ?? [];
     final usedTodayIds =
         ref.watch(tasbihStateProvider.select((s) => s.usedTodayIds));
@@ -20,84 +19,85 @@ class TasbihSelectionSheet extends ConsumerWidget {
       maxChildSize: 0.9,
       expand: false,
       builder: (_, scrollController) {
-        return Column(
-          children: [
-            // رأس القائمة
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('اختر من قائمة التسابيح',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    tooltip: 'إضافة ذكر جديد',
-                    onPressed: () {
-                      Navigator.pop(context); // أغلق الـ bottom sheet أولاً
-                      _showAddTasbihDialog(context, ref);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            // قائمة التسابيح
-            Expanded(
-              child: ListView.builder(
-                controller: scrollController,
-                itemCount: tasbihList.length,
-                itemBuilder: (context, index) {
-                  final tasbih = tasbihList[index];
-                  final wasUsedToday = usedTodayIds.contains(tasbih.id);
-                  return ListTile(
-                    title: Text(tasbih.text,
-                        maxLines: 2, overflow: TextOverflow.ellipsis),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (wasUsedToday)
-                          const Icon(Icons.check_circle,
-                              color: Colors.green, size: 20),
-                        if (wasUsedToday && tasbih.isDeletable)
-                          const SizedBox(width: 8),
-                        if (tasbih.isDeletable)
-                          IconButton(
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            icon: Icon(Icons.delete_outline,
-                                color: Colors.red.shade400),
-                            onPressed: () {
-                              Navigator.pop(context);
-                              _showDeleteConfirmationDialog(
-                                  context, ref, tasbih);
-                            },
-                          ),
-                      ],
+        return Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('اختر من قائمة التسابيح',
+                        style: Theme.of(context).textTheme.titleLarge),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      tooltip: 'إضافة ذكر جديد',
+                      onPressed: () {
+                        Navigator.pop(context); // أغلق الـ bottom sheet أولاً
+                        _showAddTasbihDialog(context, ref);
+                      },
                     ),
-                    onTap: () {
-                      ref
-                          .read(tasbihStateProvider.notifier)
-                          .setActiveTasbih(tasbih.id);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
-          ],
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: tasbihList.length,
+                  itemBuilder: (context, index) {
+                    final tasbih = tasbihList[index];
+                    final wasUsedToday = usedTodayIds.contains(tasbih.id);
+                    return ListTile(
+                      title: Text(tasbih.text,
+                          maxLines: 2, overflow: TextOverflow.ellipsis),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (wasUsedToday)
+                            const Icon(Icons.check_circle,
+                                color: Colors.green, size: 20),
+                          if (wasUsedToday && tasbih.isDeletable)
+                            const SizedBox(width: 8),
+                          if (tasbih.isDeletable)
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: Icon(Icons.delete_outline,
+                                  color: Colors.red.shade400),
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _showDeleteConfirmationDialog(
+                                    context, ref, tasbih);
+                              },
+                            ),
+                        ],
+                      ),
+                      onTap: () {
+                        ref
+                            .read(tasbihStateProvider.notifier)
+                            .setActiveTasbih(tasbih.id);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  // --- الدوال المساعدة الخاصة بهذه الويدجت ---
-
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
-    // ... (الكود نفسه بدون تغيير)
     final TextEditingController controller = TextEditingController();
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('إضافة ذكر جديد'),
           content: TextField(
@@ -110,16 +110,29 @@ class TasbihSelectionSheet extends ConsumerWidget {
           actions: [
             TextButton(
               child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
             FilledButton(
               child: const Text('إضافة'),
-              onPressed: () {
+              // ✨ [تحسين]: جعل الدالة async لانتظار اكتمال العملية قبل إظهار رسالة النجاح.
+              onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  ref
+                  await ref
                       .read(tasbihStateProvider.notifier)
                       .addTasbih(controller.text.trim());
-                  Navigator.pop(context);
+
+                  // أغلق مربع الحوار أولاً
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+
+                  // ✨ [تحسين]: إضافة تغذية راجعة للمستخدم (SnackBar) لتأكيد نجاح الإضافة.
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('تمت الإضافة بنجاح'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
                 }
               },
             ),
@@ -131,10 +144,9 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
-    // ... (الكود نفسه بدون تغيير)
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('تأكيد الحذف'),
           content:
@@ -142,16 +154,30 @@ class TasbihSelectionSheet extends ConsumerWidget {
           actions: [
             TextButton(
               child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Colors.red,
               ),
               child: const Text('حذف'),
-              onPressed: () {
-                ref.read(tasbihStateProvider.notifier).deleteTasbih(tasbih.id);
-                Navigator.pop(context);
+              // ✨ [تحسين]: جعل الدالة async لانتظار اكتمال عملية الحذف.
+              onPressed: () async {
+                await ref
+                    .read(tasbihStateProvider.notifier)
+                    .deleteTasbih(tasbih.id);
+
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+
+                // ✨ [تحسين]: إضافة تغذية راجعة للمستخدم لتأكيد نجاح الحذف.
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم الحذف بنجاح'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
             ),
           ],
