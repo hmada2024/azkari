@@ -58,32 +58,41 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   final Ref _ref;
+  // [تحسين] ✨: متغير لتخزين نسخة SharedPreferences لتجنب استدعاؤها مراراً وتكراراً.
+  late final SharedPreferences _prefs;
 
   // تحميل الحالة الكاملة عند بدء التشغيل
   Future<void> _loadState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await _resetIfNewDay(prefs); // تحقق من اليوم الجديد أولاً
+    // [تحسين] ✨: الحصول على النسخة مرة واحدة وتخزينها.
+    _prefs = await SharedPreferences.getInstance();
+    await _resetIfNewDay(_prefs); // تحقق من اليوم الجديد أولاً
 
-    final count = prefs.getInt(_tasbihCounterKey) ?? 0;
-    final activeTasbihId = prefs.getInt(_activeTasbihIdKey);
-    final usedIdsStringList = prefs.getStringList(_usedTasbihIdsKey) ?? [];
+    final count = _prefs.getInt(_tasbihCounterKey) ?? 0;
+    final activeTasbihId = _prefs.getInt(_activeTasbihIdKey);
+    final usedIdsStringList = _prefs.getStringList(_usedTasbihIdsKey) ?? [];
     final usedTodayIds = usedIdsStringList.map(int.parse).toSet();
 
-    state = state.copyWith(
-      count: count,
-      activeTasbihId: activeTasbihId,
-      usedTodayIds: usedTodayIds,
-    );
+    // تأكد من أن الـ Notifier لم يتم التخلص منه قبل تحديث الحالة
+    if (mounted) {
+      state = state.copyWith(
+        count: count,
+        activeTasbihId: activeTasbihId,
+        usedTodayIds: usedTodayIds,
+      );
+    }
   }
 
   // حفظ الحالة
+  // [تحسين] ✨: هذه الدالة الآن تستخدم النسخة المخزنة من SharedPreferences.
   Future<void> _saveState() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_tasbihCounterKey, state.count);
+    await _prefs.setInt(_tasbihCounterKey, state.count);
     if (state.activeTasbihId != null) {
-      await prefs.setInt(_activeTasbihIdKey, state.activeTasbihId!);
+      await _prefs.setInt(_activeTasbihIdKey, state.activeTasbihId!);
+    } else {
+      // من الأفضل إزالة المفتاح إذا كانت القيمة null
+      await _prefs.remove(_activeTasbihIdKey);
     }
-    await prefs.setStringList(_usedTasbihIdsKey,
+    await _prefs.setStringList(_usedTasbihIdsKey,
         state.usedTodayIds.map((id) => id.toString()).toList());
   }
 
@@ -138,6 +147,12 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> deleteTasbih(int id) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.deleteTasbih(id);
+
+    // [تحسين] ✨: إذا كان الذكر المحذوف هو النشط، يجب إعادة تعيينه.
+    if (state.activeTasbihId == id) {
+      state = state.copyWith(activeTasbihId: null, count: 0);
+      _saveState();
+    }
     _ref.invalidate(tasbihListProvider);
   }
 }
