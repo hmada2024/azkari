@@ -103,7 +103,7 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                     tilePadding: EdgeInsets.symmetric(
                         horizontal: context.responsiveSize(16.0)),
                     title: Text(
-                      "الفضل والملاحظات",
+                      "فضل الذكر",
                       style: TextStyle(
                           color: theme.primaryColor,
                           fontSize: context.responsiveSize(14)),
