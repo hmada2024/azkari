@@ -1,3 +1,4 @@
+// lib/features/adhkar_list/widgets/adhkar_card.dart
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
 import 'package:azkari/features/favorites/favorites_provider.dart';
@@ -54,8 +55,6 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
 
   @override
   Widget build(BuildContext context) {
-    // [تحسين] ✨: لم نعد بحاجة إلى SizeConfig().init(context)
-
     final bool isFinished = _currentCount == 0;
     final theme = Theme.of(context);
     final double progress = (_initialCount - _currentCount) / _initialCount;
@@ -66,7 +65,6 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
     final isFavorite = favoriteIds.contains(widget.adhkar.id);
 
     return Card(
-      // [تحسين] ✨: استخدام الـ extension الجديد
       margin: EdgeInsets.symmetric(
           horizontal: context.responsiveSize(12),
           vertical: context.responsiveSize(8)),
@@ -215,6 +213,7 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                 ref
                     .read(favoritesIdProvider.notifier)
                     .toggleFavorite(widget.adhkar.id);
+                HapticFeedback.lightImpact();
               },
             ),
           ),

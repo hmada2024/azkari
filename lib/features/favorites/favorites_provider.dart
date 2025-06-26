@@ -1,9 +1,9 @@
 // lib/features/favorites/favorites_provider.dart
+import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/data/models/adhkar_model.dart';
 import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,22 +13,29 @@ final favoritesIdProvider =
 });
 
 class FavoritesIdNotifier extends StateNotifier<List<int>> {
+  final Completer<void> _initCompleter = Completer<void>();
+  Future<void> get initializationComplete => _initCompleter.future;
+
   FavoritesIdNotifier() : super([]) {
     _loadFavorites();
   }
 
   Future<void> _loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final favoriteIds = prefs.getStringList(AppConstants.favoritesKey) ?? [];
-    if (mounted) {
-      state = favoriteIds.map(int.parse).toList();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final favoriteIds = prefs.getStringList(AppConstants.favoritesKey) ?? [];
+      if (mounted) {
+        state = favoriteIds.map(int.parse).toList();
+      }
+      _initCompleter.complete();
+    } catch (e) {
+      _initCompleter.completeError(e);
     }
   }
 
-  // ✨ [تحسين]: جعل عملية التبديل أكثر قوة (Robust) باستخدام try-catch.
-  // يتم الآن تحديث الواجهة بشكل متفائل (Optimistic Update) أولاً، ثم محاولة الحفظ.
-  // في حالة فشل الحفظ، نعود إلى الحالة السابقة لضمان تزامن البيانات ومنع الأخطاء.
   Future<void> toggleFavorite(int adhkarId) async {
+    await _initCompleter.future;
+
     final previousState = state;
 
     final currentFavorites = List<int>.from(state);
@@ -46,8 +53,6 @@ class FavoritesIdNotifier extends StateNotifier<List<int>> {
         AppConstants.favoritesKey,
         state.map((id) => id.toString()).toList(),
       );
-      // ✨ [تحسين]: إضافة اهتزاز خفيف (Haptic Feedback) لتأكيد نجاح العملية.
-      HapticFeedback.lightImpact();
     } catch (e) {
       // في حالة الفشل، أرجع الحالة إلى ما كانت عليه.
       state = previousState;
