@@ -1,5 +1,4 @@
 // lib/features/tasbih/tasbih_provider.dart
-
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +16,39 @@ const String _usedTasbihIdsKey = 'used_tasbih_ids_today';
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
   final repository = ref.watch(adhkarRepositoryProvider);
   return repository.getCustomTasbihList();
+});
+
+// ✨✨✨ Provider جديد ومخصص لجلب الذكر النشط ✨✨✨
+// هذا الـ Provider يعزل منطق تحديد الذكر النشط عن الواجهة
+final activeTasbihProvider = Provider<TasbihModel>((ref) {
+  // 1. مشاهدة قائمة التسابيح الكاملة
+  final tasbihListAsync = ref.watch(tasbihListProvider);
+  // 2. مشاهدة الـ ID الخاص بالذكر النشط فقط
+  final activeId =
+      ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
+
+  // 3. التعامل مع حالة تحميل القائمة أو وجود خطأ
+  return tasbihListAsync.when(
+    loading: () => TasbihModel(
+        id: -1, text: 'جاري التحميل...', sortOrder: 0, isDeletable: false),
+    error: (err, st) =>
+        TasbihModel(id: -1, text: 'حدث خطأ', sortOrder: 0, isDeletable: false),
+    data: (tasbihList) {
+      if (tasbihList.isEmpty) {
+        return TasbihModel(
+          id: -1,
+          text: 'أضف ذكرًا للبدء من القائمة',
+          sortOrder: 0,
+          isDeletable: false,
+        );
+      }
+      // 4. البحث عن الذكر النشط، أو استخدام أول ذكر كخيار افتراضي
+      return tasbihList.firstWhere(
+        (t) => t.id == activeId,
+        orElse: () => tasbihList.first,
+      );
+    },
+  );
 });
 
 // 2. Provider لإدارة حالة السبحة (العداد، الذكر النشط، إلخ)
@@ -58,14 +90,11 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   final Ref _ref;
-  // [تحسين] ✨: متغير لتخزين نسخة SharedPreferences لتجنب استدعاؤها مراراً وتكراراً.
   late final SharedPreferences _prefs;
 
-  // تحميل الحالة الكاملة عند بدء التشغيل
   Future<void> _loadState() async {
-    // [تحسين] ✨: الحصول على النسخة مرة واحدة وتخزينها.
     _prefs = await SharedPreferences.getInstance();
-    await _resetIfNewDay(_prefs); // تحقق من اليوم الجديد أولاً
+    await _resetIfNewDay(_prefs);
 
     final count = _prefs.getInt(_tasbihCounterKey) ?? 0;
     final activeTasbihId = _prefs.getInt(_activeTasbihIdKey);
@@ -82,38 +111,31 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     }
   }
 
-  // حفظ الحالة
-  // [تحسين] ✨: هذه الدالة الآن تستخدم النسخة المخزنة من SharedPreferences.
   Future<void> _saveState() async {
     await _prefs.setInt(_tasbihCounterKey, state.count);
     if (state.activeTasbihId != null) {
       await _prefs.setInt(_activeTasbihIdKey, state.activeTasbihId!);
     } else {
-      // من الأفضل إزالة المفتاح إذا كانت القيمة null
       await _prefs.remove(_activeTasbihIdKey);
     }
     await _prefs.setStringList(_usedTasbihIdsKey,
         state.usedTodayIds.map((id) => id.toString()).toList());
   }
 
-  // منطق إعادة التعيين اليومي
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
     final lastResetDateStr = prefs.getString(_lastResetDateKey);
     final today = DateTime.now();
     final todayDateStr = "${today.year}-${today.month}-${today.day}";
 
     if (lastResetDateStr != todayDateStr) {
-      await prefs.remove(_usedTasbihIdsKey); // مسح قائمة المستخدمة اليوم
-      await prefs.setString(
-          _lastResetDateKey, todayDateStr); // تسجيل تاريخ اليوم
+      await prefs.remove(_usedTasbihIdsKey);
+      await prefs.setString(_lastResetDateKey, todayDateStr);
     }
   }
 
-  // زيادة العداد
   void increment() {
     state = state.copyWith(count: state.count + 1);
 
-    // تتبع الاستخدام اليومي
     if (state.activeTasbihId != null &&
         !state.usedTodayIds.contains(state.activeTasbihId!)) {
       final updatedUsedIds = Set<int>.from(state.usedTodayIds)
@@ -123,24 +145,19 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     _saveState();
   }
 
-  // إعادة تعيين العداد الحالي فقط
   void resetCount() {
     state = state.copyWith(count: 0);
     _saveState();
   }
 
-  // تغيير الذكر النشط
   void setActiveTasbih(int id) {
-    state = state.copyWith(
-        activeTasbihId: id, count: 0); // تصفير العداد عند تغيير الذكر
+    state = state.copyWith(activeTasbihId: id, count: 0);
     _saveState();
   }
 
-  // إضافة تسبيح جديد إلى قاعدة البيانات
   Future<void> addTasbih(String text) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.addTasbih(text);
-    // إعادة تحميل قائمة التسابيح لإظهار التغيير
     _ref.invalidate(tasbihListProvider);
   }
 
@@ -148,7 +165,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.deleteTasbih(id);
 
-    // [تحسين] ✨: إذا كان الذكر المحذوف هو النشط، يجب إعادة تعيينه.
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
       _saveState();

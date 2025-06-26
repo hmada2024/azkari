@@ -4,7 +4,6 @@ import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// --- 1. Provider لإدارة IDs المفضلة (يبقى كما هو) ---
 final favoritesIdProvider =
     StateNotifierProvider<FavoritesIdNotifier, List<int>>((ref) {
   return FavoritesIdNotifier();
@@ -20,72 +19,47 @@ class FavoritesIdNotifier extends StateNotifier<List<int>> {
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     final favoriteIds = prefs.getStringList(_favoritesKey) ?? [];
-    state = favoriteIds.map(int.parse).toList();
+    // التأكد من أن الحالة لم يتم التخلص منها
+    if (mounted) {
+      state = favoriteIds.map(int.parse).toList();
+    }
   }
 
   Future<void> toggleFavorite(int adhkarId) async {
     final prefs = await SharedPreferences.getInstance();
-    // نستخدم Set للتحقق من الوجود بشكل أسرع
-    final currentFavoritesSet = Set<int>.from(state);
 
-    if (currentFavoritesSet.contains(adhkarId)) {
-      currentFavoritesSet.remove(adhkarId);
+    final currentFavorites = List<int>.from(state);
+
+    if (currentFavorites.contains(adhkarId)) {
+      currentFavorites.remove(adhkarId);
     } else {
-      currentFavoritesSet.add(adhkarId);
+      currentFavorites.insert(0, adhkarId);
     }
 
-    // الترتيب غير مهم في الـ Set، لذا نحول إلى List
-    state = currentFavoritesSet.toList();
+    state = currentFavorites;
     await prefs.setStringList(
         _favoritesKey, state.map((id) => id.toString()).toList());
   }
 }
 
-// --- 2. Provider جديد لإدارة قائمة بيانات الأذكار المفضلة بفعالية (الأهم) ---
-final favoriteAdhkarProvider = StateNotifierProvider<FavoriteAdhkarNotifier,
-    AsyncValue<List<AdhkarModel>>>((ref) {
-  return FavoriteAdhkarNotifier(ref);
+// --- 2. ✨✨ Provider جديد وتصريحي لإدارة قائمة الأذكار المفضلة بفعالية ✨✨ ---
+// هذا الـ FutureProvider يعيد بناء نفسه تلقائياً كلما تغيرت قائمة الـ IDs
+final favoriteAdhkarProvider = FutureProvider<List<AdhkarModel>>((ref) async {
+  // 1. مراقبة قائمة الـ IDs. أي تغيير هنا سيؤدي إلى إعادة تنفيذ هذا الكود
+  final favoriteIds = ref.watch(favoritesIdProvider);
+
+  // 2. إذا كانت القائمة فارغة، أرجع قائمة فارغة فوراً
+  if (favoriteIds.isEmpty) {
+    return [];
+  }
+
+  // 3. جلب مستودع البيانات
+  final repository = ref.read(adhkarRepositoryProvider);
+
+  // 4. جلب الأذكار الكاملة من قاعدة البيانات باستخدام الـ IDs
+  final adhkar = await repository.getAdhkarByIds(favoriteIds);
+
+  // 5. إرجاع القائمة النهائية
+  // الترتيب محفوظ الآن بناءً على ترتيب الـ IDs
+  return adhkar;
 });
-
-class FavoriteAdhkarNotifier
-    extends StateNotifier<AsyncValue<List<AdhkarModel>>> {
-  FavoriteAdhkarNotifier(this._ref) : super(const AsyncValue.loading()) {
-    // الاستماع لأي تغيير في قائمة الـ IDs لإعادة المزامنة إذا لزم الأمر
-    _ref.listen<List<int>>(favoritesIdProvider, (previous, next) {
-      // إذا تغيرت القائمة من الخارج، أعد تحميلها
-      // هذا يضمن المزامنة إذا تم التغيير من شاشة أخرى
-      fetchFavoriteAdhkar();
-    });
-  }
-
-  final Ref _ref;
-
-  Future<void> fetchFavoriteAdhkar() async {
-    state = const AsyncValue.loading();
-    try {
-      final favoriteIds = _ref.read(favoritesIdProvider);
-      if (favoriteIds.isEmpty) {
-        state = const AsyncValue.data([]);
-        return;
-      }
-      final repository = _ref.read(adhkarRepositoryProvider);
-      final adhkar = await repository.getAdhkarByIds(favoriteIds);
-      state = AsyncValue.data(adhkar);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
-  }
-
-  // دالة لإزالة ذكر من المفضلة (تحديث فوري للواجهة)
-  Future<void> removeFavorite(int adhkarId) async {
-    // 1. تحديث قائمة الـ IDs في SharedPreferences
-    await _ref.read(favoritesIdProvider.notifier).toggleFavorite(adhkarId);
-
-    // 2. تحديث الواجهة فوراً بدون إعادة جلب من قاعدة البيانات
-    state.whenData((adhkarList) {
-      final newList =
-          adhkarList.where((adhkar) => adhkar.id != adhkarId).toList();
-      state = AsyncValue.data(newList);
-    });
-  }
-}

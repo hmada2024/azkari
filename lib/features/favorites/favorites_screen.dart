@@ -1,28 +1,16 @@
-// lib/features/favorites/favorites_screen.dart
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'favorites_provider.dart';
 
-class FavoritesScreen extends ConsumerStatefulWidget {
-  // ✨ تحويل إلى StatefulWidget
+// ✨ تحويل الويدجت إلى ConsumerWidget لأنه لم يعد بحاجة إلى حالة داخلية
+class FavoritesScreen extends ConsumerWidget {
   const FavoritesScreen({super.key});
 
   @override
-  ConsumerState<FavoritesScreen> createState() => _FavoritesScreenState();
-}
-
-class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // ✨ جلب البيانات مرة واحدة عند فتح الشاشة
-    Future.microtask(
-        () => ref.read(favoriteAdhkarProvider.notifier).fetchFavoriteAdhkar());
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ✨ مراقبة الـ FutureProvider الجديد مباشرة
+    // لم نعد بحاجة لـ initState أو استدعاء أي دوال يدوياً
     final favoriteAdhkarAsync = ref.watch(favoriteAdhkarProvider);
 
     return Scaffold(
@@ -30,7 +18,6 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         title: const Text('المفضلة'),
       ),
       body: favoriteAdhkarAsync.when(
-        // ... باقي الكود يبقى كما هو بدون تغيير
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('خطأ: $error')),
         data: (adhkarList) {
@@ -50,6 +37,8 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
             );
           }
 
+          // عند الضغط على زر النجمة في AdhkarCard، سيتم تحديث favoriteIdProvider
+          // وهذا بدوره سيؤدي إلى إعادة بناء favoriteAdhkarProvider وتحديث هذه القائمة تلقائياً
           return ListView.builder(
             padding: const EdgeInsets.only(top: 8, bottom: 80),
             itemCount: adhkarList.length,
