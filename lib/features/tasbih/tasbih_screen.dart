@@ -23,20 +23,23 @@ class TasbihScreen extends ConsumerWidget {
           return SafeArea(
             child: SingleChildScrollView(
               child: Padding(
+                // [تعديل التجاوب] استخدام نسبة مئوية من عرض الشاشة
                 padding: EdgeInsets.symmetric(
                   horizontal: context.screenWidth * 0.05,
-                  vertical: 24,
+                  vertical: context.responsiveSize(24),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const TasbihHeader(),
 
-                    SizedBox(height: context.screenHeight * 0.08),
+                    // [تعديل التجاوب] استخدام نسبة مئوية من ارتفاع الشاشة
+                    SizedBox(height: context.screenHeight * 0.06),
 
                     ActiveTasbihView(activeTasbih: activeTasbih),
 
-                    SizedBox(height: context.screenHeight * 0.08),
+                    // [تعديل التجاوب] استخدام نسبة مئوية من ارتفاع الشاشة
+                    SizedBox(height: context.screenHeight * 0.06),
 
                     TasbihCounterButton(tasbihList: tasbihList),
                   ],

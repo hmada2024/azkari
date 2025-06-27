@@ -1,4 +1,6 @@
+// lib/features/settings/settings_screen.dart
 import 'package:azkari/core/providers/settings_provider.dart';
+import 'package:azkari/core/utils/size_config.dart'; // [تعديل التجاوب] استيراد الملف
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,9 +18,10 @@ class SettingsScreen extends ConsumerWidget {
         title: const Text('الإعدادات'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16.0),
+        // [تعديل التجاوب] استخدام قيم متجاوبة
+        padding: EdgeInsets.all(context.responsiveSize(16.0)),
         children: [
-          _buildSectionTitle('المظهر', theme),
+          _buildSectionTitle('المظهر', theme, context),
           Card(
             child: Column(
               children: [
@@ -43,46 +46,52 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          _buildSectionTitle('حجم الخط', theme),
+          // [تعديل التجاوب] استخدام قيم متجاوبة
+          SizedBox(height: context.responsiveSize(24)),
+          _buildSectionTitle('حجم الخط', theme, context),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              // [تعديل التجاوب] استخدام قيم متجاوبة
+              padding: EdgeInsets.all(context.responsiveSize(16.0)),
               child: Column(
                 children: [
                   Text('سبحان الله وبحمده، سبحان الله العظيم',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontFamily: 'Amiri', fontSize: 20 * settings.fontScale)),
-                  const SizedBox(height: 16),
+                          fontFamily: 'Amiri',
+                          fontSize:
+                              context.responsiveSize(20) * settings.fontScale)),
+                  SizedBox(height: context.responsiveSize(16)),
                   Slider(
                     value: settings.fontScale,
                     min: 0.8,
                     max: 1.5,
                     divisions: 7,
                     label: '${(settings.fontScale * 100).toStringAsFixed(0)}%',
-                    onChanged: (value) => settingsNotifier.updateFontScale(value),
+                    onChanged: (value) =>
+                        settingsNotifier.updateFontScale(value),
                     activeColor: theme.primaryColor,
                   ),
                 ],
               ),
             ),
           ),
-          // ✨✨✨ تم حذف قسم الإشعارات بالكامل من الواجهة ✨✨✨
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title, ThemeData theme) {
+  Widget _buildSectionTitle(
+      String title, ThemeData theme, BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      // [تعديل التجاوب] استخدام قيم متجاوبة
+      padding: EdgeInsets.only(bottom: context.responsiveSize(8.0)),
       child: Text(
         title,
         style: TextStyle(
           color: theme.primaryColor,
           fontWeight: FontWeight.bold,
-          fontSize: 16,
+          fontSize: context.responsiveSize(16),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 // lib/features/tasbih/widgets/tasbih_selection_sheet.dart
+import 'package:azkari/core/utils/size_config.dart'; // [تعديل التجاوب] استيراد الملف
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +28,12 @@ class TasbihSelectionSheet extends ConsumerWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                // [تعديل التجاوب] استخدام قيم متجاوبة
+                padding: EdgeInsets.fromLTRB(
+                    context.responsiveSize(16),
+                    context.responsiveSize(16),
+                    context.responsiveSize(16),
+                    context.responsiveSize(8)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -62,7 +68,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
                             const Icon(Icons.check_circle,
                                 color: Colors.green, size: 20),
                           if (wasUsedToday && tasbih.isDeletable)
-                            const SizedBox(width: 8),
+                            // [تعديل التجاوب] استخدام قيم متجاوبة
+                            SizedBox(width: context.responsiveSize(8)),
                           if (tasbih.isDeletable)
                             IconButton(
                               padding: EdgeInsets.zero,
@@ -93,6 +100,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
+  // ... ( باقي الدوال بدون تغيير )
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);

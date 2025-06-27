@@ -1,3 +1,5 @@
+// lib/features/home/home_screen.dart
+import 'package:azkari/core/utils/size_config.dart'; // [تعديل التجاوب] استيراد الملف
 import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:azkari/features/adhkar_list/adhkar_screen.dart';
 import 'package:azkari/features/settings/settings_screen.dart';
@@ -42,15 +44,21 @@ class HomeScreen extends ConsumerWidget {
         error: (error, stack) => Center(child: Text('حدث خطأ: $error')),
         data: (categories) {
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            // [تعديل التجاوب] استخدام قيم متجاوبة
+            padding: EdgeInsets.symmetric(
+                vertical: context.responsiveSize(8.0),
+                horizontal: context.responsiveSize(12.0)),
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
               final icon = categoryIcons[category] ?? Icons.list_alt_rounded;
               return Card(
                 elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                margin: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)),
+                // [تعديل التجاوب] استخدام قيم متجاوبة
+                margin:
+                    EdgeInsets.symmetric(vertical: context.responsiveSize(8)),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(15),
                   onTap: () {
@@ -61,22 +69,27 @@ class HomeScreen extends ConsumerWidget {
                     );
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    // [تعديل التجاوب] استخدام قيم متجاوبة
+                    padding: EdgeInsets.all(context.responsiveSize(20.0)),
                     child: Row(
                       children: [
-                        Icon(icon, color: theme.primaryColor, size: 28),
-                        const SizedBox(width: 16),
+                        Icon(icon,
+                            color: theme.primaryColor,
+                            size: context.responsiveSize(28)),
+                        SizedBox(width: context.responsiveSize(16)),
                         Expanded(
                           child: Text(
                             category,
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: context.responsiveSize(18),
                               fontWeight: FontWeight.w600,
                               color: theme.textTheme.bodyLarge?.color,
                             ),
                           ),
                         ),
-                        const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
+                        Icon(Icons.arrow_forward_ios,
+                            size: context.responsiveSize(18),
+                            color: Colors.grey),
                       ],
                     ),
                   ),
