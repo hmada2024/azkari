@@ -1,21 +1,27 @@
+// lib/main.dart
 import 'dart:io';
 import 'package:azkari/core/providers/settings_provider.dart';
+import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/presentation/shell/splash_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
 
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-  
+  await Future.wait([
+    SharedPreferences.getInstance(), // تهيئة SharedPreferences
+    DatabaseHelper.instance.database, // تهيئة قاعدة البيانات والوصول للملفات
+  ]);
+
   runApp(const ProviderScope(
     child: MyApp(),
   ));
@@ -50,9 +56,16 @@ class MyApp extends ConsumerWidget {
           elevation: 1.0,
           centerTitle: true,
           iconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+          titleTextStyle: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white),
         ),
-        cardTheme: CardTheme(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+        cardTheme: CardTheme(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15))),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
@@ -66,9 +79,16 @@ class MyApp extends ConsumerWidget {
           elevation: 1.0,
           centerTitle: true,
           iconTheme: const IconThemeData(color: Colors.tealAccent),
-          titleTextStyle: TextStyle(fontFamily: 'Cairo', fontSize: 22, fontWeight: FontWeight.bold, color: Colors.tealAccent.shade100),
+          titleTextStyle: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.tealAccent.shade100),
         ),
-        cardTheme: CardTheme(elevation: 2, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+        cardTheme: CardTheme(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15))),
         iconTheme: const IconThemeData(color: Colors.tealAccent),
         dividerColor: Colors.white24,
       ),
