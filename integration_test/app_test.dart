@@ -68,7 +68,13 @@ void main() {
       await tester.tap(find.byKey(const Key('bottom_nav_favorites')));
       await tester.pumpAndSettle();
 
-      expect(find.text('المفضلة'), findsOneWidget);
+      // ✅✅✅ هذا هو السطر الذي تم تصحيحه ✅✅✅
+      // البحث عن العنوان داخل شريط العنوان لضمان الدقة
+      expect(
+          find.descendant(
+              of: find.byType(AppBar), matching: find.text('المفضلة')),
+          findsOneWidget);
+
       expect(find.text(targetAdhkarText), findsOneWidget);
       debugPrint('SUCCESS: Found "$targetAdhkarText" in favorites screen.');
     });
