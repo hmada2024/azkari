@@ -31,8 +31,10 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('اختر من قائمة التسابيح',
-                        style: Theme.of(context).textTheme.titleLarge),
+                    Expanded(
+                      child: Text('اختر من قائمة التسابيح',
+                          style: Theme.of(context).textTheme.titleLarge),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
