@@ -36,16 +36,22 @@ class _AppShellState extends State<AppShell> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
+            // ✅ إضافة مفتاح هنا
+            key: Key('bottom_nav_home'),
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'الرئيسية',
           ),
           BottomNavigationBarItem(
+            // ✅ إضافة مفتاح هنا
+            key: Key('bottom_nav_tasbih'),
             icon: Icon(Icons.fingerprint),
             activeIcon: Icon(Icons.fingerprint),
             label: 'السبحة',
           ),
           BottomNavigationBarItem(
+            // ✅ إضافة مفتاح هنا
+            key: Key('bottom_nav_favorites'),
             icon: Icon(Icons.star_border_outlined),
             activeIcon: Icon(Icons.star),
             label: 'المفضلة',
