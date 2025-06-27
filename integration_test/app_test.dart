@@ -67,9 +67,6 @@ void main() {
 
       await tester.tap(find.byKey(const Key('bottom_nav_favorites')));
       await tester.pumpAndSettle();
-
-      // ✅✅✅ هذا هو السطر الذي تم تصحيحه ✅✅✅
-      // البحث عن العنوان داخل شريط العنوان لضمان الدقة
       expect(
           find.descendant(
               of: find.byType(AppBar), matching: find.text('المفضلة')),
