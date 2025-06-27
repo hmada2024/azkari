@@ -1,3 +1,4 @@
+// lib/features/tasbih/tasbih_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/active_tasbih_view.dart';
@@ -11,11 +12,7 @@ class TasbihScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. مراقبة حالة القائمة للتعامل مع التحميل والخطأ
     final tasbihListAsync = ref.watch(tasbihListProvider);
-
-    // 2. ✨ استهلاك الذكر النشط الجاهز من الـ provider الجديد
-    // لم يعد هناك أي منطق لحساب الذكر هنا في الواجهة
     final activeTasbih = ref.watch(activeTasbihProvider);
 
     return Scaffold(
@@ -24,18 +21,26 @@ class TasbihScreen extends ConsumerWidget {
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
           return SafeArea(
-            child: Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: context.screenWidth * 0.05),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const TasbihHeader(),
-                  ActiveTasbihView(activeTasbih: activeTasbih),
-                  TasbihCounterButton(tasbihList: tasbihList),
-                  const SizedBox.shrink(),
-                ],
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.screenWidth * 0.05,
+                  vertical: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const TasbihHeader(),
+
+                    SizedBox(height: context.screenHeight * 0.08),
+
+                    ActiveTasbihView(activeTasbih: activeTasbih),
+
+                    SizedBox(height: context.screenHeight * 0.08),
+
+                    TasbihCounterButton(tasbihList: tasbihList),
+                  ],
+                ),
               ),
             ),
           );
