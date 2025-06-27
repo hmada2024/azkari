@@ -19,10 +19,9 @@ class SplashScreen extends ConsumerWidget {
     "أذكارك حصنك المنيع، فلا تهجره.",
   ];
 
-  // ✨ [تحسين]: استخلاص منطق الانتقال في دالة منفصلة لتجنب التكرار وجعل الكود أنظف.
   void _navigateToHome(BuildContext context) {
     // استخدمنا مدة تأخير ثابتة لضمان بقاء الشاشة قليلاً حتى لو كانت البيانات سريعة التحميل.
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const AppShell()),
@@ -36,16 +35,14 @@ class SplashScreen extends ConsumerWidget {
     final randomMessage =
         _inspirationalMessages[Random().nextInt(_inspirationalMessages.length)];
 
-    // ✨ [تحسين]: التعامل مع جميع حالات الـ Provider (النجاح والخطأ) لمنع التطبيق من التعليق.
-    // هذا يضمن أنه حتى لو فشل تحميل البيانات، لن تظل شاشة البداية معلقة إلى الأبد.
-    ref.listen<AsyncValue<dynamic>>(categoriesProvider, (previous, next) {
-      next.when(
-        loading: () {
-          // لا حاجة لعمل أي شيء هنا، نحن بالفعل في شاشة التحميل.
-        },
-        error: (error, stackTrace) {
-          // في حالة حدوث خطأ، نعرض رسالة للمستخدم ثم ننتقل إلى الشاشة الرئيسية.
-          // هذا أفضل من ترك التطبيق معلقًا.
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    categoriesAsync.whenOrNull(
+      data: (_) {
+        Future.microtask(() => _navigateToHome(context));
+      },
+      error: (error, stack) {
+        Future.microtask(() {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -55,13 +52,9 @@ class SplashScreen extends ConsumerWidget {
             );
             _navigateToHome(context);
           }
-        },
-        data: (data) {
-          // في حالة النجاح، ننتقل إلى الشاشة الرئيسية.
-          _navigateToHome(context);
-        },
-      );
-    });
+        });
+      },
+    );
 
     return Scaffold(
       backgroundColor: Colors.teal,

@@ -2,6 +2,7 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/active_tasbih_view.dart';
+import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_header.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +24,6 @@ class TasbihScreen extends ConsumerWidget {
           return SafeArea(
             child: SingleChildScrollView(
               child: Padding(
-                // [تعديل التجاوب] استخدام نسبة مئوية من عرض الشاشة
                 padding: EdgeInsets.symmetric(
                   horizontal: context.screenWidth * 0.05,
                   vertical: context.responsiveSize(24),
@@ -33,15 +33,18 @@ class TasbihScreen extends ConsumerWidget {
                   children: [
                     const TasbihHeader(),
 
-                    // [تعديل التجاوب] استخدام نسبة مئوية من ارتفاع الشاشة
-                    SizedBox(height: context.screenHeight * 0.06),
+                    SizedBox(height: context.screenHeight * 0.04),
 
                     ActiveTasbihView(activeTasbih: activeTasbih),
 
-                    // [تعديل التجاوب] استخدام نسبة مئوية من ارتفاع الشاشة
-                    SizedBox(height: context.screenHeight * 0.06),
+                    SizedBox(height: context.screenHeight * 0.04),
 
                     TasbihCounterButton(tasbihList: tasbihList),
+
+                    SizedBox(height: context.screenHeight * 0.04),
+
+                    // ✨ [جديد] إضافة واجهة عرض الأهداف اليومية
+                    const DailyGoalsView(),
                   ],
                 ),
               ),

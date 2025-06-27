@@ -1,4 +1,6 @@
+// lib/data/repositories/adhkar_repository.dart
 import 'package:azkari/data/models/adhkar_model.dart';
+import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 
@@ -16,7 +18,6 @@ class AdhkarRepository {
     return _dbHelper.getAdhkarByCategory(category);
   }
 
-  // دالة جديدة لجلب الأذكار بناءً على قائمة من الـ IDs (سنحتاجها في شاشة المفضلة)
   Future<List<AdhkarModel>> getAdhkarByIds(List<int> ids) async {
     if (ids.isEmpty) return [];
     return _dbHelper.getAdhkarByIds(ids);
@@ -32,5 +33,26 @@ class AdhkarRepository {
 
   Future<void> deleteTasbih(int id) {
     return _dbHelper.deleteTasbih(id);
+  }
+
+  // --- ✨ دوال جديدة لتمرير عمليات الأهداف ---
+  Future<void> setOrUpdateGoal(int tasbihId, int targetCount) {
+    return _dbHelper.setOrUpdateGoal(tasbihId, targetCount);
+  }
+
+  Future<void> removeGoal(int tasbihId) {
+    return _dbHelper.removeGoal(tasbihId);
+  }
+
+  Future<void> incrementGoalProgress(int goalId) {
+    return _dbHelper.incrementGoalProgress(goalId);
+  }
+
+  Future<List<DailyGoalModel>> getGoalsWithTodayProgress() {
+    return _dbHelper.getGoalsWithTodayProgress();
+  }
+
+  Future<Map<String, dynamic>?> getGoalForTasbih(int tasbihId) {
+    return _dbHelper.getGoalForTasbih(tasbihId);
   }
 }

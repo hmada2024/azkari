@@ -1,8 +1,11 @@
 // lib/features/tasbih/widgets/tasbih_selection_sheet.dart
-import 'package:azkari/core/utils/size_config.dart'; // [تعديل التجاوب] استيراد الملف
+import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
+import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class TasbihSelectionSheet extends ConsumerWidget {
@@ -10,9 +13,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasbihList = ref.watch(tasbihListProvider).asData?.value ?? [];
-    final usedTodayIds =
-        ref.watch(tasbihStateProvider.select((s) => s.usedTodayIds));
+    final tasbihListAsync = ref.watch(tasbihListProvider);
+    final dailyGoalsAsync = ref.watch(dailyGoalsProvider);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
@@ -27,13 +29,10 @@ class TasbihSelectionSheet extends ConsumerWidget {
           ),
           child: Column(
             children: [
+              // --- [الإصلاح النهائي الحقيقي] ---
               Padding(
-                // [تعديل التجاوب] استخدام قيم متجاوبة
-                padding: EdgeInsets.fromLTRB(
-                    context.responsiveSize(16),
-                    context.responsiveSize(16),
-                    context.responsiveSize(16),
-                    context.responsiveSize(8)),
+                padding: const EdgeInsets.fromLTRB(
+                    16, 16, 16, 8), // إضافة 'padding:'
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -44,53 +43,77 @@ class TasbihSelectionSheet extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
-                      onPressed: () {
-                        _showAddTasbihDialog(context, ref);
-                      },
+                      onPressed: () => _showAddTasbihDialog(context, ref),
                     ),
                   ],
                 ),
               ),
+              // --- نهاية الإصلاح ---
               Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  itemCount: tasbihList.length,
-                  itemBuilder: (context, index) {
-                    final tasbih = tasbihList[index];
-                    final wasUsedToday = usedTodayIds.contains(tasbih.id);
-                    return ListTile(
-                      title: Text(tasbih.text,
-                          maxLines: 2, overflow: TextOverflow.ellipsis),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (wasUsedToday)
-                            const Icon(Icons.check_circle,
-                                color: Colors.green, size: 20),
-                          if (wasUsedToday && tasbih.isDeletable)
-                            // [تعديل التجاوب] استخدام قيم متجاوبة
-                            SizedBox(width: context.responsiveSize(8)),
-                          if (tasbih.isDeletable)
+                child: tasbihListAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, s) => Center(child: Text('خطأ: $e')),
+                  data: (tasbihList) => ListView.builder(
+                    controller: scrollController,
+                    itemCount: tasbihList.length,
+                    itemBuilder: (context, index) {
+                      final tasbih = tasbihList[index];
+
+                      final List<DailyGoalModel> goals =
+                          dailyGoalsAsync.asData?.value ?? [];
+                      final goalIndex =
+                          goals.indexWhere((g) => g.tasbihId == tasbih.id);
+                      final DailyGoalModel? goal =
+                          goalIndex != -1 ? goals[goalIndex] : null;
+
+                      final hasGoal = goal != null;
+
+                      return ListTile(
+                        title: Text(tasbih.text,
+                            maxLines: 2, overflow: TextOverflow.ellipsis),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             IconButton(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: Icon(Icons.delete_outline,
-                                  color: Colors.red.shade400),
-                              onPressed: () {
-                                _showDeleteConfirmationDialog(
-                                    context, ref, tasbih);
-                              },
+                              tooltip: hasGoal
+                                  ? 'تعديل الهدف اليومي'
+                                  : 'إضافة هدف يومي',
+                              icon: Icon(
+                                hasGoal
+                                    ? Icons.flag_rounded
+                                    : Icons.flag_outlined,
+                                color: hasGoal
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey,
+                              ),
+                              onPressed: () => _showSetGoalDialog(context, ref,
+                                  tasbih.id, tasbih.text, goal?.targetCount),
                             ),
-                        ],
-                      ),
-                      onTap: () {
-                        ref
-                            .read(tasbihStateProvider.notifier)
-                            .setActiveTasbih(tasbih.id);
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
+                            if (tasbih.isDeletable)
+                              SizedBox(width: context.responsiveSize(8)),
+                            if (tasbih.isDeletable)
+                              IconButton(
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: Icon(Icons.delete_outline,
+                                    color: Colors.red.shade400),
+                                onPressed: () => _showDeleteConfirmationDialog(
+                                    context, ref, tasbih),
+                              ),
+                          ],
+                        ),
+                        onTap: () {
+                          ref
+                              .read(tasbihStateProvider.notifier)
+                              .setActiveTasbih(tasbih.id);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
@@ -100,7 +123,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
-  // ... ( باقي الدوال بدون تغيير )
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
@@ -126,14 +148,12 @@ class TasbihSelectionSheet extends ConsumerWidget {
               child: const Text('إضافة'),
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  // ✨ [الإصلاح]: التقط الـ Navigator و Messenger قبل الـ await
                   final navigator = Navigator.of(dialogContext);
                   final messenger = ScaffoldMessenger.of(context);
                   final textToAdd = controller.text.trim();
 
                   await tasbihNotifier.addTasbih(textToAdd);
 
-                  // استخدم النسخ الملتقطة بعد الـ await
                   if (!context.mounted) return;
 
                   messenger.showSnackBar(
@@ -176,14 +196,12 @@ class TasbihSelectionSheet extends ConsumerWidget {
               ),
               child: const Text('حذف'),
               onPressed: () async {
-                // ✨ [الإصلاح]: التقط الـ Navigator و Messenger قبل الـ await
                 final navigator = Navigator.of(dialogContext);
                 final messenger = ScaffoldMessenger.of(context);
                 final idToDelete = tasbih.id;
 
                 await tasbihNotifier.deleteTasbih(idToDelete);
 
-                // استخدم النسخ الملتقطة بعد الـ await
                 if (!context.mounted) return;
 
                 messenger.showSnackBar(
@@ -195,6 +213,88 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 );
 
                 navigator.pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSetGoalDialog(BuildContext context, WidgetRef ref, int tasbihId,
+      String tasbihText, int? currentTarget) {
+    final TextEditingController controller =
+        TextEditingController(text: currentTarget?.toString() ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('الهدف اليومي'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('"$tasbihText"',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontStyle: FontStyle.italic)),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'العدد المطلوب يومياً',
+                    hintText: 'مثال: 100',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'الرجاء إدخال عدد';
+                    }
+                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                      return 'الرجاء إدخال عدد صحيح أكبر من صفر';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            if (currentTarget != null)
+              TextButton(
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('إزالة الهدف'),
+                onPressed: () async {
+                  final navigator = Navigator.of(dialogContext);
+                  await ref
+                      .read(dailyGoalsNotifierProvider.notifier)
+                      .removeGoal(tasbihId);
+                  navigator.pop();
+                },
+              ),
+            const Spacer(),
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            FilledButton(
+              child: const Text('حفظ'),
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final navigator = Navigator.of(dialogContext);
+                  final target = int.parse(controller.text.trim());
+                  await ref
+                      .read(dailyGoalsNotifierProvider.notifier)
+                      .setOrUpdateGoal(tasbihId, target);
+                  navigator.pop();
+                }
               },
             ),
           ],
