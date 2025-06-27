@@ -6,6 +6,7 @@
 import 'dart:async' as _i5;
 
 import 'package:azkari/data/models/adhkar_model.dart' as _i6;
+import 'package:azkari/data/models/daily_goal_model.dart' as _i7;
 import 'package:azkari/data/models/tasbih_model.dart' as _i3;
 import 'package:azkari/data/services/database_helper.dart' as _i4;
 import 'package:mockito/mockito.dart' as _i1;
@@ -127,4 +128,62 @@ class MockDatabaseHelper extends _i1.Mock implements _i4.DatabaseHelper {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> setOrUpdateGoal(
+    int? tasbihId,
+    int? targetCount,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #setOrUpdateGoal,
+          [
+            tasbihId,
+            targetCount,
+          ],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> removeGoal(int? tasbihId) => (super.noSuchMethod(
+        Invocation.method(
+          #removeGoal,
+          [tasbihId],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<void> incrementGoalProgress(int? goalId) => (super.noSuchMethod(
+        Invocation.method(
+          #incrementGoalProgress,
+          [goalId],
+        ),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
+
+  @override
+  _i5.Future<List<_i7.DailyGoalModel>> getGoalsWithTodayProgress() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getGoalsWithTodayProgress,
+          [],
+        ),
+        returnValue:
+            _i5.Future<List<_i7.DailyGoalModel>>.value(<_i7.DailyGoalModel>[]),
+      ) as _i5.Future<List<_i7.DailyGoalModel>>);
+
+  @override
+  _i5.Future<Map<String, dynamic>?> getGoalForTasbih(int? tasbihId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getGoalForTasbih,
+          [tasbihId],
+        ),
+        returnValue: _i5.Future<Map<String, dynamic>?>.value(),
+      ) as _i5.Future<Map<String, dynamic>?>);
 }
