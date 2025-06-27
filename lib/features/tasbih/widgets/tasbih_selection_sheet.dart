@@ -39,7 +39,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
                       onPressed: () {
-                        Navigator.pop(context);
                         _showAddTasbihDialog(context, ref);
                       },
                     ),
@@ -71,7 +70,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
                               icon: Icon(Icons.delete_outline,
                                   color: Colors.red.shade400),
                               onPressed: () {
-                                Navigator.pop(context);
                                 _showDeleteConfirmationDialog(
                                     context, ref, tasbih);
                               },
@@ -97,6 +95,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
+    final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -118,20 +118,25 @@ class TasbihSelectionSheet extends ConsumerWidget {
               child: const Text('إضافة'),
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  await ref
-                      .read(tasbihStateProvider.notifier)
-                      .addTasbih(controller.text.trim());
+                  // ✨ [الإصلاح]: التقط الـ Navigator و Messenger قبل الـ await
+                  final navigator = Navigator.of(dialogContext);
+                  final messenger = ScaffoldMessenger.of(context);
+                  final textToAdd = controller.text.trim();
 
-                  if (dialogContext.mounted) Navigator.pop(dialogContext);
+                  await tasbihNotifier.addTasbih(textToAdd);
 
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('تمت الإضافة بنجاح'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
+                  // استخدم النسخ الملتقطة بعد الـ await
+                  if (!context.mounted) return;
+
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text('تمت الإضافة بنجاح'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+
+                  navigator.pop();
                 }
               },
             ),
@@ -143,6 +148,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
+    final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
+
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -161,20 +168,25 @@ class TasbihSelectionSheet extends ConsumerWidget {
               ),
               child: const Text('حذف'),
               onPressed: () async {
-                await ref
-                    .read(tasbihStateProvider.notifier)
-                    .deleteTasbih(tasbih.id);
+                // ✨ [الإصلاح]: التقط الـ Navigator و Messenger قبل الـ await
+                final navigator = Navigator.of(dialogContext);
+                final messenger = ScaffoldMessenger.of(context);
+                final idToDelete = tasbih.id;
 
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
+                await tasbihNotifier.deleteTasbih(idToDelete);
 
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم الحذف بنجاح'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
+                // استخدم النسخ الملتقطة بعد الـ await
+                if (!context.mounted) return;
+
+                messenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('تم الحذف بنجاح'),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                navigator.pop();
               },
             ),
           ],

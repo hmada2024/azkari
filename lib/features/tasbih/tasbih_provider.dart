@@ -115,7 +115,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     ]);
   }
 
-  // ✅ [تم الإصلاح]: استخدام الاسم الصحيح للثابت
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
     final lastOpenDate = prefs.getString(AppConstants.lastResetDateKey);
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -148,7 +147,9 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> addTasbih(String text) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.addTasbih(text);
-    _ref.invalidate(tasbihListProvider);
+    // ✨ [الإصلاح النهائي]: العودة للطريقة الصحيحة وتجاهل التحذير الخاطئ
+    // ignore: unused_result
+    await _ref.refresh(tasbihListProvider.future);
   }
 
   Future<void> deleteTasbih(int id) async {
@@ -157,7 +158,9 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
     }
-    _ref.invalidate(tasbihListProvider);
+    // ✨ [الإصلاح النهائي]: العودة للطريقة الصحيحة وتجاهل التحذير الخاطئ
+    // ignore: unused_result
+    await _ref.refresh(tasbihListProvider.future);
     await _saveState();
   }
 }

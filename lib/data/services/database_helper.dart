@@ -1,4 +1,5 @@
 // lib/data/services/database_helper.dart
+// ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:flutter/foundation.dart';

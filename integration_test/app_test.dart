@@ -1,21 +1,40 @@
 // integration_test/app_test.dart
+// ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
-
 import 'package:azkari/main.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
+  // ✨ [إضافة]: إعداد بيئة اختبار نظيفة قبل التشغيل.
+  setUpAll(() async {
+    // تهيئة FFI لمنصات سطح المكتب
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    // الحصول على مسار قاعدة البيانات
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    const dbName = "azkar.db";
+    String path = join(documentsDirectory.path, dbName);
+
+    // حذف قاعدة البيانات الموجودة مسبقًا لضمان بدء الاختبار من حالة نظيفة
+    final dbFile = File(path);
+    if (await dbFile.exists()) {
+      await dbFile.delete();
+      debugPrint("Deleted existing database at $path for a clean test run.");
+    }
+  });
 
   group('App End-to-End Tests', () {
     testWidgets('Full flow: favorite an adhkar and verify in favorites screen',
