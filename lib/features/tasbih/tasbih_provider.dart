@@ -148,24 +148,20 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     await _saveState();
   }
 
+  // ✅ مهمة هذه الدالة هي الكتابة فقط. لا يوجد بها أي إبطال صلاحية.
   Future<TasbihModel> addTasbih(String text) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     final newTasbih = await repository.addTasbih(text);
-    // ✨ [الإصلاح النهائي القاطع] - النمط الصحيح المكون من خطوتين
-    _ref.invalidate(tasbihListProvider);
-    await _ref.read(tasbihListProvider.future);
     return newTasbih;
   }
 
+  // ✅ نفس الشيء هنا. مجرد حذف من قاعدة البيانات.
   Future<void> deleteTasbih(int id) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.deleteTasbih(id);
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
     }
-    // ✨ [الإصلاح النهائي القاطع] - النمط الصحيح المكون من خطوتين
-    _ref.invalidate(tasbihListProvider);
-    await _ref.read(tasbihListProvider.future);
     await _saveState();
   }
 }

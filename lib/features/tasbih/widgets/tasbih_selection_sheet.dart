@@ -41,14 +41,11 @@ class TasbihSelectionSheet extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
-                      // ✨ [الإصلاح الحقيقي]
-                      onPressed: () async {
-                        final success =
-                            await _showAddTasbihDialog(context, ref);
-                        if (success == true && context.mounted) {
-                          // فقط أغلق وأرجع النتيجة. لا SnackBar هنا.
-                          Navigator.pop(context, true);
-                        }
+                      // ✅✅✅ هذا هو التعديل المنطقي الحاسم ✅✅✅
+                      // لم نعد نغلق هذه الشاشة بعد الإضافة، بل نتركها
+                      // لتتحدث بشكل تفاعلي.
+                      onPressed: () {
+                        _showAddTasbihDialog(context, ref);
                       },
                     ),
                   ],
@@ -129,11 +126,11 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
-  Future<bool?> _showAddTasbihDialog(
-      BuildContext context, WidgetRef ref) async {
+  // تم تغيير return type إلى void لأننا لم نعد بحاجة لإرجاع قيمة
+  void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
 
-    return showDialog<bool>(
+    showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -149,19 +146,18 @@ class TasbihSelectionSheet extends ConsumerWidget {
           actions: [
             TextButton(
               child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(dialogContext, false),
+              onPressed: () => Navigator.pop(dialogContext), // لا نرجع قيمة
             ),
             FilledButton(
               child: const Text('إضافة'),
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  // هذا سيعيد TasbihModel ولكننا لا نحتاجه هنا
                   await ref
                       .read(tasbihStateProvider.notifier)
                       .addTasbih(controller.text.trim());
 
                   if (dialogContext.mounted) {
-                    Navigator.pop(dialogContext, true);
+                    Navigator.pop(dialogContext); // لا نرجع قيمة
                   }
                 }
               },

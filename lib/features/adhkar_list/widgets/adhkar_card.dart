@@ -65,6 +65,8 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
     final isFavorite = favoriteIds.contains(widget.adhkar.id);
 
     return Card(
+      // ✅✅✅ هذا هو التعديل المطلوب: إضافة Key فريد ✅✅✅
+      key: Key('adhkar_card_${widget.adhkar.id}'),
       margin: EdgeInsets.symmetric(
           horizontal: context.responsiveSize(12),
           vertical: context.responsiveSize(8)),
