@@ -102,10 +102,10 @@ void main() {
 
     // 1. انتظر إغلاق مربع الحوار أولاً
     await tester.pumpAndSettle();
-    debugPrint("✅ Add action complete. UI has settled.");
+    debugPrint("✅ Add action complete. UI has settled initially.");
 
     // 2. أجبِر الـ Provider على التحديث وانتظر اكتمال جلب البيانات الجديدة
-    debugPrint("🔄 Forcing provider refresh and waiting for new data...");
+    debugPrint("🔄 Forcing provider refresh and WAITING for new data...");
     final List<TasbihModel> tasbihList =
         await container.refresh(tasbihListProvider.future);
     // 3. أعد بناء الواجهة بالبيانات الجديدة
@@ -120,6 +120,7 @@ void main() {
     final deleteButtonFinder = find.byKey(Key('delete_tasbih_${newTasbih.id}'));
 
     expect(deleteButtonFinder, findsOneWidget);
+    debugPrint("✅ Delete button found successfully in the UI.");
 
     // --- DELETE FLOW ---
     await tester.ensureVisible(deleteButtonFinder);
