@@ -29,10 +29,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
           ),
           child: Column(
             children: [
-              // --- [الإصلاح النهائي الحقيقي] ---
               Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    16, 16, 16, 8), // إضافة 'padding:'
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -43,12 +41,19 @@ class TasbihSelectionSheet extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
-                      onPressed: () => _showAddTasbihDialog(context, ref),
+                      // ✨ [الإصلاح الحقيقي]
+                      onPressed: () async {
+                        final success =
+                            await _showAddTasbihDialog(context, ref);
+                        if (success == true && context.mounted) {
+                          // فقط أغلق وأرجع النتيجة. لا SnackBar هنا.
+                          Navigator.pop(context, true);
+                        }
+                      },
                     ),
                   ],
                 ),
               ),
-              // --- نهاية الإصلاح ---
               Expanded(
                 child: tasbihListAsync.when(
                   loading: () =>
@@ -70,6 +75,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
                       final hasGoal = goal != null;
 
                       return ListTile(
+                        key: Key('tasbih_tile_${tasbih.id}'),
                         title: Text(tasbih.text,
                             maxLines: 2, overflow: TextOverflow.ellipsis),
                         trailing: Row(
@@ -123,11 +129,11 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
-  void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
+  Future<bool?> _showAddTasbihDialog(
+      BuildContext context, WidgetRef ref) async {
     final TextEditingController controller = TextEditingController();
-    final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
 
-    showDialog(
+    return showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -138,33 +144,25 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 const InputDecoration(hintText: 'الصق أو اكتب الذكر هنا...'),
             maxLines: 5,
             minLines: 3,
+            autofocus: true,
           ),
           actions: [
             TextButton(
               child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(dialogContext),
+              onPressed: () => Navigator.pop(dialogContext, false),
             ),
             FilledButton(
               child: const Text('إضافة'),
               onPressed: () async {
                 if (controller.text.trim().isNotEmpty) {
-                  final navigator = Navigator.of(dialogContext);
-                  final messenger = ScaffoldMessenger.of(context);
-                  final textToAdd = controller.text.trim();
+                  // هذا سيعيد TasbihModel ولكننا لا نحتاجه هنا
+                  await ref
+                      .read(tasbihStateProvider.notifier)
+                      .addTasbih(controller.text.trim());
 
-                  await tasbihNotifier.addTasbih(textToAdd);
-
-                  if (!context.mounted) return;
-
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('تمت الإضافة بنجاح'),
-                      backgroundColor: Colors.green,
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-
-                  navigator.pop();
+                  if (dialogContext.mounted) {
+                    Navigator.pop(dialogContext, true);
+                  }
                 }
               },
             ),
@@ -174,10 +172,9 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
+  // الدوال الأخرى تبقى كما هي
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
-    final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
-
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -196,23 +193,23 @@ class TasbihSelectionSheet extends ConsumerWidget {
               ),
               child: const Text('حذف'),
               onPressed: () async {
-                final navigator = Navigator.of(dialogContext);
-                final messenger = ScaffoldMessenger.of(context);
-                final idToDelete = tasbih.id;
+                await ref
+                    .read(tasbihStateProvider.notifier)
+                    .deleteTasbih(tasbih.id);
 
-                await tasbihNotifier.deleteTasbih(idToDelete);
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
+                }
 
-                if (!context.mounted) return;
-
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('تم الحذف بنجاح'),
-                    backgroundColor: Colors.red,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-
-                navigator.pop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('تم الحذف بنجاح'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
             ),
           ],
@@ -272,11 +269,10 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
                 child: const Text('إزالة الهدف'),
                 onPressed: () async {
-                  final navigator = Navigator.of(dialogContext);
                   await ref
                       .read(dailyGoalsNotifierProvider.notifier)
                       .removeGoal(tasbihId);
-                  navigator.pop();
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
                 },
               ),
             const Spacer(),
@@ -288,12 +284,11 @@ class TasbihSelectionSheet extends ConsumerWidget {
               child: const Text('حفظ'),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final navigator = Navigator.of(dialogContext);
                   final target = int.parse(controller.text.trim());
                   await ref
                       .read(dailyGoalsNotifierProvider.notifier)
                       .setOrUpdateGoal(tasbihId, target);
-                  navigator.pop();
+                  if (dialogContext.mounted) Navigator.pop(dialogContext);
                 }
               },
             ),

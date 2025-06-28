@@ -18,6 +18,15 @@ class DatabaseHelper {
   static const String _dbName = "azkar.db";
   static const int _dbVersion = 2;
 
+  // ✨ [الإصلاح الحقيقي] - دالة لإغلاق قاعدة البيانات للاختبارات
+  @visibleForTesting
+  static Future<void> closeDatabaseForTest() async {
+    if (_database != null) {
+      await _database!.close();
+      _database = null;
+    }
+  }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
@@ -33,7 +42,6 @@ class DatabaseHelper {
     if (!dbExists) {
       debugPrint("Database not found. Copying from assets...");
       try {
-        // 1. نسخ قاعدة البيانات الأولية من Assets
         ByteData data = await rootBundle.load("assets/database_files/$_dbName");
         List<int> bytes =
             data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
@@ -45,8 +53,6 @@ class DatabaseHelper {
       }
     }
 
-    // 2. الآن، قم بفتح قاعدة البيانات مع تحديد الإصدار ودالة الترقية
-    // سيتم استدعاء onUpgrade فقط إذا كان إصدار قاعدة البيانات على القرص < 2
     return await openDatabase(
       path,
       version: _dbVersion,
@@ -54,7 +60,6 @@ class DatabaseHelper {
     );
   }
 
-  // دالة الترقية تبقى كما هي، وهي تُستدعى فقط عند الحاجة
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
     if (oldVersion < 2) {
@@ -63,10 +68,6 @@ class DatabaseHelper {
     }
   }
 
-  // ❌ لم نعد بحاجة لدالة _onCreate بهذا الشكل المعقد.
-  // عملية الإنشاء تمت معالجتها عبر نسخ الملف مباشرة.
-
-  // دالة إنشاء جداول الأهداف تبقى كما هي
   Future<void> _createGoalTables(Database db) async {
     await db.execute('''
         CREATE TABLE daily_goals (
@@ -88,7 +89,6 @@ class DatabaseHelper {
       ''');
   }
 
-  // --- باقي الدوال تبقى كما هي بدون أي تغيير ---
   Future<List<AdhkarModel>> getAdhkarByCategory(String category) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(

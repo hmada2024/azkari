@@ -7,7 +7,6 @@ import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ... (providers القديمة بدون تغيير)
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
   final repository = ref.watch(adhkarRepositoryProvider);
   return repository.getCustomTasbihList();
@@ -40,7 +39,6 @@ final activeTasbihProvider = Provider<TasbihModel>((ref) {
   );
 });
 
-// ... (StateNotifier Provider بدون تغيير)
 final tasbihStateProvider =
     StateNotifierProvider<TasbihStateNotifier, TasbihState>((ref) {
   return TasbihStateNotifier(ref);
@@ -83,17 +81,12 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     try {
       _prefs = await SharedPreferences.getInstance();
       await _resetIfNewDay(_prefs);
-
-      // ✨ [جديد] ضمان تهيئة سجلات التقدم لليوم الحالي عند بدء التشغيل
-      // هذا يضمن أن قاعدة البيانات جاهزة لاستقبال الزيادات
       await _ref.read(adhkarRepositoryProvider).getGoalsWithTodayProgress();
-
       final count = _prefs.getInt(AppConstants.tasbihCounterKey) ?? 0;
       final activeTasbihId = _prefs.getInt(AppConstants.activeTasbihIdKey);
       final usedIdsStringList =
           _prefs.getStringList(AppConstants.usedTasbihIdsKey) ?? [];
       final usedTodayIds = usedIdsStringList.map(int.parse).toSet();
-
       if (mounted) {
         state = state.copyWith(
           count: count,
@@ -125,7 +118,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
     final lastOpenDate = prefs.getString(AppConstants.lastResetDateKey);
     final today = DateTime.now().toIso8601String().substring(0, 10);
-
     if (lastOpenDate != today) {
       await prefs.setString(AppConstants.lastResetDateKey, today);
       await prefs.setStringList(AppConstants.usedTasbihIdsKey, []);
@@ -135,19 +127,12 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> increment() async {
     await _initCompleter.future;
     if (!mounted) return;
-
-    // 1. زيادة العداد العام
     state = state.copyWith(count: state.count + 1);
-
-    // ✨ 2. [جديد] زيادة عداد الهدف اليومي إذا كان هناك هدف للذكر النشط
     if (state.activeTasbihId != null) {
-      // لا ننتظر النتيجة هنا (fire and forget) لتجنب إبطاء الواجهة
       _ref
           .read(dailyGoalsNotifierProvider.notifier)
           .incrementProgressForTasbih(state.activeTasbihId!);
     }
-
-    // 3. حفظ حالة العداد العام
     await _saveState();
   }
 
@@ -163,11 +148,13 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     await _saveState();
   }
 
-  Future<void> addTasbih(String text) async {
+  Future<TasbihModel> addTasbih(String text) async {
     final repository = _ref.read(adhkarRepositoryProvider);
-    await repository.addTasbih(text);
-    // ignore: unused_result
-    await _ref.refresh(tasbihListProvider.future);
+    final newTasbih = await repository.addTasbih(text);
+    // ✨ [الإصلاح النهائي القاطع] - النمط الصحيح المكون من خطوتين
+    _ref.invalidate(tasbihListProvider);
+    await _ref.read(tasbihListProvider.future);
+    return newTasbih;
   }
 
   Future<void> deleteTasbih(int id) async {
@@ -176,8 +163,9 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
     }
-    // ignore: unused_result
-    await _ref.refresh(tasbihListProvider.future);
+    // ✨ [الإصلاح النهائي القاطع] - النمط الصحيح المكون من خطوتين
+    _ref.invalidate(tasbihListProvider);
+    await _ref.read(tasbihListProvider.future);
     await _saveState();
   }
 }

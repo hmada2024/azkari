@@ -18,13 +18,24 @@ class TasbihHeader extends ConsumerWidget {
           context: context,
           icon: Icons.list_alt_rounded,
           tooltip: 'اختيار الذكر',
-          onPressed: () {
-            showModalBottomSheet(
+          onPressed: () async {
+            // ✨ [الإصلاح الحقيقي]
+            final result = await showModalBottomSheet<bool>(
               context: context,
               isScrollControlled: true,
               backgroundColor: Colors.transparent,
               builder: (_) => const TasbihSelectionSheet(),
             );
+
+            if (result == true && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('تمت الإضافة بنجاح'),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
           },
         ),
         Text(
