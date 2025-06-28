@@ -41,9 +41,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
                     IconButton(
                       icon: const Icon(Icons.add_circle_outline),
                       tooltip: 'إضافة ذكر جديد',
-                      // ✅✅✅ هذا هو التعديل المنطقي الحاسم ✅✅✅
-                      // لم نعد نغلق هذه الشاشة بعد الإضافة، بل نتركها
-                      // لتتحدث بشكل تفاعلي.
                       onPressed: () {
                         _showAddTasbihDialog(context, ref);
                       },
@@ -99,6 +96,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
                               SizedBox(width: context.responsiveSize(8)),
                             if (tasbih.isDeletable)
                               IconButton(
+                                // ✅✅✅ هذا هو التغيير الحاسم ✅✅✅
+                                key: Key('delete_tasbih_${tasbih.id}'),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                                 icon: Icon(Icons.delete_outline,
@@ -126,7 +125,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
-  // تم تغيير return type إلى void لأننا لم نعد بحاجة لإرجاع قيمة
   void _showAddTasbihDialog(BuildContext context, WidgetRef ref) {
     final TextEditingController controller = TextEditingController();
 
@@ -146,7 +144,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
           actions: [
             TextButton(
               child: const Text('إلغاء'),
-              onPressed: () => Navigator.pop(dialogContext), // لا نرجع قيمة
+              onPressed: () => Navigator.pop(dialogContext),
             ),
             FilledButton(
               child: const Text('إضافة'),
@@ -157,7 +155,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
                       .addTasbih(controller.text.trim());
 
                   if (dialogContext.mounted) {
-                    Navigator.pop(dialogContext); // لا نرجع قيمة
+                    Navigator.pop(dialogContext);
                   }
                 }
               },
@@ -168,7 +166,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
     );
   }
 
-  // الدوال الأخرى تبقى كما هي
   void _showDeleteConfirmationDialog(
       BuildContext context, WidgetRef ref, TasbihModel tasbih) {
     showDialog(

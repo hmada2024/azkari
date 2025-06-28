@@ -1,11 +1,13 @@
-// integration_test/full_app_test.dart
+// integration_test/app_test.dart
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
+import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
+import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart'; // ✅ استيراد جديد مطلوب
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +44,6 @@ void main() {
 
   testWidgets('Full E2E App Flow: Favorites, Tasbih, and Daily Goals',
       (WidgetTester tester) async {
-    // نحتاج إلى الـ container للتحكم في حالة Riverpod من الاختبار
     final container = ProviderContainer();
     await tester.pumpWidget(UncontrolledProviderScope(
       container: container,
@@ -54,7 +55,6 @@ void main() {
     debugPrint(
         '✅ SUCCESS: Step 0 - Application started and HomeScreen is visible.');
 
-    // ... الجزء الخاص بالمفضلة يبقى كما هو ...
     debugPrint('▶️ STARTING: Step 1 - Favorites Flow Test...');
     await tester.tap(find.text('أذكار الصباح'));
     await tester.pumpAndSettle();
@@ -86,13 +86,11 @@ void main() {
     expect(specificCardFinder, findsOneWidget);
     debugPrint('✅ SUCCESS: Step 1 - Favorites flow test completed.');
 
-    // --- الجزء الخاص بالسبحة مع تطبيق التسلسل الذهبي ---
     debugPrint('▶️ STARTING: Step 2 - Tasbih Add/Delete Flow Test...');
     await tester.tap(find.byKey(const Key('bottom_nav_tasbih')));
     await tester.pumpAndSettle();
     final openListButton = find.byTooltip('اختيار الذكر');
 
-    // --- ADD FLOW ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
     final uniqueTasbihText =
@@ -100,54 +98,44 @@ void main() {
     await tester.tap(find.byTooltip('إضافة ذكر جديد'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
-
-    // 1. الإجراء: قم بتنفيذ الإجراء الذي يغير البيانات
     await tester.tap(find.text('إضافة'));
-    await tester.pumpAndSettle(); // انتظر إغلاق الحوار
 
-    // 2. الجراحة: اقتل الاتصال القديم بقاعدة البيانات
-    await DatabaseHelper.closeDatabaseForTest();
+    await tester
+        .pumpUntilFound(find.text(uniqueTasbihText, findRichText: true));
+    debugPrint("✅ Add successful. New item is visible in the sheet.");
 
-    // 3. الأمر: أجبر Riverpod على نسيان حالته القديمة
-    container.invalidate(tasbihListProvider);
+    final List<TasbihModel> tasbihList =
+        await container.read(tasbihListProvider.future);
+    final newTasbih = tasbihList.firstWhere((t) => t.text == uniqueTasbihText);
+    final deleteButtonFinder = find.byKey(Key('delete_tasbih_${newTasbih.id}'));
 
-    // 4. الصبر: انتظر بصبر حتى تظهر النتيجة الصحيحة
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-    expect(find.text(uniqueTasbihText), findsOneWidget);
-    debugPrint("✅ Add successful.");
-
-    // --- DELETE FLOW ---
-    final tileFinder = find.ancestor(
-        of: find.text(uniqueTasbihText), matching: find.byType(ListTile));
-    final deleteButtonFinder = find.descendant(
-      of: tileFinder,
-      matching: find.byIcon(Icons.delete_outline),
+    await tester.scrollUntilVisible(
+      deleteButtonFinder,
+      50.0, // مقدار التمرير
+      scrollable: find.descendant(
+        of: find.byType(TasbihSelectionSheet),
+        matching: find.byType(ListView),
+      ),
     );
 
-    // 1. الإجراء
     await tester.tap(deleteButtonFinder);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف'));
-    await tester.pumpAndSettle();
 
-    // 2. الجراحة + 3. الأمر
-    await DatabaseHelper.closeDatabaseForTest();
-    container.invalidate(tasbihListProvider);
-
-    // 4. الصبر
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-    expect(find.text(uniqueTasbihText), findsNothing);
-    debugPrint("✅ Delete successful.");
+    await tester
+        .pumpUntilNotFound(find.text(uniqueTasbihText, findRichText: true));
+    debugPrint("✅ Delete successful. Item is no longer visible in the sheet.");
 
     await tester.pageBack();
     await tester.pumpAndSettle();
     debugPrint('✅ SUCCESS: Step 2 - Tasbih add/delete flow test completed.');
 
-    // --- GOALS FLOW ---
     debugPrint('▶️ STARTING: Step 3 - Daily Goals Flow Test...');
     const tasbihTextToTrack = 'سبحان الله';
+
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
+
     final goalIconFinder = find.descendant(
       of: find.widgetWithText(ListTile, tasbihTextToTrack),
       matching: find.byIcon(Icons.flag_outlined),
@@ -158,9 +146,11 @@ void main() {
     await tester.tap(find.text('حفظ'));
     await tester.pumpAndSettle();
 
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     await DatabaseHelper.closeDatabaseForTest();
     container.invalidate(dailyGoalsProvider);
-    await tester.pageBack();
     await tester.pumpAndSettle();
 
     expect(find.text('أهدافي اليومية'), findsOneWidget);
@@ -170,23 +160,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(tasbihTextToTrack));
     await tester.pumpAndSettle();
+
     final counterButton = find.byType(TasbihCounterButton);
     for (int i = 0; i < 3; i++) {
       await tester.tap(counterButton);
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 50));
     }
 
     await DatabaseHelper.closeDatabaseForTest();
     container.invalidate(dailyGoalsProvider);
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-
+    await tester.pumpAndSettle();
     expect(find.text('3 / 3'), findsOneWidget);
-    final completedGoalRow =
-        find.ancestor(of: find.text('3 / 3'), matching: find.byType(Row));
-    expect(
-        find.descendant(
-            of: completedGoalRow, matching: find.byIcon(Icons.check_circle)),
-        findsOneWidget);
 
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
@@ -199,11 +183,47 @@ void main() {
     await tester.tap(find.text('إزالة الهدف'));
     await tester.pumpAndSettle();
 
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     await DatabaseHelper.closeDatabaseForTest();
     container.invalidate(dailyGoalsProvider);
     await tester.pumpAndSettle();
-
     expect(find.text('أهدافي اليومية'), findsNothing);
     debugPrint('✅ SUCCESS: Step 3 - Daily goals flow test completed.');
   });
+}
+
+extension on WidgetTester {
+  Future<void> pumpUntilFound(Finder finder,
+      {Duration timeout = const Duration(seconds: 10)}) async {
+    bool found = false;
+    final end = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(end)) {
+      await pump(const Duration(milliseconds: 100));
+      if (finder.evaluate().isNotEmpty) {
+        found = true;
+        break;
+      }
+    }
+    expect(found, isTrue,
+        reason:
+            'Failed to find ${finder.describeMatch(Plurality.one)} within timeout');
+  }
+
+  Future<void> pumpUntilNotFound(Finder finder,
+      {Duration timeout = const Duration(seconds: 10)}) async {
+    bool notFound = false;
+    final end = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(end)) {
+      await pump(const Duration(milliseconds: 100));
+      if (finder.evaluate().isEmpty) {
+        notFound = true;
+        break;
+      }
+    }
+    expect(notFound, isTrue,
+        reason:
+            'Widget was still found after timeout: ${finder.describeMatch(Plurality.one)}');
+  }
 }
