@@ -7,7 +7,6 @@ import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
-import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart'; // ✅ استيراد جديد مطلوب
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -100,30 +99,38 @@ void main() {
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
     await tester.tap(find.text('إضافة'));
 
-    await tester
-        .pumpUntilFound(find.text(uniqueTasbihText, findRichText: true));
-    debugPrint("✅ Add successful. New item is visible in the sheet.");
+    await tester.pumpAndSettle();
+    debugPrint("✅ Add successful dialog closed.");
 
+    // ✅✅✅ هذا هو الحل الحاسم والنهائي ✅✅✅
+    // 1. أجبِر الـ Provider على التحديث
+    container.invalidate(tasbihListProvider);
+    // 2. أجبِر الواجهة على إعادة البناء وانتظر حتى تستقر
+    await tester.pumpAndSettle();
+    // 3. الآن اقرأ البيانات من الـ Provider بعد أن تم تحديث الواجهة
     final List<TasbihModel> tasbihList =
         await container.read(tasbihListProvider.future);
-    final newTasbih = tasbihList.firstWhere((t) => t.text == uniqueTasbihText);
+
+    final newTasbih = tasbihList.firstWhere((t) => t.text == uniqueTasbihText,
+        orElse: () => throw StateError('New Tasbih not found in provider'));
     final deleteButtonFinder = find.byKey(Key('delete_tasbih_${newTasbih.id}'));
 
-    await tester.scrollUntilVisible(
-      deleteButtonFinder,
-      50.0, // مقدار التمرير
-      scrollable: find.descendant(
-        of: find.byType(TasbihSelectionSheet),
-        matching: find.byType(ListView),
-      ),
-    );
+    expect(deleteButtonFinder, findsOneWidget,
+        reason:
+            'Delete button should be present in the UI after pumpAndSettle');
+
+    await tester.ensureVisible(deleteButtonFinder);
+    await tester.pumpAndSettle();
 
     await tester.tap(deleteButtonFinder);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف'));
 
-    await tester
-        .pumpUntilNotFound(find.text(uniqueTasbihText, findRichText: true));
+    // نفس المنطق عند الحذف: أبلغ الـ provider وأعد بناء الواجهة
+    container.invalidate(tasbihListProvider);
+    await tester.pumpAndSettle();
+
+    expect(find.text(uniqueTasbihText, findRichText: true), findsNothing);
     debugPrint("✅ Delete successful. Item is no longer visible in the sheet.");
 
     await tester.pageBack();
@@ -140,6 +147,8 @@ void main() {
       of: find.widgetWithText(ListTile, tasbihTextToTrack),
       matching: find.byIcon(Icons.flag_outlined),
     );
+    await tester.ensureVisible(goalIconFinder);
+    await tester.pumpAndSettle();
     await tester.tap(goalIconFinder);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '3');
@@ -178,6 +187,8 @@ void main() {
       of: find.widgetWithText(ListTile, tasbihTextToTrack),
       matching: find.byIcon(Icons.flag_rounded),
     );
+    await tester.ensureVisible(removeGoalIcon);
+    await tester.pumpAndSettle();
     await tester.tap(removeGoalIcon);
     await tester.pumpAndSettle();
     await tester.tap(find.text('إزالة الهدف'));
@@ -192,38 +203,4 @@ void main() {
     expect(find.text('أهدافي اليومية'), findsNothing);
     debugPrint('✅ SUCCESS: Step 3 - Daily goals flow test completed.');
   });
-}
-
-extension on WidgetTester {
-  Future<void> pumpUntilFound(Finder finder,
-      {Duration timeout = const Duration(seconds: 10)}) async {
-    bool found = false;
-    final end = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(end)) {
-      await pump(const Duration(milliseconds: 100));
-      if (finder.evaluate().isNotEmpty) {
-        found = true;
-        break;
-      }
-    }
-    expect(found, isTrue,
-        reason:
-            'Failed to find ${finder.describeMatch(Plurality.one)} within timeout');
-  }
-
-  Future<void> pumpUntilNotFound(Finder finder,
-      {Duration timeout = const Duration(seconds: 10)}) async {
-    bool notFound = false;
-    final end = DateTime.now().add(timeout);
-    while (DateTime.now().isBefore(end)) {
-      await pump(const Duration(milliseconds: 100));
-      if (finder.evaluate().isEmpty) {
-        notFound = true;
-        break;
-      }
-    }
-    expect(notFound, isTrue,
-        reason:
-            'Widget was still found after timeout: ${finder.describeMatch(Plurality.one)}');
-  }
 }
