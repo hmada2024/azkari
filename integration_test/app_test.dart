@@ -2,10 +2,10 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
 import 'package:azkari/data/models/tasbih_model.dart';
+import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
-import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/foundation.dart';
@@ -90,6 +90,7 @@ void main() {
     await tester.pumpAndSettle();
     final openListButton = find.byTooltip('اختيار الذكر');
 
+    // --- ADD FLOW ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
     final uniqueTasbihText =
@@ -99,39 +100,40 @@ void main() {
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
     await tester.tap(find.text('إضافة'));
 
+    // 1. انتظر إغلاق مربع الحوار أولاً
     await tester.pumpAndSettle();
-    debugPrint("✅ Add successful dialog closed.");
+    debugPrint("✅ Add action complete. UI has settled.");
 
-    // ✅✅✅ هذا هو الحل الحاسم والنهائي ✅✅✅
-    // 1. أجبِر الـ Provider على التحديث
-    container.invalidate(tasbihListProvider);
-    // 2. أجبِر الواجهة على إعادة البناء وانتظر حتى تستقر
-    await tester.pumpAndSettle();
-    // 3. الآن اقرأ البيانات من الـ Provider بعد أن تم تحديث الواجهة
+    // 2. أجبِر الـ Provider على التحديث وانتظر اكتمال جلب البيانات الجديدة
+    debugPrint("🔄 Forcing provider refresh and waiting for new data...");
     final List<TasbihModel> tasbihList =
-        await container.read(tasbihListProvider.future);
+        await container.refresh(tasbihListProvider.future);
+    // 3. أعد بناء الواجهة بالبيانات الجديدة
+    await tester.pumpAndSettle();
+    debugPrint(
+        "📦 New Tasbih List contains ${tasbihList.length} items. UI is now rebuilt.");
 
+    // 4. الآن ابحث في الواجهة المحدثة
     final newTasbih = tasbihList.firstWhere((t) => t.text == uniqueTasbihText,
         orElse: () => throw StateError('New Tasbih not found in provider'));
+    debugPrint("✅ Found new tasbih with ID: ${newTasbih.id}");
     final deleteButtonFinder = find.byKey(Key('delete_tasbih_${newTasbih.id}'));
 
-    expect(deleteButtonFinder, findsOneWidget,
-        reason:
-            'Delete button should be present in the UI after pumpAndSettle');
+    expect(deleteButtonFinder, findsOneWidget);
 
+    // --- DELETE FLOW ---
     await tester.ensureVisible(deleteButtonFinder);
     await tester.pumpAndSettle();
-
     await tester.tap(deleteButtonFinder);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف'));
 
-    // نفس المنطق عند الحذف: أبلغ الـ provider وأعد بناء الواجهة
-    container.invalidate(tasbihListProvider);
+    // نفس المنطق عند الحذف
+    await container.refresh(tasbihListProvider.future);
     await tester.pumpAndSettle();
+    debugPrint("✅ Delete action complete. UI has settled after refresh.");
 
     expect(find.text(uniqueTasbihText, findRichText: true), findsNothing);
-    debugPrint("✅ Delete successful. Item is no longer visible in the sheet.");
 
     await tester.pageBack();
     await tester.pumpAndSettle();
@@ -158,8 +160,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await DatabaseHelper.closeDatabaseForTest();
-    container.invalidate(dailyGoalsProvider);
+    await container.refresh(dailyGoalsProvider.future);
     await tester.pumpAndSettle();
 
     expect(find.text('أهدافي اليومية'), findsOneWidget);
@@ -176,8 +177,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
 
-    await DatabaseHelper.closeDatabaseForTest();
-    container.invalidate(dailyGoalsProvider);
+    await container.refresh(dailyGoalsProvider.future);
     await tester.pumpAndSettle();
     expect(find.text('3 / 3'), findsOneWidget);
 
@@ -197,8 +197,7 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
-    await DatabaseHelper.closeDatabaseForTest();
-    container.invalidate(dailyGoalsProvider);
+    await container.refresh(dailyGoalsProvider.future);
     await tester.pumpAndSettle();
     expect(find.text('أهدافي اليومية'), findsNothing);
     debugPrint('✅ SUCCESS: Step 3 - Daily goals flow test completed.');

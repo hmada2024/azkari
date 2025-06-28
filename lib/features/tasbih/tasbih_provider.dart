@@ -148,7 +148,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     await _saveState();
   }
 
-  // ✅ [الحل الجذري] هذه الدالة الآن مسؤولة عن إعلام الواجهة بالتغيير
   Future<TasbihModel> addTasbih(String text) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     final newTasbih = await repository.addTasbih(text);
@@ -156,7 +155,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     return newTasbih;
   }
 
-  // ✅ [الحل الجذري] نفس الشيء هنا
   Future<void> deleteTasbih(int id) async {
     final repository = _ref.read(adhkarRepositoryProvider);
     await repository.deleteTasbih(id);
