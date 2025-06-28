@@ -5,6 +5,7 @@ import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
+import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,7 +40,11 @@ void main() {
 
   testWidgets('Full E2E App Flow: Favorites, Tasbih, and Daily Goals',
       (WidgetTester tester) async {
-    app.main();
+    final container = ProviderContainer();
+    await tester.pumpWidget(UncontrolledProviderScope(
+      container: container,
+      child: const app.MyApp(),
+    ));
 
     await tester.pumpAndSettle(const Duration(seconds: 10));
     expect(find.text('أذكاري'), findsOneWidget);
@@ -82,7 +87,6 @@ void main() {
     await tester.pumpAndSettle();
     final openListButton = find.byTooltip('اختيار الذكر');
 
-    // --- ADD FLOW ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
     final uniqueTasbihText =
@@ -92,15 +96,9 @@ void main() {
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
     await tester.tap(find.text('إضافة'));
 
-    // الانتظار: دع التطبيق يقوم بكل شيء بنفسه.
     await tester.pumpAndSettle(const Duration(seconds: 2));
-    debugPrint("✅ Add action complete. UI has settled.");
-
-    // التحقق
     expect(find.text(uniqueTasbihText, findRichText: true), findsOneWidget);
-    debugPrint("✅ New tasbih text found in the UI.");
 
-    // --- DELETE FLOW ---
     final tileFinder = find.ancestor(
         of: find.text(uniqueTasbihText, findRichText: true),
         matching: find.byType(ListTile));
@@ -115,32 +113,36 @@ void main() {
     await tester.tap(find.text('حذف'));
 
     await tester.pumpAndSettle(const Duration(seconds: 2));
-    debugPrint("✅ Delete action complete. UI has settled.");
-
-    // التحقق
     expect(find.text(uniqueTasbihText, findRichText: true), findsNothing);
-    debugPrint("✅ New tasbih text is no longer in the UI.");
 
-    // ✅✅✅ الحل النهائي لمشكلة pageBack ✅✅✅
-    // محاكاة نقر المستخدم خارج النافذة لإغلاقها
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
-
     debugPrint('✅ SUCCESS: Step 2 - Tasbih add/delete flow test completed.');
 
-    // --- GOALS FLOW ---
     debugPrint('▶️ STARTING: Step 3 - Daily Goals Flow Test...');
-    final container =
-        ProviderScope.containerOf(tester.element(find.byType(Scaffold)));
     const tasbihTextToTrack = 'سبحان الله';
 
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
 
+    // ✅✅✅ الحل النهائي هنا ✅✅✅
+    final tasbihTileFinder = find.widgetWithText(ListTile, tasbihTextToTrack);
+    final scrollableList = find.descendant(
+        of: find.byType(TasbihSelectionSheet),
+        matching: find.byType(Scrollable));
+
+    // 1. مرر القائمة حتى يصبح عنصر "سبحان الله" مرئياً
+    await tester.scrollUntilVisible(tasbihTileFinder, 50.0,
+        scrollable: scrollableList);
+    await tester.pumpAndSettle();
+
+    // 2. الآن ابحث عن الأيقونة داخل العنصر المرئي
     final goalIconFinder = find.descendant(
-      of: find.widgetWithText(ListTile, tasbihTextToTrack),
+      of: tasbihTileFinder,
       matching: find.byIcon(Icons.flag_outlined),
     );
+
+    // 3. اضمن أن الأيقونة نفسها في المنتصف وانقر
     await tester.ensureVisible(goalIconFinder);
     await tester.pumpAndSettle();
     await tester.tap(goalIconFinder);
@@ -175,8 +177,14 @@ void main() {
 
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
+
+    final removeGoalTile = find.widgetWithText(ListTile, tasbihTextToTrack);
+    await tester.scrollUntilVisible(removeGoalTile, 50.0,
+        scrollable: scrollableList);
+    await tester.pumpAndSettle();
+
     final removeGoalIcon = find.descendant(
-      of: find.widgetWithText(ListTile, tasbihTextToTrack),
+      of: removeGoalTile,
       matching: find.byIcon(Icons.flag_rounded),
     );
     await tester.ensureVisible(removeGoalIcon);
