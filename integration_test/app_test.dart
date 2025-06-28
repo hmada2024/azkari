@@ -1,14 +1,11 @@
 // integration_test/app_test.dart
 // ignore_for_file: depend_on_referenced_packages
 import 'dart:io';
-import 'package:azkari/data/models/tasbih_model.dart';
-import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/main.dart' as app;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,8 +19,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   setUpAll(() async {
-    if (!kIsWeb &&
-        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
     }
@@ -43,11 +39,7 @@ void main() {
 
   testWidgets('Full E2E App Flow: Favorites, Tasbih, and Daily Goals',
       (WidgetTester tester) async {
-    final container = ProviderContainer();
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: const app.MyApp(),
-    ));
+    app.main();
 
     await tester.pumpAndSettle(const Duration(seconds: 10));
     expect(find.text('أذكاري'), findsOneWidget);
@@ -100,47 +92,46 @@ void main() {
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
     await tester.tap(find.text('إضافة'));
 
-    // 1. انتظر إغلاق مربع الحوار أولاً
-    await tester.pumpAndSettle();
-    debugPrint("✅ Add action complete. UI has settled initially.");
+    // الانتظار: دع التطبيق يقوم بكل شيء بنفسه.
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+    debugPrint("✅ Add action complete. UI has settled.");
 
-    // 2. أجبِر الـ Provider على التحديث وانتظر اكتمال جلب البيانات الجديدة
-    debugPrint("🔄 Forcing provider refresh and WAITING for new data...");
-    final List<TasbihModel> tasbihList =
-        await container.refresh(tasbihListProvider.future);
-    // 3. أعد بناء الواجهة بالبيانات الجديدة
-    await tester.pumpAndSettle();
-    debugPrint(
-        "📦 New Tasbih List contains ${tasbihList.length} items. UI is now rebuilt.");
-
-    // 4. الآن ابحث في الواجهة المحدثة
-    final newTasbih = tasbihList.firstWhere((t) => t.text == uniqueTasbihText,
-        orElse: () => throw StateError('New Tasbih not found in provider'));
-    debugPrint("✅ Found new tasbih with ID: ${newTasbih.id}");
-    final deleteButtonFinder = find.byKey(Key('delete_tasbih_${newTasbih.id}'));
-
-    expect(deleteButtonFinder, findsOneWidget);
-    debugPrint("✅ Delete button found successfully in the UI.");
+    // التحقق
+    expect(find.text(uniqueTasbihText, findRichText: true), findsOneWidget);
+    debugPrint("✅ New tasbih text found in the UI.");
 
     // --- DELETE FLOW ---
-    await tester.ensureVisible(deleteButtonFinder);
+    final tileFinder = find.ancestor(
+        of: find.text(uniqueTasbihText, findRichText: true),
+        matching: find.byType(ListTile));
+    final specificDeleteButton = find.descendant(
+        of: tileFinder, matching: find.byIcon(Icons.delete_outline));
+
+    await tester.ensureVisible(specificDeleteButton);
     await tester.pumpAndSettle();
-    await tester.tap(deleteButtonFinder);
+
+    await tester.tap(specificDeleteButton);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف'));
 
-    // نفس المنطق عند الحذف
-    await container.refresh(tasbihListProvider.future);
-    await tester.pumpAndSettle();
-    debugPrint("✅ Delete action complete. UI has settled after refresh.");
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+    debugPrint("✅ Delete action complete. UI has settled.");
 
+    // التحقق
     expect(find.text(uniqueTasbihText, findRichText: true), findsNothing);
+    debugPrint("✅ New tasbih text is no longer in the UI.");
 
-    await tester.pageBack();
+    // ✅✅✅ الحل النهائي لمشكلة pageBack ✅✅✅
+    // محاكاة نقر المستخدم خارج النافذة لإغلاقها
+    await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
+
     debugPrint('✅ SUCCESS: Step 2 - Tasbih add/delete flow test completed.');
 
+    // --- GOALS FLOW ---
     debugPrint('▶️ STARTING: Step 3 - Daily Goals Flow Test...');
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(Scaffold)));
     const tasbihTextToTrack = 'سبحان الله';
 
     await tester.tap(openListButton);
@@ -158,10 +149,10 @@ void main() {
     await tester.tap(find.text('حفظ'));
     await tester.pumpAndSettle();
 
-    await tester.pageBack();
+    await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
 
-    await container.refresh(dailyGoalsProvider.future);
+    container.invalidate(dailyGoalsProvider);
     await tester.pumpAndSettle();
 
     expect(find.text('أهدافي اليومية'), findsOneWidget);
@@ -178,7 +169,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
     }
 
-    await container.refresh(dailyGoalsProvider.future);
+    container.invalidate(dailyGoalsProvider);
     await tester.pumpAndSettle();
     expect(find.text('3 / 3'), findsOneWidget);
 
@@ -195,10 +186,10 @@ void main() {
     await tester.tap(find.text('إزالة الهدف'));
     await tester.pumpAndSettle();
 
-    await tester.pageBack();
+    await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
 
-    await container.refresh(dailyGoalsProvider.future);
+    container.invalidate(dailyGoalsProvider);
     await tester.pumpAndSettle();
     expect(find.text('أهدافي اليومية'), findsNothing);
     debugPrint('✅ SUCCESS: Step 3 - Daily goals flow test completed.');
