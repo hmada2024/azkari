@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:azkari/data/services/database_helper.dart';
 import 'package:azkari/features/adhkar_list/widgets/adhkar_card.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
-import 'package:azkari/features/tasbih/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/foundation.dart';
@@ -42,13 +41,10 @@ void main() {
 
   testWidgets('Full E2E App Flow: Favorites, Tasbih, and Daily Goals',
       (WidgetTester tester) async {
-    // نحتاج إلى الـ container للتحكم في حالة Riverpod من الاختبار
-    final container = ProviderContainer();
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: const app.MyApp(),
-    ));
+    // لأن التطبيق الآن يدير حالته بنفسه، لا نحتاج للـ container هنا
+    app.main();
 
+    // الانتظار فقط حتى يتم تحميل التطبيق بالكامل
     await tester.pumpAndSettle(const Duration(seconds: 10));
     expect(find.text('أذكاري'), findsOneWidget);
     debugPrint(
@@ -86,7 +82,7 @@ void main() {
     expect(specificCardFinder, findsOneWidget);
     debugPrint('✅ SUCCESS: Step 1 - Favorites flow test completed.');
 
-    // --- الجزء الخاص بالسبحة مع تطبيق التسلسل الذهبي ---
+    // --- الجزء الخاص بالسبحة أصبح الآن أبسط بكثير ---
     debugPrint('▶️ STARTING: Step 2 - Tasbih Add/Delete Flow Test...');
     await tester.tap(find.byKey(const Key('bottom_nav_tasbih')));
     await tester.pumpAndSettle();
@@ -100,18 +96,9 @@ void main() {
     await tester.tap(find.byTooltip('إضافة ذكر جديد'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), uniqueTasbihText);
-
-    // 1. الإجراء: قم بتنفيذ الإجراء الذي يغير البيانات
     await tester.tap(find.text('إضافة'));
-    await tester.pumpAndSettle(); // انتظر إغلاق الحوار
 
-    // 2. الجراحة: اقتل الاتصال القديم بقاعدة البيانات
-    await DatabaseHelper.closeDatabaseForTest();
-
-    // 3. الأمر: أجبر Riverpod على نسيان حالته القديمة
-    container.invalidate(tasbihListProvider);
-
-    // 4. الصبر: انتظر بصبر حتى تظهر النتيجة الصحيحة
+    // ✅ الاختبار الآن ينتظر فقط التطبيق لينهي عمله. لا يوجد أي تدخل خارجي.
     await tester.pumpAndSettle(const Duration(seconds: 2));
     expect(find.text(uniqueTasbihText), findsOneWidget);
     debugPrint("✅ Add successful.");
@@ -123,18 +110,11 @@ void main() {
       of: tileFinder,
       matching: find.byIcon(Icons.delete_outline),
     );
-
-    // 1. الإجراء
     await tester.tap(deleteButtonFinder);
     await tester.pumpAndSettle();
     await tester.tap(find.text('حذف'));
-    await tester.pumpAndSettle();
 
-    // 2. الجراحة + 3. الأمر
-    await DatabaseHelper.closeDatabaseForTest();
-    container.invalidate(tasbihListProvider);
-
-    // 4. الصبر
+    // ✅ نفس الشيء هنا، ننتظر فقط.
     await tester.pumpAndSettle(const Duration(seconds: 2));
     expect(find.text(uniqueTasbihText), findsNothing);
     debugPrint("✅ Delete successful.");
@@ -144,6 +124,7 @@ void main() {
     debugPrint('✅ SUCCESS: Step 2 - Tasbih add/delete flow test completed.');
 
     // --- GOALS FLOW ---
+    // هذا الجزء لا يزال معقداً وقد يحتاج للتدخل اليدوي، لكن لنصلحه خطوة بخطوة
     debugPrint('▶️ STARTING: Step 3 - Daily Goals Flow Test...');
     const tasbihTextToTrack = 'سبحان الله';
     await tester.tap(openListButton);
@@ -158,9 +139,14 @@ void main() {
     await tester.tap(find.text('حفظ'));
     await tester.pumpAndSettle();
 
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // نحتاج إلى الوصول إلى الـ container لإبطال صلاحية الـ provider
+    final container =
+        ProviderScope.containerOf(tester.element(find.byType(Scaffold)));
     await DatabaseHelper.closeDatabaseForTest();
     container.invalidate(dailyGoalsProvider);
-    await tester.pageBack();
     await tester.pumpAndSettle();
 
     expect(find.text('أهدافي اليومية'), findsOneWidget);
