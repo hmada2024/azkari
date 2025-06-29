@@ -14,11 +14,19 @@ class TasbihManagementScreen extends ConsumerWidget {
     final tasbihListAsync = ref.watch(tasbihForManagementProvider);
     final notifier = ref.read(tasbihManagementProvider.notifier);
 
-    // استمع إلى حالة عمليات الـ Notifier لعرض الـ SnackBar
+    // ✨✨ [تعديل الخطوة 2] تحسين رسائل الخطأ للمستخدم ✨✨
     ref.listen<AsyncValue<void>>(tasbihManagementProvider, (_, state) {
       if (state is AsyncError) {
+        // للمطور: يمكنك تسجيل الخطأ الحقيقي هنا للمساعدة في التصحيح
+        // debugPrint('Tasbih Management Error: ${state.error}');
+        // debugPrint(state.stackTrace.toString());
+
+        // للمستخدم: عرض رسالة لطيفة وواضحة
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('حدث خطأ: ${state.error}')),
+          SnackBar(
+            content: const Text('فشلت العملية، يرجى المحاولة مرة أخرى'),
+            backgroundColor: Colors.red.shade700,
+          ),
         );
       }
     });
@@ -89,10 +97,14 @@ class TasbihManagementScreen extends ConsumerWidget {
               tooltip: 'حذف الذكر',
               onPressed: () => _showDeleteConfirmation(context, ref, tasbih),
             ),
+          // ✨✨ [تعديل الخطوة 3] إضافة Tooltip للأيقونة ✨✨
           if (!tasbih.isDeletable)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.0),
-              child: Icon(Icons.lock_outline, color: Colors.grey),
+            const Tooltip(
+              message: 'لا يمكن تعديل أو حذف الأذكار الافتراضية',
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.0),
+                child: Icon(Icons.lock_outline, color: Colors.grey),
+              ),
             ),
         ],
       ),

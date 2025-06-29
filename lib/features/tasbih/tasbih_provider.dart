@@ -150,23 +150,4 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     state = state.copyWith(activeTasbihId: id, count: 0);
     await _saveState();
   }
-
-  Future<TasbihModel> addTasbih(String text) async {
-    // ✨ [تعديل] انتظار المستودع قبل استخدامه
-    final repository = await _ref.read(adhkarRepositoryProvider.future);
-    final newTasbih = await repository.addTasbih(text);
-    _ref.invalidate(tasbihListProvider);
-    return newTasbih;
-  }
-
-  Future<void> deleteTasbih(int id) async {
-    // ✨ [تعديل] انتظار المستودع قبل استخدامه
-    final repository = await _ref.read(adhkarRepositoryProvider.future);
-    await repository.deleteTasbih(id);
-    _ref.invalidate(tasbihListProvider);
-    if (state.activeTasbihId == id) {
-      state = state.copyWith(activeTasbihId: null, count: 0);
-    }
-    await _saveState();
-  }
 }
