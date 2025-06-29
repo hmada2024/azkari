@@ -101,40 +101,43 @@ void main() {
 
     debugPrint('▶️ STARTING: Step 3 - Daily Goals Full Flow...');
 
-    // ⭐️⭐️⭐️ استخدام بطاقة الهوية الجديدة للبحث عن القائمة بشكل موثوق ⭐️⭐️⭐️
+    // تعريفات ثابتة لاستخدامها في كل جولة
     final scrollableListFinder =
         find.byKey(const Key('tasbih_list_scrollable'));
     const tasbihTextToTrack = 'سبحان الله';
     final tasbihTileFinder = find.widgetWithText(ListTile, tasbihTextToTrack);
 
-    // --- الجولة الأولى من التفاعل مع القائمة ---
+    // --- الجولة الأولى: تعيين الهدف ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      tasbihTileFinder,
-      50.0,
-      scrollable: scrollableListFinder,
-    );
+
+    // 🏆🏆🏆 الحل النهائي القاطع: السحب اليدوي المضمون 🏆🏆🏆
+    // اسحب القائمة للأسفل (عن طريق إعطاء إزاحة سالبة)
+    await tester.drag(scrollableListFinder, const Offset(0.0, -300.0));
+    await tester.pumpAndSettle();
+    // 🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆🏆
+
     final goalIconFinder = find.descendant(
       of: tasbihTileFinder,
       matching: find.byIcon(Icons.flag_outlined),
     );
+    expect(goalIconFinder, findsOneWidget,
+        reason: "Flag icon should be visible after scrolling");
     await tester.tap(goalIconFinder);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '3');
     await tester.tap(find.text('حفظ'));
     await tester.pumpAndSettle();
     debugPrint("✅ Goal set for '$tasbihTextToTrack' to 3.");
-    await tester.tapAt(const Offset(10, 10));
+    await tester.tapAt(const Offset(10, 10)); // إغلاق الـ Sheet
     await tester.pumpAndSettle();
     expect(find.text('أهدافي اليومية'), findsOneWidget);
     expect(find.text('0 / 3'), findsOneWidget);
     debugPrint("✅ Daily goals section is visible with correct initial count.");
 
-    // --- الجولة الثانية من التفاعل مع القائمة ---
+    // --- الجولة الثانية: إكمال الهدف ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
-    // لا داعي للتمرير مرة أخرى، العنصر أصبح مرئياً من المرة السابقة
     await tester.tap(tasbihTileFinder);
     await tester.pumpAndSettle();
     final counterButton = find.byType(TasbihCounterButton);
@@ -155,23 +158,25 @@ void main() {
     debugPrint(
         "✅ Goal progress updated correctly to 3/3 and checkmark is visible.");
 
-    // --- الجولة الثالثة من التفاعل مع القائمة ---
+    // --- الجولة الثالثة: إزالة الهدف ---
     await tester.tap(openListButton);
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      tasbihTileFinder,
-      50.0,
-      scrollable: scrollableListFinder,
-    );
+
+    // السحب مرة أخرى لضمان رؤية العنصر
+    await tester.drag(scrollableListFinder, const Offset(0.0, -300.0));
+    await tester.pumpAndSettle();
+
     final removeGoalIcon = find.descendant(
       of: tasbihTileFinder,
       matching: find.byIcon(Icons.flag_rounded),
     );
+    expect(removeGoalIcon, findsOneWidget,
+        reason: "Rounded flag icon should be visible after scrolling");
     await tester.tap(removeGoalIcon);
     await tester.pumpAndSettle();
     await tester.tap(find.text('إزالة الهدف'));
     await tester.pumpAndSettle();
-    await tester.tapAt(const Offset(10, 10));
+    await tester.tapAt(const Offset(10, 10)); // إغلاق الـ Sheet
     await tester.pumpAndSettle();
     expect(find.text('أهدافي اليومية'), findsNothing);
     debugPrint(
