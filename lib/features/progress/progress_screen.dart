@@ -1,6 +1,5 @@
 // lib/features/progress/progress_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
-// ✨ 1. استيراد شاشة الإدارة للتمكن من الانتقال إليها
 import 'package:azkari/features/tasbih/management/tasbih_management_screen.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
@@ -23,7 +22,11 @@ class ProgressScreen extends ConsumerWidget {
         error: (error, stack) => Center(child: Text('خطأ: $error')),
         data: (goals) {
           if (goals.isEmpty) {
-            return _buildNoGoalsSetView(context);
+            return SingleChildScrollView(
+              physics:
+                  const BouncingScrollPhysics(), // تأثير ارتداد لطيف عند التمرير
+              child: _buildNoGoalsSetView(context),
+            );
           }
 
           final totalTodayProgress =
@@ -35,7 +38,10 @@ class ProgressScreen extends ConsumerWidget {
               child: DailyGoalsView(),
             );
           } else {
-            return _buildInitialView(context);
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: _buildInitialView(context),
+            );
           }
         },
       ),
@@ -78,21 +84,21 @@ class ProgressScreen extends ConsumerWidget {
     );
   }
 
-  // ✨ --- هذا هو الجزء الذي تم تعديله بالكامل --- ✨
   Widget _buildNoGoalsSetView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
+      // استخدام Padding لضمان عدم وصول المحتوى لحواف الشاشة
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.flag_outlined,
-              size: context.responsiveSize(80),
+              size: context.responsiveSize(70),
               color: Colors.grey.shade400,
             ),
-            SizedBox(height: context.responsiveSize(24)),
+            SizedBox(height: context.responsiveSize(20)),
             Text(
               'لم تقم بتحديد أي أهداف بعد',
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -100,8 +106,7 @@ class ProgressScreen extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: context.responsiveSize(12)),
-            // 2. تغيير نص التعليمات إلى دعوة للعمل (Call to Action)
+            SizedBox(height: context.responsiveSize(10)), // تقليل المسافة
             Text(
               'حدد أهدافك اليومية للبدء في تتبع تقدمك.',
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -109,21 +114,22 @@ class ProgressScreen extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: context.responsiveSize(24)),
-            // 3. إضافة زر للانتقال المباشر
+            SizedBox(height: context.responsiveSize(20)), // تقليل المسافة
+            // ✨ 3. تصغير الزر وتطبيق المقاسات النسبية عليه
             FilledButton.icon(
               icon: const Icon(Icons.add_task_outlined),
               label: const Text('تحديد الأهداف الآن'),
               style: FilledButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'Cairo', // ضمان استخدام نفس خط التطبيق
+                padding: EdgeInsets.symmetric(
+                  horizontal: context.responsiveSize(20),
+                  vertical: context.responsiveSize(10),
+                ),
+                textStyle: TextStyle(
+                  fontSize: context.responsiveSize(15), // خط أصغر ومتجاوب
+                  fontFamily: 'Cairo',
                 ),
               ),
               onPressed: () {
-                // عند الضغط، انتقل مباشرة إلى شاشة إدارة التسابيح
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const TasbihManagementScreen(),
