@@ -20,8 +20,8 @@ void main() async {
 
     // إعدادات النافذة التي نريدها
     WindowOptions windowOptions = const WindowOptions(
-      size: Size(410, 850), // حجم ابتدائي يشبه الهاتف
-      minimumSize: Size(390, 700), // أصغر حجم يمكن للمستخدم تصغير النافذة إليه
+      size: Size(250, 500), // حجم ابتدائي يشبه الهاتف
+      minimumSize: Size(200, 400), // أصغر حجم يمكن للمستخدم تصغير النافذة إليه
       center: true, // جعل النافذة تظهر في منتصف الشاشة
       backgroundColor: Colors.transparent,
       skipTaskbar: false,
