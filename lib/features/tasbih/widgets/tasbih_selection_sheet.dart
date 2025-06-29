@@ -16,10 +16,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
     final tasbihListAsync = ref.watch(tasbihListProvider);
     final dailyGoalsAsync = ref.watch(dailyGoalsProvider);
 
-    // ✅✅✅ الحل الجذري: استخدام Container بسيط وموثوق ✅✅✅
-    // هذا يضمن أن المحتوى سيكون دائماً قابلاً للتنبؤ به في الاختبارات.
     return Container(
-      // تحديد ارتفاع معقول لتجنب مشاكل التمرير المعقدة
+      key: const Key('tasbih_selection_sheet_container'),
       height: context.screenHeight * 0.7,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -27,7 +25,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // شريط السحب العلوي لإعطاء شكل الـ BottomSheet
           Padding(
             padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
             child: Container(
@@ -64,6 +61,8 @@ class TasbihSelectionSheet extends ConsumerWidget {
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Center(child: Text('خطأ: $e')),
               data: (tasbihList) => ListView.builder(
+                // ⭐️⭐️⭐️ الحل النهائي القاطع: إعطاء بطاقة هوية مباشرة للقائمة ⭐️⭐️⭐️
+                key: const Key('tasbih_list_scrollable'),
                 itemCount: tasbihList.length,
                 itemBuilder: (context, index) {
                   final tasbih = tasbihList[index];
