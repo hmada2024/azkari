@@ -1,5 +1,7 @@
 // lib/features/progress/progress_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
+// ✨ 1. استيراد شاشة الإدارة للتمكن من الانتقال إليها
+import 'package:azkari/features/tasbih/management/tasbih_management_screen.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +12,6 @@ class ProgressScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // نراقب حالة الأهداف اليومية كالعادة
     final dailyGoalsAsync = ref.watch(dailyGoalsProvider);
 
     return Scaffold(
@@ -21,26 +22,19 @@ class ProgressScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('خطأ: $error')),
         data: (goals) {
-          // ✨ --- المنطق الذكي الجديد --- ✨
-
-          // 1. الحالة الأولى: المستخدم لم يحدد أي أهداف من الأساس.
           if (goals.isEmpty) {
             return _buildNoGoalsSetView(context);
           }
 
-          // 2. نحسب إجمالي التقدم اليومي لمعرفة ما إذا كان المستخدم قد بدأ.
           final totalTodayProgress =
               goals.fold<int>(0, (sum, goal) => sum + goal.currentProgress);
 
-          // 3. الحالة الثانية: المستخدم بدأ بالفعل في التسبيح (التقدم أكبر من صفر).
           if (totalTodayProgress > 0) {
             return const SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: DailyGoalsView(),
             );
-          }
-          // 4. الحالة الثالثة: توجد أهداف، لكن المستخدم لم يبدأ بعد (التقدم صفر).
-          else {
+          } else {
             return _buildInitialView(context);
           }
         },
@@ -48,8 +42,8 @@ class ProgressScreen extends ConsumerWidget {
     );
   }
 
-  // ويدجت للحالة الابتدائية (توجد أهداف، لكن لم يبدأ التسبيح)
   Widget _buildInitialView(BuildContext context) {
+    // ... هذا الجزء يبقى كما هو بدون تغيير
     final theme = Theme.of(context);
     return Center(
       child: Padding(
@@ -84,7 +78,7 @@ class ProgressScreen extends ConsumerWidget {
     );
   }
 
-  // ويدجت لحالة عدم وجود أي أهداف محددة
+  // ✨ --- هذا هو الجزء الذي تم تعديله بالكامل --- ✨
   Widget _buildNoGoalsSetView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
@@ -107,12 +101,35 @@ class ProgressScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: context.responsiveSize(12)),
+            // 2. تغيير نص التعليمات إلى دعوة للعمل (Call to Action)
             Text(
-              'اذهب إلى شاشة السبحة واضغط على أيقونة "تعديل القائمة" لتحديد أهدافك اليومية.',
+              'حدد أهدافك اليومية للبدء في تتبع تقدمك.',
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
+            ),
+            SizedBox(height: context.responsiveSize(24)),
+            // 3. إضافة زر للانتقال المباشر
+            FilledButton.icon(
+              icon: const Icon(Icons.add_task_outlined),
+              label: const Text('تحديد الأهداف الآن'),
+              style: FilledButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'Cairo', // ضمان استخدام نفس خط التطبيق
+                ),
+              ),
+              onPressed: () {
+                // عند الضغط، انتقل مباشرة إلى شاشة إدارة التسابيح
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const TasbihManagementScreen(),
+                  ),
+                );
+              },
             ),
           ],
         ),
