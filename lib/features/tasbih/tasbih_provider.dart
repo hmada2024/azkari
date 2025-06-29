@@ -7,8 +7,9 @@ import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// ✨ [تعديل] التعامل مع المستودع كـ Future
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
-  final repository = ref.watch(adhkarRepositoryProvider);
+  final repository = await ref.watch(adhkarRepositoryProvider.future);
   return repository.getCustomTasbihList();
 });
 
@@ -81,7 +82,9 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     try {
       _prefs = await SharedPreferences.getInstance();
       await _resetIfNewDay(_prefs);
-      await _ref.read(adhkarRepositoryProvider).getGoalsWithTodayProgress();
+      // ✨ [تعديل] انتظار المستودع قبل استخدامه
+      final repository = await _ref.read(adhkarRepositoryProvider.future);
+      await repository.getGoalsWithTodayProgress();
       final count = _prefs.getInt(AppConstants.tasbihCounterKey) ?? 0;
       final activeTasbihId = _prefs.getInt(AppConstants.activeTasbihIdKey);
       final usedIdsStringList =
@@ -149,16 +152,18 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   Future<TasbihModel> addTasbih(String text) async {
-    final repository = _ref.read(adhkarRepositoryProvider);
+    // ✨ [تعديل] انتظار المستودع قبل استخدامه
+    final repository = await _ref.read(adhkarRepositoryProvider.future);
     final newTasbih = await repository.addTasbih(text);
-    _ref.invalidate(tasbihListProvider); // <-- هذا هو السطر الحاسم
+    _ref.invalidate(tasbihListProvider);
     return newTasbih;
   }
 
   Future<void> deleteTasbih(int id) async {
-    final repository = _ref.read(adhkarRepositoryProvider);
+    // ✨ [تعديل] انتظار المستودع قبل استخدامه
+    final repository = await _ref.read(adhkarRepositoryProvider.future);
     await repository.deleteTasbih(id);
-    _ref.invalidate(tasbihListProvider); // <-- وهذا أيضاً
+    _ref.invalidate(tasbihListProvider);
     if (state.activeTasbihId == id) {
       state = state.copyWith(activeTasbihId: null, count: 0);
     }

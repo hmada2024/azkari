@@ -110,6 +110,34 @@ class MockAdhkarRepository extends _i1.Mock implements _i3.AdhkarRepository {
       ) as _i4.Future<void>);
 
   @override
+  _i4.Future<void> updateTasbihText(
+    int? id,
+    String? newText,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTasbihText,
+          [
+            id,
+            newText,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateSortOrders(Map<int, int>? newOrders) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSortOrders,
+          [newOrders],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<void> setOrUpdateGoal(
     int? tasbihId,
     int? targetCount,

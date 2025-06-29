@@ -3,14 +3,15 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i4;
 
-import 'package:azkari/data/models/adhkar_model.dart' as _i6;
-import 'package:azkari/data/models/daily_goal_model.dart' as _i7;
-import 'package:azkari/data/models/tasbih_model.dart' as _i3;
-import 'package:azkari/data/services/database_helper.dart' as _i4;
+import 'package:azkari/data/dao/adhkar_dao.dart' as _i3;
+import 'package:azkari/data/dao/goal_dao.dart' as _i7;
+import 'package:azkari/data/dao/tasbih_dao.dart' as _i6;
+import 'package:azkari/data/models/adhkar_model.dart' as _i5;
+import 'package:azkari/data/models/daily_goal_model.dart' as _i8;
+import 'package:azkari/data/models/tasbih_model.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:sqflite/sqflite.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,8 +26,8 @@ import 'package:sqflite/sqflite.dart' as _i2;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeDatabase_0 extends _i1.SmartFake implements _i2.Database {
-  _FakeDatabase_0(
+class _FakeTasbihModel_0 extends _i1.SmartFake implements _i2.TasbihModel {
+  _FakeTasbihModel_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -35,102 +36,129 @@ class _FakeDatabase_0 extends _i1.SmartFake implements _i2.Database {
         );
 }
 
-class _FakeTasbihModel_1 extends _i1.SmartFake implements _i3.TasbihModel {
-  _FakeTasbihModel_1(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
-/// A class which mocks [DatabaseHelper].
+/// A class which mocks [AdhkarDao].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockDatabaseHelper extends _i1.Mock implements _i4.DatabaseHelper {
-  MockDatabaseHelper() {
+class MockAdhkarDao extends _i1.Mock implements _i3.AdhkarDao {
+  MockAdhkarDao() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.Future<_i2.Database> get database => (super.noSuchMethod(
-        Invocation.getter(#database),
-        returnValue: _i5.Future<_i2.Database>.value(_FakeDatabase_0(
-          this,
-          Invocation.getter(#database),
-        )),
-      ) as _i5.Future<_i2.Database>);
-
-  @override
-  _i5.Future<List<_i6.AdhkarModel>> getAdhkarByCategory(String? category) =>
+  _i4.Future<List<_i5.AdhkarModel>> getAdhkarByCategory(String? category) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAdhkarByCategory,
           [category],
         ),
         returnValue:
-            _i5.Future<List<_i6.AdhkarModel>>.value(<_i6.AdhkarModel>[]),
-      ) as _i5.Future<List<_i6.AdhkarModel>>);
+            _i4.Future<List<_i5.AdhkarModel>>.value(<_i5.AdhkarModel>[]),
+      ) as _i4.Future<List<_i5.AdhkarModel>>);
 
   @override
-  _i5.Future<List<String>> getCategories() => (super.noSuchMethod(
+  _i4.Future<List<String>> getCategories() => (super.noSuchMethod(
         Invocation.method(
           #getCategories,
           [],
         ),
-        returnValue: _i5.Future<List<String>>.value(<String>[]),
-      ) as _i5.Future<List<String>>);
+        returnValue: _i4.Future<List<String>>.value(<String>[]),
+      ) as _i4.Future<List<String>>);
 
   @override
-  _i5.Future<List<_i6.AdhkarModel>> getAdhkarByIds(List<int>? ids) =>
+  _i4.Future<List<_i5.AdhkarModel>> getAdhkarByIds(List<int>? ids) =>
       (super.noSuchMethod(
         Invocation.method(
           #getAdhkarByIds,
           [ids],
         ),
         returnValue:
-            _i5.Future<List<_i6.AdhkarModel>>.value(<_i6.AdhkarModel>[]),
-      ) as _i5.Future<List<_i6.AdhkarModel>>);
+            _i4.Future<List<_i5.AdhkarModel>>.value(<_i5.AdhkarModel>[]),
+      ) as _i4.Future<List<_i5.AdhkarModel>>);
+}
+
+/// A class which mocks [TasbihDao].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTasbihDao extends _i1.Mock implements _i6.TasbihDao {
+  MockTasbihDao() {
+    _i1.throwOnMissingStub(this);
+  }
 
   @override
-  _i5.Future<List<_i3.TasbihModel>> getCustomTasbihList() =>
+  _i4.Future<List<_i2.TasbihModel>> getCustomTasbihList() =>
       (super.noSuchMethod(
         Invocation.method(
           #getCustomTasbihList,
           [],
         ),
         returnValue:
-            _i5.Future<List<_i3.TasbihModel>>.value(<_i3.TasbihModel>[]),
-      ) as _i5.Future<List<_i3.TasbihModel>>);
+            _i4.Future<List<_i2.TasbihModel>>.value(<_i2.TasbihModel>[]),
+      ) as _i4.Future<List<_i2.TasbihModel>>);
 
   @override
-  _i5.Future<_i3.TasbihModel> addTasbih(String? text) => (super.noSuchMethod(
+  _i4.Future<_i2.TasbihModel> addTasbih(String? text) => (super.noSuchMethod(
         Invocation.method(
           #addTasbih,
           [text],
         ),
-        returnValue: _i5.Future<_i3.TasbihModel>.value(_FakeTasbihModel_1(
+        returnValue: _i4.Future<_i2.TasbihModel>.value(_FakeTasbihModel_0(
           this,
           Invocation.method(
             #addTasbih,
             [text],
           ),
         )),
-      ) as _i5.Future<_i3.TasbihModel>);
+      ) as _i4.Future<_i2.TasbihModel>);
 
   @override
-  _i5.Future<void> deleteTasbih(int? id) => (super.noSuchMethod(
+  _i4.Future<void> deleteTasbih(int? id) => (super.noSuchMethod(
         Invocation.method(
           #deleteTasbih,
           [id],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> setOrUpdateGoal(
+  _i4.Future<void> updateTasbihText(
+    int? id,
+    String? newText,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateTasbihText,
+          [
+            id,
+            newText,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> updateSortOrders(Map<int, int>? newOrders) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateSortOrders,
+          [newOrders],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+}
+
+/// A class which mocks [GoalDao].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockGoalDao extends _i1.Mock implements _i7.GoalDao {
+  MockGoalDao() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.Future<void> setOrUpdateGoal(
     int? tasbihId,
     int? targetCount,
   ) =>
@@ -142,48 +170,48 @@ class MockDatabaseHelper extends _i1.Mock implements _i4.DatabaseHelper {
             targetCount,
           ],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> removeGoal(int? tasbihId) => (super.noSuchMethod(
+  _i4.Future<void> removeGoal(int? tasbihId) => (super.noSuchMethod(
         Invocation.method(
           #removeGoal,
           [tasbihId],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<void> incrementGoalProgress(int? goalId) => (super.noSuchMethod(
+  _i4.Future<void> incrementGoalProgress(int? goalId) => (super.noSuchMethod(
         Invocation.method(
           #incrementGoalProgress,
           [goalId],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i5.Future<List<_i7.DailyGoalModel>> getGoalsWithTodayProgress() =>
+  _i4.Future<List<_i8.DailyGoalModel>> getGoalsWithTodayProgress() =>
       (super.noSuchMethod(
         Invocation.method(
           #getGoalsWithTodayProgress,
           [],
         ),
         returnValue:
-            _i5.Future<List<_i7.DailyGoalModel>>.value(<_i7.DailyGoalModel>[]),
-      ) as _i5.Future<List<_i7.DailyGoalModel>>);
+            _i4.Future<List<_i8.DailyGoalModel>>.value(<_i8.DailyGoalModel>[]),
+      ) as _i4.Future<List<_i8.DailyGoalModel>>);
 
   @override
-  _i5.Future<Map<String, dynamic>?> getGoalForTasbih(int? tasbihId) =>
+  _i4.Future<Map<String, dynamic>?> getGoalForTasbih(int? tasbihId) =>
       (super.noSuchMethod(
         Invocation.method(
           #getGoalForTasbih,
           [tasbihId],
         ),
-        returnValue: _i5.Future<Map<String, dynamic>?>.value(),
-      ) as _i5.Future<Map<String, dynamic>?>);
+        returnValue: _i4.Future<Map<String, dynamic>?>.value(),
+      ) as _i4.Future<Map<String, dynamic>?>);
 }

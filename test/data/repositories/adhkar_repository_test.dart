@@ -1,69 +1,64 @@
 // test/data/repositories/adhkar_repository_test.dart
 
+import 'package:azkari/data/dao/adhkar_dao.dart';
+import 'package:azkari/data/dao/goal_dao.dart';
+import 'package:azkari/data/dao/tasbih_dao.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/repositories/adhkar_repository.dart';
-import 'package:azkari/data/services/database_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-// تحديث الملف الوهمي لـ DatabaseHelper
+// سيتم استيراد الملف الذي سيتم إنشاؤه تلقائيًا
 import 'adhkar_repository_test.mocks.dart';
 
-// تفعيل إنشاء الملف الوهمي
-@GenerateMocks([DatabaseHelper])
+// تفعيل إنشاء الملفات الوهمية للـ DAOs الجديدة
+@GenerateMocks([AdhkarDao, TasbihDao, GoalDao])
 void main() {
-  late MockDatabaseHelper mockDatabaseHelper;
+  late MockAdhkarDao mockAdhkarDao;
+  late MockTasbihDao mockTasbihDao;
+  late MockGoalDao mockGoalDao;
   late AdhkarRepository adhkarRepository;
 
   setUp(() {
-    mockDatabaseHelper = MockDatabaseHelper();
-    adhkarRepository = AdhkarRepository(mockDatabaseHelper);
+    mockAdhkarDao = MockAdhkarDao();
+    mockTasbihDao = MockTasbihDao();
+    mockGoalDao = MockGoalDao();
+    adhkarRepository =
+        AdhkarRepository(mockAdhkarDao, mockTasbihDao, mockGoalDao);
   });
 
   group('AdhkarRepository Unit Tests', () {
-    // ... الاختبارات القديمة تبقى كما هي ...
-
-    test('getCategories returns list of strings from DatabaseHelper', () async {
+    test('getCategories returns list of strings from AdhkarDao', () async {
       final mockCategories = ['أذكار الصباح', 'أذكار المساء'];
-      when(mockDatabaseHelper.getCategories())
+      when(mockAdhkarDao.getCategories())
           .thenAnswer((_) async => mockCategories);
 
       final categories = await adhkarRepository.getCategories();
 
       expect(categories, equals(mockCategories));
-      verify(mockDatabaseHelper.getCategories()).called(1);
+      verify(mockAdhkarDao.getCategories()).called(1);
     });
 
-    // --- ✨ اختبارات جديدة للميزة الجديدة ---
+    test('setOrUpdateGoal calls the corresponding method in GoalDao', () async {
+      // استخدام thenReturn مع Future.value() للدوال التي ترجع Future<void>
+      when(mockGoalDao.setOrUpdateGoal(1, 100))
+          .thenAnswer((_) async => Future.value());
 
-    test('setOrUpdateGoal calls the corresponding method in DatabaseHelper',
-        () async {
-      // الإعداد (Arrange)
-      when(mockDatabaseHelper.setOrUpdateGoal(1, 100)).thenAnswer((_) async {});
-
-      // التنفيذ (Act)
       await adhkarRepository.setOrUpdateGoal(1, 100);
 
-      // التحقق (Assert)
-      verify(mockDatabaseHelper.setOrUpdateGoal(1, 100)).called(1);
+      verify(mockGoalDao.setOrUpdateGoal(1, 100)).called(1);
     });
 
-    test('removeGoal calls the corresponding method in DatabaseHelper',
-        () async {
-      // الإعداد (Arrange)
-      when(mockDatabaseHelper.removeGoal(1)).thenAnswer((_) async {});
+    test('removeGoal calls the corresponding method in GoalDao', () async {
+      when(mockGoalDao.removeGoal(1)).thenAnswer((_) async => Future.value());
 
-      // التنفيذ (Act)
       await adhkarRepository.removeGoal(1);
 
-      // التحقق (Assert)
-      verify(mockDatabaseHelper.removeGoal(1)).called(1);
+      verify(mockGoalDao.removeGoal(1)).called(1);
     });
 
-    test('getGoalsWithTodayProgress forwards the call to DatabaseHelper',
-        () async {
-      // الإعداد (Arrange)
+    test('getGoalsWithTodayProgress forwards the call to GoalDao', () async {
       final mockGoals = [
         DailyGoalModel(
             goalId: 1,
@@ -72,15 +67,13 @@ void main() {
             targetCount: 50,
             currentProgress: 10)
       ];
-      when(mockDatabaseHelper.getGoalsWithTodayProgress())
+      when(mockGoalDao.getGoalsWithTodayProgress())
           .thenAnswer((_) async => mockGoals);
 
-      // التنفيذ (Act)
       final result = await adhkarRepository.getGoalsWithTodayProgress();
 
-      // التحقق (Assert)
       expect(result, mockGoals);
-      verify(mockDatabaseHelper.getGoalsWithTodayProgress()).called(1);
+      verify(mockGoalDao.getGoalsWithTodayProgress()).called(1);
     });
   });
 }

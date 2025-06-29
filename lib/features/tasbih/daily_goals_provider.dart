@@ -3,13 +3,12 @@ import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// Provider 1: يجلب قائمة الأهداف مع تقدمها اليومي
+// ✨ [تعديل] التعامل مع المستودع كـ Future
 final dailyGoalsProvider = FutureProvider<List<DailyGoalModel>>((ref) async {
-  final repository = ref.watch(adhkarRepositoryProvider);
+  final repository = await ref.watch(adhkarRepositoryProvider.future);
   return repository.getGoalsWithTodayProgress();
 });
 
-// Provider 2: Notifier لإدارة عمليات الأهداف
 final dailyGoalsNotifierProvider =
     StateNotifierProvider<DailyGoalsNotifier, AsyncValue<void>>((ref) {
   return DailyGoalsNotifier(ref);
@@ -33,30 +32,28 @@ class DailyGoalsNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> setOrUpdateGoal(int tasbihId, int targetCount) async {
     await _performAction(() async {
-      final repository = _ref.read(adhkarRepositoryProvider);
+      // ✨ [تعديل] انتظار المستودع قبل استخدامه
+      final repository = await _ref.read(adhkarRepositoryProvider.future);
       await repository.setOrUpdateGoal(tasbihId, targetCount);
     });
   }
 
   Future<void> removeGoal(int tasbihId) async {
     await _performAction(() async {
-      final repository = _ref.read(adhkarRepositoryProvider);
+      // ✨ [تعديل] انتظار المستودع قبل استخدامه
+      final repository = await _ref.read(adhkarRepositoryProvider.future);
       await repository.removeGoal(tasbihId);
     });
   }
 
   Future<void> incrementProgressForTasbih(int tasbihId) async {
-    final repository = _ref.read(adhkarRepositoryProvider);
-
-    // 1. احصل على الهدف من قاعدة البيانات مباشرة
+    // ✨ [تعديل] انتظار المستودع قبل استخدامه
+    final repository = await _ref.read(adhkarRepositoryProvider.future);
     final goalData = await repository.getGoalForTasbih(tasbihId);
 
-    // 2. إذا كان هناك هدف، قم بتحديث التقدم
     if (goalData != null && goalData['id'] != null) {
       final int goalId = goalData['id'];
       await repository.incrementGoalProgress(goalId);
-
-      // 3. أعد تحميل البيانات لتحديث الواجهة
       _ref.invalidate(dailyGoalsProvider);
     }
   }

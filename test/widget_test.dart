@@ -9,16 +9,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mockito/mockito.dart';
 
-// ✨ استيراد وهمي تم إنشاؤه مسبقاً
 import 'features/tasbih/daily_goals_provider_test.mocks.dart';
 
 void main() {
-  // ✨ تزييف الاعتماديات على مستوى أعلى
   late MockAdhkarRepository mockRepository;
 
   setUp(() {
     mockRepository = MockAdhkarRepository();
-    // برمجة السلوك الافتراضي لكل الدوال التي سيتم استدعاؤها
     when(mockRepository.getCategories())
         .thenAnswer((_) async => ['أذكار الصباح']);
     when(mockRepository.getCustomTasbihList()).thenAnswer((_) async => [
@@ -34,17 +31,16 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          // ✨ استبدال المستودع الحقيقي بالوهمي
-          adhkarRepositoryProvider.overrideWithValue(mockRepository),
-          // يمكنك أيضاً تزييف الـ providers الأخرى مباشرة إذا أردت
-          // لكن تزييف المستودع هو الحل الأنظف
+          // ✨ [تعديل] استخدام overrideWith لتوفير Future مكتمل
+          adhkarRepositoryProvider.overrideWith(
+            (ref) => Future.value(mockRepository),
+          ),
         ],
         child: const MaterialApp(
           home: AppShell(),
         ),
       ),
     );
-    // الانتظار حتى تستقر الواجهة بعد حل جميع الـ Futures
     await tester.pumpAndSettle();
   }
 

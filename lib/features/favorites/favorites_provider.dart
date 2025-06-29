@@ -37,7 +37,6 @@ class FavoritesIdNotifier extends StateNotifier<List<int>> {
     await _initCompleter.future;
 
     final previousState = state;
-
     final currentFavorites = List<int>.from(state);
 
     if (currentFavorites.contains(adhkarId)) {
@@ -54,14 +53,13 @@ class FavoritesIdNotifier extends StateNotifier<List<int>> {
         state.map((id) => id.toString()).toList(),
       );
     } catch (e) {
-      // في حالة الفشل، أرجع الحالة إلى ما كانت عليه.
       state = previousState;
-      // يمكنك هنا إظهار رسالة خطأ للمستخدم إذا أردت.
       debugPrint("Failed to save favorites: $e");
     }
   }
 }
 
+// ✨ [تعديل] التعامل مع المستودع كـ Future
 final favoriteAdhkarProvider = FutureProvider<List<AdhkarModel>>((ref) async {
   final favoriteIds = ref.watch(favoritesIdProvider);
 
@@ -69,7 +67,8 @@ final favoriteAdhkarProvider = FutureProvider<List<AdhkarModel>>((ref) async {
     return [];
   }
 
-  final repository = ref.read(adhkarRepositoryProvider);
+  // انتظر حتى يصبح المستودع جاهزاً
+  final repository = await ref.watch(adhkarRepositoryProvider.future);
   final adhkar = await repository.getAdhkarByIds(favoriteIds);
 
   return adhkar;
