@@ -40,8 +40,16 @@ class TasbihSelectionSheet extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('اختر من قائمة التسابيح',
-                    style: Theme.of(context).textTheme.titleLarge),
+                Expanded(
+                  child: Text(
+                    'قائمة الذكر',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    // إضافة هذه الخصائص تضمن عدم تجاوز النص لسطر واحد
+                    // وقصّه بشكل أنيق إذا كانت المساحة ضيقة جداً
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
                 // زر الإدارة الجديد
                 TextButton.icon(
                   icon: const Icon(Icons.edit_note_outlined),
