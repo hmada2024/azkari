@@ -5,14 +5,29 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
-enum DayStatus { completed, notCompleted, isToday, future }
+// ✨ [تغيير] استبدال DayStatus بكلاس أكثر تفصيلاً
+enum StatDayType { past, today, future }
+
+/// يمثل بيانات الإحصاء ليوم واحد.
+class DailyStat {
+  final StatDayType type;
+
+  /// نسبة إنجاز الأهداف (من 0.0 إلى 1.0)
+  final double percentage;
+
+  DailyStat({required this.type, this.percentage = 0.0});
+
+  /// هل تم إنجاز جميع الأهداف لهذا اليوم؟
+  bool get isCompleted => percentage >= 1.0;
+}
 
 enum StatPeriod { weekly, monthly }
 
 class StatisticsState {
   final bool isLoading;
   final StatPeriod period;
-  final Map<DateTime, DayStatus> data;
+  // ✨ [تغيير] استخدام الموديل الجديد
+  final Map<DateTime, DailyStat> data;
   final String? error;
 
   const StatisticsState({
@@ -25,7 +40,7 @@ class StatisticsState {
   StatisticsState copyWith({
     bool? isLoading,
     StatPeriod? period,
-    Map<DateTime, DayStatus>? data,
+    Map<DateTime, DailyStat>? data,
     String? error,
   }) {
     return StatisticsState(
@@ -45,13 +60,14 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     fetchStatsForPeriod(StatPeriod.weekly);
   }
 
-  // [جديد] Getter عام للوصول الآمن إلى الفترة الحالية من خارج الكلاس
   StatPeriod get currentPeriod => state.period;
 
+  // ✨ [إعادة بناء] تم تحديث منطق هذه الدالة بالكامل لحساب النسب المئوية
   Future<void> fetchStatsForPeriod(StatPeriod period) async {
     if (_isFetching) return;
 
     _isFetching = true;
+    // عرض التحميل فقط عند التبديل بين أسبوعي/شهري
     if (state.period != period) {
       state = state.copyWith(isLoading: true, period: period, error: null);
     } else {
@@ -73,43 +89,61 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
         startDate = DateTime(today.year, today.month, 1);
       }
 
-      final goals = await repo.getTodayGoalsWithProgress();
+      // جلب الأهداف المحددة حاليًا لتحديد ما إذا كان المستخدم قد وضع أهدافًا أم لا
+      final currentGoalsSetup = await repo.getTodayGoalsWithProgress();
 
-      Map<DateTime, DayStatus> dailyStatuses = {};
+      Map<DateTime, DailyStat> dailyStatuses = {};
 
       for (var i = 0; i <= endDate.difference(startDate).inDays; i++) {
         final date = startDate.add(Duration(days: i));
         final dateOnly = DateTime(date.year, date.month, date.day);
 
         if (dateOnly.isAfter(todayDateOnly)) {
-          dailyStatuses[dateOnly] = DayStatus.future;
+          dailyStatuses[dateOnly] = DailyStat(type: StatDayType.future);
           continue;
         }
 
-        if (dateOnly.isAtSameMomentAs(todayDateOnly)) {
-          dailyStatuses[dateOnly] = DayStatus.isToday;
+        final goalsForDay =
+            await repo.getGoalsWithProgressForDate(formatter.format(date));
+
+        // إذا لم يكن لدى المستخدم أي أهداف محددة على الإطلاق، نعتبر كل الأيام مكتملة
+        if (currentGoalsSetup.isEmpty) {
+          dailyStatuses[dateOnly] = DailyStat(
+            type: dateOnly.isAtSameMomentAs(todayDateOnly)
+                ? StatDayType.today
+                : StatDayType.past,
+            percentage: 1.0,
+          );
+          continue;
         }
 
-        if (!dailyStatuses.containsKey(dateOnly)) {
-          final goalsForDay =
-              await repo.getGoalsWithProgressForDate(formatter.format(date));
-          bool allCompleted = true;
-
-          if (goalsForDay.isEmpty && goals.isNotEmpty) {
-            allCompleted = false;
-          } else if (goalsForDay.isEmpty && goals.isEmpty) {
-            allCompleted = true;
-          } else {
-            for (var goal in goalsForDay) {
-              if (!goal.isCompleted) {
-                allCompleted = false;
-                break;
-              }
-            }
-          }
-          dailyStatuses[dateOnly] =
-              allCompleted ? DayStatus.completed : DayStatus.notCompleted;
+        // إذا كان لدى المستخدم أهداف، ولكن لا توجد بيانات لهذا اليوم (يعني لم يفعل شيئًا)
+        if (goalsForDay.isEmpty) {
+          dailyStatuses[dateOnly] = DailyStat(
+            type: dateOnly.isAtSameMomentAs(todayDateOnly)
+                ? StatDayType.today
+                : StatDayType.past,
+            percentage: 0.0,
+          );
+          continue;
         }
+
+        // حساب النسبة المئوية الإجمالية لليوم
+        int totalTarget =
+            goalsForDay.fold(0, (sum, goal) => sum + goal.targetCount);
+        int totalProgress =
+            goalsForDay.fold(0, (sum, goal) => sum + goal.currentProgress);
+
+        double percentage = (totalTarget > 0)
+            ? (totalProgress / totalTarget).clamp(0.0, 1.0)
+            : 1.0;
+
+        dailyStatuses[dateOnly] = DailyStat(
+          type: dateOnly.isAtSameMomentAs(todayDateOnly)
+              ? StatDayType.today
+              : StatDayType.past,
+          percentage: percentage,
+        );
       }
 
       state = state.copyWith(isLoading: false, data: dailyStatuses);
@@ -127,15 +161,9 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 final statisticsProvider =
     StateNotifierProvider.autoDispose<StatisticsNotifier, StatisticsState>(
         (ref) {
-  // يتم إنشاء الـ Notifier أولاً
   final notifier = StatisticsNotifier(ref);
-
-  // الآن، بعد أن تم إنشاء الـ Notifier، يمكننا الاستماع بأمان
   ref.listen(goalManagementProvider, (_, __) {
-    // [تصحيح] نستخدم الـ getter العام بدلاً من الوصول المباشر لـ .state
     notifier.fetchStatsForPeriod(notifier.currentPeriod);
   });
-
-  // أخيرًا، نعيد الـ Notifier الذي تم إنشاؤه
   return notifier;
 });
