@@ -1,6 +1,4 @@
 // lib/features/adhkar_list/providers/adhkar_card_provider.dart
-// ignore_for_file: depend_on_referenced_packages
-
 import 'package:azkari/data/models/adhkar_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

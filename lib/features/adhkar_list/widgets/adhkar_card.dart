@@ -1,68 +1,31 @@
 // lib/features/adhkar_list/widgets/adhkar_card.dart
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:azkari/data/models/adhkar_model.dart';
+import 'package:azkari/features/adhkar_list/providers/adhkar_card_provider.dart'; // <-- استيراد جديد
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AdhkarCard extends ConsumerStatefulWidget {
+class AdhkarCard extends ConsumerWidget {
   final AdhkarModel adhkar;
 
   const AdhkarCard({super.key, required this.adhkar});
 
   @override
-  ConsumerState<AdhkarCard> createState() => _AdhkarCardState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ✨ مشاهدة الحالة من الـ Notifier الخاص بهذه البطاقة
+    final cardState = ref.watch(adhkarCardProvider(adhkar));
+    // ✨ الوصول للـ Notifier لتنفيذ الأوامر
+    final cardNotifier = ref.read(adhkarCardProvider(adhkar).notifier);
 
-class _AdhkarCardState extends ConsumerState<AdhkarCard> {
-  late int _currentCount;
-  late int _initialCount;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentCount = widget.adhkar.count;
-    _initialCount = widget.adhkar.count > 0 ? widget.adhkar.count : 1;
-  }
-
-  @override
-  void didUpdateWidget(covariant AdhkarCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.adhkar.id != oldWidget.adhkar.id) {
-      _currentCount = widget.adhkar.count;
-      _initialCount = widget.adhkar.count > 0 ? widget.adhkar.count : 1;
-    }
-  }
-
-  void _decrementCount() {
-    if (_currentCount > 0) {
-      setState(() {
-        _currentCount--;
-      });
-      HapticFeedback.lightImpact();
-    }
-  }
-
-  void _resetCount() {
-    setState(() {
-      _currentCount = _initialCount;
-    });
-    HapticFeedback.mediumImpact();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isFinished = _currentCount == 0;
+    final bool isFinished = cardState.isFinished;
     final theme = Theme.of(context);
-    final double progress = (_initialCount - _currentCount) / _initialCount;
+    final double progress = cardState.progress;
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
 
-    // ✨ تم حذف كل ما يتعلق بـ favoriteIds و isFavorite من هنا ✨
-
     return Card(
-      key: Key('adhkar_card_${widget.adhkar.id}'),
+      key: Key('adhkar_card_${adhkar.id}'),
       margin: EdgeInsets.symmetric(
           horizontal: context.responsiveSize(12),
           vertical: context.responsiveSize(8)),
@@ -76,11 +39,10 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
             padding: EdgeInsets.fromLTRB(
                 context.responsiveSize(16),
                 context.responsiveSize(16),
-                context.responsiveSize(
-                    16),
+                context.responsiveSize(16),
                 context.responsiveSize(8)),
             child: Text(
-              widget.adhkar.text,
+              adhkar.text,
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontFamily: 'Amiri',
@@ -90,9 +52,8 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
               ),
             ),
           ),
-          if ((widget.adhkar.virtue != null &&
-                  widget.adhkar.virtue!.isNotEmpty) ||
-              (widget.adhkar.note != null && widget.adhkar.note!.isNotEmpty))
+          if ((adhkar.virtue != null && adhkar.virtue!.isNotEmpty) ||
+              (adhkar.note != null && adhkar.note!.isNotEmpty))
             Theme(
               data: theme.copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
@@ -114,19 +75,17 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (widget.adhkar.virtue != null &&
-                            widget.adhkar.virtue!.isNotEmpty)
-                          Text(widget.adhkar.virtue!,
+                        if (adhkar.virtue != null && adhkar.virtue!.isNotEmpty)
+                          Text(adhkar.virtue!,
                               textAlign: TextAlign.right,
                               style: TextStyle(
                                   color: Colors.grey[600],
                                   fontStyle: FontStyle.italic)),
-                        if (widget.adhkar.note != null &&
-                            widget.adhkar.note!.isNotEmpty)
+                        if (adhkar.note != null && adhkar.note!.isNotEmpty)
                           Padding(
                             padding: EdgeInsets.only(
                                 top: context.responsiveSize(8.0)),
-                            child: Text(widget.adhkar.note!,
+                            child: Text(adhkar.note!,
                                 textAlign: TextAlign.right,
                                 style: TextStyle(color: Colors.grey[700])),
                           ),
@@ -140,7 +99,10 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
           Padding(
             padding: EdgeInsets.all(context.responsiveSize(16.0)),
             child: GestureDetector(
-              onTap: isFinished ? _resetCount : _decrementCount,
+              // ✨ تم تبسيط المنطق هنا بشكل كبير
+              onTap: isFinished
+                  ? cardNotifier.resetCount
+                  : cardNotifier.decrementCount,
               child: Container(
                 height: context.responsiveSize(55),
                 clipBehavior: Clip.antiAlias,
@@ -180,8 +142,10 @@ class _AdhkarCardState extends ConsumerState<AdhkarCard> {
                               size: context.responsiveSize(30),
                             )
                           : Text(
-                              _currentCount.toString(),
-                              key: ValueKey('count_text_$_currentCount'),
+                              // ✨ أصبح يقرأ من الحالة الجديدة
+                              cardState.currentCount.toString(),
+                              key: ValueKey(
+                                  'count_text_${cardState.currentCount}'),
                               style: TextStyle(
                                 color: theme.textTheme.bodyLarge?.color,
                                 fontSize: context.responsiveSize(22),
