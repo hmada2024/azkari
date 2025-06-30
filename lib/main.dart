@@ -61,7 +61,6 @@ class MyApp extends ConsumerWidget {
         Locale('ar', 'SA'),
       ],
       locale: const Locale('ar', 'SA'),
-      // ✨ تم استبدال التعريفات الطويلة بالثيمات الجاهزة
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: settings.themeMode,
