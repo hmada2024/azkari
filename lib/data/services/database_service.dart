@@ -13,7 +13,6 @@ class DatabaseService {
 
   static Database? _database;
   static const String _dbName = "azkar.db";
-  // [تعديل] زيادة إصدار قاعدة البيانات لتشغيل الترقية
   static const int _dbVersion = 4;
 
   @visibleForTesting
@@ -54,38 +53,69 @@ class DatabaseService {
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
     if (oldVersion < 2) {
-      // Note: This logic seems to have a flaw, if a user jumps from v1 to v4,
-      // this will run, but then subsequent checks won't. For simplicity, we assume incremental upgrades.
-      // A more robust solution would be a loop or sequential `if`s.
       await _createGoalTablesV2(db);
     }
     if (oldVersion < 3) {
       await _upgradeToV3(db);
     }
-    // [جديد] الترقية للإصدار 4
     if (oldVersion < 4) {
       await _upgradeToV4(db);
     }
   }
 
-  // ... (الكود السابق _createGoalTablesV2 و _upgradeToV3 يبقى كما هو)
   Future<void> _createGoalTablesV2(Database db) async {
-    // ...
+    await db.execute('''
+        CREATE TABLE daily_goals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tasbih_id INTEGER NOT NULL UNIQUE,
+          target_count INTEGER NOT NULL,
+          FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE
+        )
+      ''');
+    await db.execute('''
+        CREATE TABLE goal_progress (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          goal_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          current_count INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (goal_id) REFERENCES daily_goals (id) ON DELETE CASCADE,
+          UNIQUE(goal_id, date)
+        )
+      ''');
   }
-  Future<void> _upgradeToV3(Database db) async {
-    // ...
-  }
-  // ...
 
-  // [جديد] منطق الترقية للإصدار الرابع لتحديث واجهة إدارة الأهداف
+  Future<void> _upgradeToV3(Database db) async {
+    await db.execute('''
+      CREATE TABLE tasbih_daily_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tasbih_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE,
+        UNIQUE(tasbih_id, date)
+      )
+    ''');
+    final batch = db.batch();
+    batch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    await batch.commit(noResult: true);
+  }
+  // ---------------------------------------------
+
+  // [تعديل جذري] منطق الترقية الآمن للإصدار الرابع
   Future<void> _upgradeToV4(Database db) async {
     final batch = db.batch();
 
-    // 1. إضافة عمود الاسم المستعار (alias)
     batch.execute('ALTER TABLE custom_tasbih ADD COLUMN alias TEXT');
 
-    // 2. تحديث الأسماء المستعارة للأذكار الافتراضية
-    // (IDs هي من قاعدة البيانات الأصلية)
     batch.update('custom_tasbih', {'alias': 'الاستغفار'},
         where: 'id = ?', whereArgs: [2]);
     batch.update('custom_tasbih', {'alias': 'الحوقلة'},
@@ -97,11 +127,46 @@ class DatabaseService {
     batch.update('custom_tasbih', {'alias': 'الصلاة على النبي'},
         where: 'id = ?', whereArgs: [6]);
 
-    // 3. حذف الذكر رقم 1 (لا إله إلا الله) لأنه مكرر مع الذكر رقم 5
     batch.delete('custom_tasbih', where: 'id = ?', whereArgs: [1]);
 
+    batch.insert(
+        'custom_tasbih',
+        {
+          'text': 'سُبْحَانَ اللَّهِ',
+          'sort_order': 6,
+          'is_deletable': 0,
+          'alias': null
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert(
+        'custom_tasbih',
+        {
+          'text': 'الْحَمْدُ لِلَّهِ',
+          'sort_order': 7,
+          'is_deletable': 0,
+          'alias': null
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert(
+        'custom_tasbih',
+        {
+          'text': 'لَا إِلَهَ إِلَّا اللَّهُ',
+          'sort_order': 8,
+          'is_deletable': 0,
+          'alias': null
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert(
+        'custom_tasbih',
+        {
+          'text': 'اللَّهُ أَكْبَرُ',
+          'sort_order': 9,
+          'is_deletable': 0,
+          'alias': null
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+
     await batch.commit();
-    debugPrint(
-        "Database upgraded to v4: Added aliases and cleaned up defaults.");
+    debugPrint("Database upgraded to v4 successfully for old users.");
   }
 }
