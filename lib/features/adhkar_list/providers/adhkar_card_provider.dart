@@ -5,12 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 
 @immutable
-class AdhkarCardState {
-  final AdhkarModel adhkar;
+class AzkarCardState {
+  final AzkarModel adhkar;
   final int currentCount;
   final int initialCount;
 
-  const AdhkarCardState({
+  const AzkarCardState({
     required this.adhkar,
     required this.currentCount,
     required this.initialCount,
@@ -20,12 +20,12 @@ class AdhkarCardState {
   bool get isFinished => currentCount == 0;
   double get progress => (initialCount - currentCount) / initialCount;
 
-  AdhkarCardState copyWith({
-    AdhkarModel? adhkar,
+  AzkarCardState copyWith({
+    AzkarModel? adhkar,
     int? currentCount,
     int? initialCount,
   }) {
-    return AdhkarCardState(
+    return AzkarCardState(
       adhkar: adhkar ?? this.adhkar,
       currentCount: currentCount ?? this.currentCount,
       initialCount: initialCount ?? this.initialCount,
@@ -34,12 +34,12 @@ class AdhkarCardState {
 }
 
 /// 2. المتحكم/المنطق (Notifier): يدير الحالة وينفذ الأوامر.
-class AdhkarCardNotifier extends StateNotifier<AdhkarCardState> {
-  AdhkarCardNotifier(AdhkarModel initialAdhkar)
-      : super(AdhkarCardState(
-          adhkar: initialAdhkar,
-          currentCount: initialAdhkar.count,
-          initialCount: initialAdhkar.count > 0 ? initialAdhkar.count : 1,
+class AzkarCardNotifier extends StateNotifier<AzkarCardState> {
+  AzkarCardNotifier(AzkarModel initialAzkar)
+      : super(AzkarCardState(
+          adhkar: initialAzkar,
+          currentCount: initialAzkar.count,
+          initialCount: initialAzkar.count > 0 ? initialAzkar.count : 1,
         ));
 
   void decrementCount() {
@@ -59,6 +59,6 @@ class AdhkarCardNotifier extends StateNotifier<AdhkarCardState> {
 /// نستخدم `.family` لأن كل بطاقة تحتاج إلى نسخة خاصة بها من الـ Notifier.
 /// نستخدم `.autoDispose` لحذف الـ Notifier من الذاكرة عندما تختفي البطاقة من الشاشة.
 final adhkarCardProvider = StateNotifierProvider.family
-    .autoDispose<AdhkarCardNotifier, AdhkarCardState, AdhkarModel>(
-  (ref, adhkar) => AdhkarCardNotifier(adhkar),
+    .autoDispose<AzkarCardNotifier, AzkarCardState, AzkarModel>(
+  (ref, adhkar) => AzkarCardNotifier(adhkar),
 );

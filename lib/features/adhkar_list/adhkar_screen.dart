@@ -5,10 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'adhkar_providers.dart';
 import 'widgets/adhkar_card.dart';
 
-class AdhkarScreen extends ConsumerWidget {
+class AzkarScreen extends ConsumerWidget {
   final String category;
 
-  const AdhkarScreen({super.key, required this.category});
+  const AzkarScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -72,7 +72,7 @@ class AdhkarScreen extends ConsumerWidget {
             itemCount: adhkarList.length,
             itemBuilder: (context, index) {
               final adhkar = adhkarList[index];
-              return AdhkarCard(adhkar: adhkar);
+              return AzkarCard(adhkar: adhkar);
             },
           );
         },

@@ -6,10 +6,10 @@ import 'package:azkari/features/adhkar_list/providers/adhkar_card_provider.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AdhkarCard extends ConsumerWidget {
-  final AdhkarModel adhkar;
+class AzkarCard extends ConsumerWidget {
+  final AzkarModel adhkar;
 
-  const AdhkarCard({super.key, required this.adhkar});
+  const AzkarCard({super.key, required this.adhkar});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

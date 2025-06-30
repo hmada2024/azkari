@@ -6,19 +6,19 @@ import '../models/adhkar_model.dart';
 import '../models/daily_goal_model.dart';
 import '../models/tasbih_model.dart';
 
-class AdhkarRepository {
-  final AdhkarDao _adhkarDao;
+class AzkarRepository {
+  final AzkarDao _adhkarDao;
   final TasbihDao _tasbihDao;
   final GoalDao _goalDao;
 
-  AdhkarRepository(this._adhkarDao, this._tasbihDao, this._goalDao);
+  AzkarRepository(this._adhkarDao, this._tasbihDao, this._goalDao);
 
-  // --- Adhkar Methods ---
+  // --- Azkar Methods ---
   Future<List<String>> getCategories() => _adhkarDao.getCategories();
-  Future<List<AdhkarModel>> getAdhkarByCategory(String category) =>
-      _adhkarDao.getAdhkarByCategory(category);
-  Future<List<AdhkarModel>> getAdhkarByIds(List<int> ids) =>
-      _adhkarDao.getAdhkarByIds(ids);
+  Future<List<AzkarModel>> getAzkarByCategory(String category) =>
+      _adhkarDao.getAzkarByCategory(category);
+  Future<List<AzkarModel>> getAzkarByIds(List<int> ids) =>
+      _adhkarDao.getAzkarByIds(ids);
 
   // --- Tasbih Methods ---
   Future<List<TasbihModel>> getCustomTasbihList() =>

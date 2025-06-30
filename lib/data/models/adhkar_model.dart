@@ -1,6 +1,6 @@
 // lib/data/models/adhkar_model.dart
 
-class AdhkarModel {
+class AzkarModel {
   final int id;
   final String category;
   final String text;
@@ -9,7 +9,7 @@ class AdhkarModel {
   final String? note;   // Can be null
   final int? sortOrder; // Can be null
 
-  AdhkarModel({
+  AzkarModel({
     required this.id,
     required this.category,
     required this.text,
@@ -20,8 +20,8 @@ class AdhkarModel {
   });
 
   // Factory constructor to create an instance from a map (database row)
-  factory AdhkarModel.fromMap(Map<String, dynamic> map) {
-    return AdhkarModel(
+  factory AzkarModel.fromMap(Map<String, dynamic> map) {
+    return AzkarModel(
       id: map['id'],
       category: map['category'],
       text: map['text'],

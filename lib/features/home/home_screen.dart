@@ -63,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => AdhkarScreen(category: category),
+                        builder: (context) => AzkarScreen(category: category),
                       ),
                     );
                   },
