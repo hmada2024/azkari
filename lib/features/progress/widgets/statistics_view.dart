@@ -1,5 +1,4 @@
 // lib/features/progress/widgets/statistics_view.dart
-import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/progress/providers/statistics_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,14 +11,12 @@ class StatisticsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final statsState = ref.watch(statisticsProvider);
+    final statsNotifier = ref.read(statisticsProvider.notifier);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // 1. العنوان والأزرار في عمود منفصل لحل مشكلة الـ Overflow
-        _buildHeader(context, ref),
+        _buildHeader(context, theme, statsState, statsNotifier),
         const SizedBox(height: 16),
-        // 2. حاوية الشبكة الجديدة
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -29,206 +26,170 @@ class StatisticsView extends ConsumerWidget {
           ),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
             child: statsState.isLoading
-                ? const Center(
-                    key: ValueKey('loading'),
-                    child: Padding(
-                      padding: EdgeInsets.all(48.0),
-                      child: CircularProgressIndicator(),
-                    ))
+                ? Center(
+                    key: UniqueKey(), child: const CircularProgressIndicator())
                 : statsState.error != null
                     ? Center(
-                        key: const ValueKey('error'),
+                        key: UniqueKey(),
                         child: Text('خطأ: ${statsState.error}'))
-                    // 3. عرض الشبكة الجديدة بدلاً من الرسم البياني
-                    : _buildContributionGrid(
-                        context,
-                        statsState.period,
-                        statsState.data,
-                      ),
+                    : _buildContent(context, statsState),
           ),
         ),
       ],
     );
   }
 
-  // ويدجت جديد لرأس القسم (العنوان والأزرار)
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final statsState = ref.watch(statisticsProvider);
-    final statsNotifier = ref.read(statisticsProvider.notifier);
-
+  Widget _buildHeader(BuildContext context, ThemeData theme,
+      StatisticsState state, StatisticsNotifier notifier) {
     return Column(
       children: [
-        Text(
-          'الإحصائيات',
-          style: TextStyle(
-            fontSize: context.responsiveSize(16),
-            fontWeight: FontWeight.bold,
-            color: theme.primaryColor,
-          ),
-        ),
+        Text('الإحصائيات',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: theme.primaryColor)),
         const SizedBox(height: 8),
         SegmentedButton<StatPeriod>(
           segments: const [
             ButtonSegment(value: StatPeriod.weekly, label: Text('أسبوعي')),
             ButtonSegment(value: StatPeriod.monthly, label: Text('شهري')),
           ],
-          selected: {statsState.period},
-          onSelectionChanged: (newSelection) {
-            statsNotifier.fetchStatsForPeriod(newSelection.first);
-          },
-          style: SegmentedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            selectedBackgroundColor: theme.primaryColor.withOpacity(0.2),
-            selectedForegroundColor: theme.primaryColor,
-            textStyle: const TextStyle(fontFamily: 'Cairo'),
-          ),
+          selected: {state.period},
+          onSelectionChanged: (selection) =>
+              notifier.fetchStatsForPeriod(selection.first),
         ),
       ],
     );
   }
 
-  // ويدجت جديد لبناء شبكة الإنجاز
-  Widget _buildContributionGrid(
-    BuildContext context,
-    StatPeriod period,
-    Map<String, int> data,
-  ) {
-    if (period == StatPeriod.weekly) {
-      return _buildWeeklyGrid(context, data);
+  Widget _buildContent(BuildContext context, StatisticsState state) {
+    // [تصحيح جذري] استخدام UniqueKey() لضمان التفرد المطلق في كل عملية بناء.
+    final key = UniqueKey();
+    if (state.period == StatPeriod.weekly) {
+      return _buildWeeklyView(context, state.data, key: key);
     } else {
-      return _buildMonthlyGrid(context, data);
+      return _buildMonthlyView(context, state.data, key: key);
     }
   }
 
-  Widget _buildWeeklyGrid(BuildContext context, Map<String, int> data) {
-    final now = DateTime.now();
-    final weekDaysLabels = [
-      'إثنين',
-      'ثلاثاء',
-      'أربعاء',
-      'خميس',
-      'جمعة',
-      'سبت',
-      'أحد'
+  Widget _buildWeeklyView(BuildContext context, Map<DateTime, DayStatus> data,
+      {required Key key}) {
+    final today = DateTime.now();
+    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+    final weekDays = [
+      'الإثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد'
     ];
-    final formatter = intl.DateFormat('yyyy-MM-dd');
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-          child: Text(
-            "إنجاز الأسبوع الحالي",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(7, (index) {
-            final dayDate =
-                now.subtract(Duration(days: now.weekday - 1 - index));
-            final dateString = formatter.format(dayDate);
-            final count = data[dateString] ?? 0;
+    // [ملاحظة] تطبيق الـ Key على الويدجت الأب
+    return Container(
+      key: key,
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: 7,
+        itemBuilder: (context, index) {
+          final date = startOfWeek.add(Duration(days: index));
+          final dateOnly = DateTime(date.year, date.month, date.day);
+          final status = data[dateOnly] ?? DayStatus.future;
 
-            return Column(
-              children: [
-                _buildGridCell(context, count, dateString),
-                const SizedBox(height: 4),
-                Text(
-                  weekDaysLabels[index],
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).textTheme.bodySmall?.color),
-                ),
-              ],
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMonthlyGrid(BuildContext context, Map<String, int> data) {
-    final now = DateTime.now();
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    // يوم الإثنين هو 1، الأحد هو 7. نحتاج إلى إزاحة للبدء من يوم صحيح في الشبكة
-    final weekdayOfFirstDay = firstDayOfMonth.weekday;
-    final int emptyCells = weekdayOfFirstDay - 1;
-
-    final formatter = intl.DateFormat('yyyy-MM-dd');
-
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 8.0, bottom: 16.0),
-          child: Text(
-            "إنجاز الشهر الحالي (${intl.DateFormat.MMMM('ar').format(now)})",
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ),
-        Wrap(
-          spacing: 6.0,
-          runSpacing: 6.0,
-          alignment: WrapAlignment.center,
-          children: List.generate(daysInMonth + emptyCells, (index) {
-            if (index < emptyCells) {
-              // خلايا فارغة لبداية الشهر
-              return const SizedBox(width: 25, height: 25);
-            }
-            final dayNumber = index - emptyCells + 1;
-            final dayDate = DateTime(now.year, now.month, dayNumber);
-            final dateString = formatter.format(dayDate);
-            final count = data[dateString] ?? 0;
-
-            return _buildGridCell(context, count, dateString);
-          }),
-        ),
-      ],
-    );
-  }
-
-  // خلية واحدة في الشبكة
-  Widget _buildGridCell(BuildContext context, int count, String dateString) {
-    Color color = _getColorForCount(context, count);
-
-    return Tooltip(
-      message:
-          '${intl.DateFormat.yMMMd('ar').format(DateTime.parse(dateString))}\n'
-          'التسبيحات: $count',
-      child: Container(
-        width: 25,
-        height: 25,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-        ),
+          return ListTile(
+            title: Text(weekDays[index]),
+            trailing: _buildStatusIcon(status),
+          );
+        },
+        separatorBuilder: (_, __) => const Divider(height: 1),
       ),
     );
   }
 
-  // دالة لتحديد اللون بناءً على عدد التسبيحات
-  Color _getColorForCount(BuildContext context, int count) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildMonthlyView(BuildContext context, Map<DateTime, DayStatus> data,
+      {required Key key}) {
+    final now = DateTime.now();
+    final firstDayOfMonth = DateTime(now.year, now.month, 1);
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final int emptyCells = firstDayOfMonth.weekday - 1;
 
-    if (count == 0) {
-      return isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300;
+    // [ملاحظة] تطبيق الـ Key على الويدجت الأب
+    return Column(
+      key: key,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            "إنجاز شهر: ${intl.DateFormat.MMMM('ar').format(now)}",
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          alignment: WrapAlignment.center,
+          children: List.generate(daysInMonth + emptyCells, (index) {
+            if (index < emptyCells) {
+              return const SizedBox(width: 32, height: 32);
+            }
+            final dayNumber = index - emptyCells + 1;
+            final date = DateTime(now.year, now.month, dayNumber);
+            final status = data[date] ?? DayStatus.future;
+            return _buildStatusCircle(context, status, dayNumber);
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusIcon(DayStatus status) {
+    switch (status) {
+      case DayStatus.completed:
+        return const Icon(Icons.check_circle, color: Colors.green);
+      case DayStatus.notCompleted:
+        return const Icon(Icons.cancel, color: Colors.red);
+      case DayStatus.isToday:
+      case DayStatus.future:
+        return const Icon(Icons.radio_button_unchecked, color: Colors.grey);
     }
-    if (count <= 10) {
-      return Colors.teal.shade100;
+  }
+
+  Widget _buildStatusCircle(
+      BuildContext context, DayStatus status, int dayNumber) {
+    Color bgColor;
+    Widget child;
+    switch (status) {
+      case DayStatus.completed:
+        bgColor = Colors.green;
+        child = const Icon(Icons.check, color: Colors.white, size: 18);
+        break;
+      case DayStatus.notCompleted:
+        bgColor = Colors.red;
+        child = Text(dayNumber.toString(),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold));
+        break;
+      case DayStatus.isToday:
+        bgColor = Theme.of(context).primaryColor;
+        child = Text(dayNumber.toString(),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold));
+        break;
+      case DayStatus.future:
+        bgColor = Theme.of(context).dividerColor;
+        child = Text(dayNumber.toString(),
+            style:
+                TextStyle(color: Theme.of(context).textTheme.bodySmall?.color));
+        break;
     }
-    if (count <= 50) {
-      return Colors.teal.shade300;
-    }
-    if (count <= 100) {
-      return Colors.teal.shade500;
-    }
-    return Colors.teal.shade700;
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
+      child: Center(child: child),
+    );
   }
 }

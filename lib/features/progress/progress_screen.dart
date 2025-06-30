@@ -1,9 +1,9 @@
 // lib/features/progress/progress_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/features/tasbih/management/tasbih_management_screen.dart';
+import 'package:azkari/features/goal_management/goal_management_screen.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
-import 'package:azkari/features/progress/widgets/statistics_view.dart'; // ✨ [جديد] استيراد
+import 'package:azkari/features/progress/widgets/statistics_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,6 +17,17 @@ class ProgressScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('تقدمي'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'إدارة الأهداف',
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const GoalManagementScreen(),
+              ));
+            },
+          )
+        ],
       ),
       body: dailyGoalsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -32,15 +43,14 @@ class ProgressScreen extends ConsumerWidget {
           final totalTodayProgress =
               goals.fold<int>(0, (sum, goal) => sum + goal.currentProgress);
 
-          if (totalTodayProgress > 0) {
-            // ✨ [تعديل] استخدام ListView بدلاً من SingleChildScrollView
+          if (totalTodayProgress > 0 || goals.isNotEmpty) {
             return ListView(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               children: const [
                 DailyGoalsView(),
-                SizedBox(height: 24), // فاصل
-                StatisticsView(), // ✨ [جديد] إضافة واجهة الإحصائيات
+                SizedBox(height: 24),
+                StatisticsView(),
               ],
             );
           } else {
@@ -135,7 +145,8 @@ class ProgressScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const TasbihManagementScreen(),
+                    // [تصحيح] استخدام الشاشة الجديدة
+                    builder: (context) => const GoalManagementScreen(),
                   ),
                 );
               },

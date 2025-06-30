@@ -1,7 +1,8 @@
-// lib/features/adhkar_list/adhkar_providers.dart
+// lib/features/azkar_list/azkar_providers.dart
 import 'package:azkari/data/dao/adhkar_dao.dart';
 import 'package:azkari/data/dao/goal_dao.dart';
 import 'package:azkari/data/dao/tasbih_dao.dart';
+import 'package:azkari/data/dao/tasbih_progress_dao.dart'; // [جديد]
 import 'package:azkari/data/models/adhkar_model.dart';
 import 'package:azkari/data/repositories/adhkar_repository.dart';
 import 'package:azkari/data/services/database_service.dart';
@@ -14,12 +15,14 @@ final databaseProvider = FutureProvider<Database>((ref) {
   return DatabaseService.instance.database;
 });
 
+// [تعديل] تحديث المستودع ليتضمن الـ DAO الجديد
 final adhkarRepositoryProvider = FutureProvider<AzkarRepository>((ref) async {
   final db = await ref.watch(databaseProvider.future);
   return AzkarRepository(
     AzkarDao(db),
     TasbihDao(db),
     GoalDao(db),
+    TasbihProgressDao(db), // [جديد]
   );
 });
 

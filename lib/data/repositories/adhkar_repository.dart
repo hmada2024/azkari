@@ -2,23 +2,26 @@
 import '../dao/adhkar_dao.dart';
 import '../dao/goal_dao.dart';
 import '../dao/tasbih_dao.dart';
+import '../dao/tasbih_progress_dao.dart'; // [جديد]
 import '../models/adhkar_model.dart';
 import '../models/daily_goal_model.dart';
 import '../models/tasbih_model.dart';
 
 class AzkarRepository {
-  final AzkarDao _adhkarDao;
+  final AzkarDao _azkarDao;
   final TasbihDao _tasbihDao;
   final GoalDao _goalDao;
+  final TasbihProgressDao _tasbihProgressDao; // [جديد]
 
-  AzkarRepository(this._adhkarDao, this._tasbihDao, this._goalDao);
+  AzkarRepository(
+      this._azkarDao, this._tasbihDao, this._goalDao, this._tasbihProgressDao);
 
   // --- Azkar Methods ---
-  Future<List<String>> getCategories() => _adhkarDao.getCategories();
+  Future<List<String>> getCategories() => _azkarDao.getCategories();
   Future<List<AzkarModel>> getAzkarByCategory(String category) =>
-      _adhkarDao.getAzkarByCategory(category);
+      _azkarDao.getAzkarByCategory(category);
   Future<List<AzkarModel>> getAzkarByIds(List<int> ids) =>
-      _adhkarDao.getAzkarByIds(ids);
+      _azkarDao.getAzkarByIds(ids);
 
   // --- Tasbih Methods ---
   Future<List<TasbihModel>> getCustomTasbihList() =>
@@ -30,18 +33,22 @@ class AzkarRepository {
   Future<void> updateSortOrders(Map<int, int> newOrders) =>
       _tasbihDao.updateSortOrders(newOrders);
 
-  // --- Goal Methods ---
-  Future<void> setOrUpdateGoal(int tasbihId, int targetCount) =>
-      _goalDao.setOrUpdateGoal(tasbihId, targetCount);
-  Future<void> removeGoal(int tasbihId) => _goalDao.removeGoal(tasbihId);
-  Future<void> incrementGoalProgress(int goalId) =>
-      _goalDao.incrementGoalProgress(goalId);
-  Future<List<DailyGoalModel>> getGoalsWithTodayProgress() =>
-      _goalDao.getGoalsWithTodayProgress();
-  Future<Map<String, dynamic>?> getGoalForTasbih(int tasbihId) =>
-      _goalDao.getGoalForTasbih(tasbihId);
+  // --- Goal Methods (مُعدّلة) ---
+  Future<void> setGoal(int tasbihId, int targetCount) =>
+      _goalDao.setGoal(tasbihId, targetCount);
+  Future<List<DailyGoalModel>> getGoalsWithProgressForDate(String date) =>
+      _goalDao.getGoalsWithProgressForDate(date);
+  Future<List<DailyGoalModel>> getTodayGoalsWithProgress() {
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    return getGoalsWithProgressForDate(today);
+  }
 
-  Future<Map<String, int>> getProgressForDateRange(
+  // --- Tasbih Daily Progress Methods (جديدة) ---
+  Future<void> incrementTasbihDailyCount(int tasbihId) =>
+      _tasbihProgressDao.incrementCount(tasbihId);
+  Future<Map<int, int>> getTodayTasbihCounts() =>
+      _tasbihProgressDao.getTodayCounts();
+  Future<Map<String, List<Map<String, dynamic>>>> getProgressForDateRange(
           String startDate, String endDate) =>
-      _goalDao.getProgressForDateRange(startDate, endDate);
+      _tasbihProgressDao.getProgressForDateRange(startDate, endDate);
 }
