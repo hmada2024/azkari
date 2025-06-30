@@ -1,5 +1,6 @@
 // lib/presentation/shell/splash_screen.dart
 import 'dart:math';
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
 import 'package:azkari/presentation/shell/app_shell.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,6 @@ class SplashScreen extends ConsumerWidget {
   ];
 
   void _navigateToHome(BuildContext context) {
-    // استخدمنا مدة تأخير ثابتة لضمان بقاء الشاشة قليلاً حتى لو كانت البيانات سريعة التحميل.
     Future.delayed(const Duration(milliseconds: 500), () {
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
@@ -47,7 +47,7 @@ class SplashScreen extends ConsumerWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('حدث خطأ في تهيئة التطبيق: $error'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
             _navigateToHome(context);
@@ -57,7 +57,7 @@ class SplashScreen extends ConsumerWidget {
     );
 
     return Scaffold(
-      backgroundColor: Colors.teal,
+      backgroundColor: AppColors.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

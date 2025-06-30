@@ -1,5 +1,6 @@
 // lib/core/services/notification_service.dart
-import 'package:flutter/foundation.dart'; // ✨ استيراد جديد لاستخدام debugPrint
+import 'package:azkari/core/constants/app_constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -7,9 +8,6 @@ import 'package:timezone/timezone.dart' as tz;
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
-  static const int morningNotificationId = 0;
-  static const int eveningNotificationId = 1;
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -71,9 +69,9 @@ class NotificationService {
       nextInstanceOf(hour, minute),
       const NotificationDetails(
         android: AndroidNotificationDetails(
-          'azkari_daily_channel',
-          'تذكيرات الأذكار اليومية',
-          channelDescription: 'قناة لإرسال تذكيرات أذكار الصباح والمساء',
+          AppConstants.notificationChannelId,
+          AppConstants.notificationChannelName,
+          channelDescription: AppConstants.notificationChannelDesc,
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
@@ -94,7 +92,7 @@ class NotificationService {
 
   Future<void> scheduleMorningReminder() async {
     await _scheduleDailyNotification(
-      id: morningNotificationId,
+      id: AppConstants.morningNotificationId,
       title: '☀️ أذكار الصباح',
       body: 'حان وقت قراءة أذكار الصباح. حصّن يومك بذكر الله.',
       hour: 8,
@@ -104,7 +102,7 @@ class NotificationService {
 
   Future<void> scheduleEveningReminder() async {
     await _scheduleDailyNotification(
-      id: eveningNotificationId,
+      id: AppConstants.eveningNotificationId,
       title: '🌙 أذكار المساء',
       body: 'لا تنسَ قراءة أذكار المساء. طمئن قلبك بذكر الله.',
       hour: 17,
@@ -113,10 +111,10 @@ class NotificationService {
   }
 
   Future<void> cancelMorningReminder() async {
-    await _notificationsPlugin.cancel(morningNotificationId);
+    await _notificationsPlugin.cancel(AppConstants.morningNotificationId);
   }
 
   Future<void> cancelEveningReminder() async {
-    await _notificationsPlugin.cancel(eveningNotificationId);
+    await _notificationsPlugin.cancel(AppConstants.eveningNotificationId);
   }
 }

@@ -1,4 +1,5 @@
-// lib/features/adhkar_list/adhkar_screen.dart
+// lib/features/azkar_list/azkar_screen.dart
+import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/widgets/completion_counter_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,17 +18,13 @@ class AzkarScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(category),
-        // ✨ [جديد] إضافة عداد الإكمال في شريط العنوان
         actions: [
-          // نعرض العداد فقط عند اكتمال تحميل البيانات
           adhkarAsyncValue.maybeWhen(
             data: (adhkarList) {
               if (adhkarList.isEmpty) return const SizedBox.shrink();
 
-              // حساب عدد الأذكار المكتملة
               int completedCount = 0;
               for (var adhkar in adhkarList) {
-                // نراقب حالة كل بطاقة ذكر
                 final cardState = ref.watch(adhkarCardProvider(adhkar));
                 if (cardState.isFinished) {
                   completedCount++;
@@ -49,17 +46,12 @@ class AzkarScreen extends ConsumerWidget {
         ],
       ),
       body: adhkarAsyncValue.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Colors.teal)),
-        error: (error, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'حدث خطأ أثناء تحميل الأذكار:\n$error',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-          ),
+        loading: () => Center(
+            child: CircularProgressIndicator(
+                color: Theme.of(context).primaryColor)),
+        error: (error, stack) => CustomErrorWidget(
+          errorMessage: error.toString(),
+          onRetry: () => ref.invalidate(azkarByCategoryProvider(category)),
         ),
         data: (adhkarList) {
           if (adhkarList.isEmpty) {

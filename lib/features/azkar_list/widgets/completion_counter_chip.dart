@@ -1,4 +1,5 @@
-// lib/features/adhkar_list/widgets/completion_counter_chip.dart
+// lib/features/azkar_list/widgets/completion_counter_chip.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CompletionCounterChip extends StatelessWidget {
@@ -21,12 +22,12 @@ class CompletionCounterChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isAllCompleted
-            ? Colors.green.withOpacity(0.8)
+            ? AppColors.success.withOpacity(0.8)
             : theme.primaryColor.withOpacity(0.2),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isAllCompleted
-              ? Colors.green
+              ? AppColors.success
               : theme.primaryColor.withOpacity(0.5),
         ),
       ),

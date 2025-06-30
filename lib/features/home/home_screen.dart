@@ -1,5 +1,6 @@
 // lib/features/home/home_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
 import 'package:azkari/features/azkar_list/azkar_screen.dart';
 import 'package:azkari/features/settings/settings_screen.dart';
@@ -40,7 +41,10 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: categoriesAsyncValue.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('حدث خطأ: $error')),
+        error: (error, stack) => CustomErrorWidget(
+          errorMessage: 'فشل تحميل فئات الأذكار.',
+          onRetry: () => ref.invalidate(categoriesProvider),
+        ),
         data: (categories) {
           return ListView.builder(
             padding: EdgeInsets.symmetric(
@@ -73,22 +77,21 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         Icon(icon,
                             color: theme.primaryColor,
-                            size: context.responsiveSize(24)), // تصغير الأيقونة
+                            size: context.responsiveSize(24)),
                         SizedBox(width: context.responsiveSize(16)),
                         Expanded(
                           child: Text(
                             category,
                             style: TextStyle(
-                              fontSize:
-                                  context.responsiveSize(16), // تصغير الخط
+                              fontSize: context.responsiveSize(16),
                               fontWeight: FontWeight.w600,
                               color: theme.textTheme.bodyLarge?.color,
                             ),
                           ),
                         ),
                         Icon(Icons.arrow_forward_ios,
-                            size: context.responsiveSize(16), // تصغير السهم
-                            color: Colors.grey),
+                            size: context.responsiveSize(16),
+                            color: Colors.grey.shade400),
                       ],
                     ),
                   ),

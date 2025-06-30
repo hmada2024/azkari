@@ -1,5 +1,6 @@
 // lib/features/progress/progress_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/widgets/primary_button.dart';
 import 'package:azkari/features/goal_management/goal_management_screen.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
@@ -88,9 +89,7 @@ class ProgressScreen extends ConsumerWidget {
             SizedBox(height: context.responsiveSize(12)),
             Text(
               'سيظهر تقدمك في أهدافك اليومية هنا بمجرد البدء في التسبيح من شاشة السبحة.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],
@@ -110,7 +109,7 @@ class ProgressScreen extends ConsumerWidget {
             Icon(
               Icons.flag_outlined,
               size: context.responsiveSize(70),
-              color: Colors.grey.shade400,
+              color: theme.disabledColor,
             ),
             SizedBox(height: context.responsiveSize(20)),
             Text(
@@ -123,29 +122,16 @@ class ProgressScreen extends ConsumerWidget {
             SizedBox(height: context.responsiveSize(10)),
             Text(
               'حدد أهدافك اليومية للبدء في تتبع تقدمك.',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: Colors.grey[600],
-              ),
+              style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
             SizedBox(height: context.responsiveSize(20)),
-            FilledButton.icon(
-              icon: const Icon(Icons.add_task_outlined),
-              label: const Text('تحديد الأهداف الآن'),
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.symmetric(
-                  horizontal: context.responsiveSize(20),
-                  vertical: context.responsiveSize(10),
-                ),
-                textStyle: TextStyle(
-                  fontSize: context.responsiveSize(15),
-                  fontFamily: 'Cairo',
-                ),
-              ),
+            PrimaryButton(
+              icon: Icons.add_task_outlined,
+              text: 'تحديد الأهداف الآن',
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    // [تصحيح] استخدام الشاشة الجديدة
                     builder: (context) => const GoalManagementScreen(),
                   ),
                 );

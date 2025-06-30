@@ -8,15 +8,15 @@ class GoalManagementScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final state = ref.watch(goalManagementProvider);
-    // [تصحيح] الوصول للـ notifier من الـ StateNotifierProvider
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
     ref.listen<AsyncValue<void>>(goalManagementStateProvider, (_, state) {
       if (state is AsyncError) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('فشلت العملية: ${state.error}'),
-          backgroundColor: Colors.red,
+          backgroundColor: theme.colorScheme.error,
         ));
       }
     });
@@ -41,8 +41,8 @@ class GoalManagementScreen extends ConsumerWidget {
                   item.targetCount > 0 ? '${item.targetCount} مرة' : 'غير محدد',
                   style: TextStyle(
                       color: item.targetCount > 0
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey,
+                          ? theme.primaryColor
+                          : theme.disabledColor,
                       fontWeight: FontWeight.bold),
                 ),
                 onTap: () => _showEditGoalDialog(context, notifier, item),
@@ -52,7 +52,7 @@ class GoalManagementScreen extends ConsumerWidget {
                 return Dismissible(
                   key: ValueKey('dismissible_${item.tasbih.id}'),
                   background: Container(
-                    color: Colors.red,
+                    color: theme.colorScheme.error,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.only(right: 20),
                     child: const Icon(Icons.delete, color: Colors.white),

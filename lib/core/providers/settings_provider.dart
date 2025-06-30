@@ -1,5 +1,6 @@
 // lib/core/providers/settings_provider.dart
 import 'dart:async';
+import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/core/providers/app_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,35 +9,29 @@ import '../models/settings_model.dart';
 
 final settingsProvider =
     StateNotifierProvider<SettingsNotifier, SettingsModel>((ref) {
-  // ✨ [تعديل] تمرير الـ ref للـ Notifier للوصول لخدمة الإشعارات
   return SettingsNotifier(ref);
 });
 
 class SettingsNotifier extends StateNotifier<SettingsModel> {
-  final Ref _ref; // ✨ [جديد]
+  final Ref _ref;
   final Completer<void> _initCompleter = Completer<void>();
   Future<void> get initializationComplete => _initCompleter.future;
 
-  // ✨ [تعديل] استقبال الـ ref
   SettingsNotifier(this._ref) : super(SettingsModel()) {
     _loadSettings();
   }
 
-  // ✨ [جديد] مفاتيح SharedPreferences للإشعارات
-  static const String _morningNotifKey = 'morning_notif_enabled';
-  static const String _eveningNotifKey = 'evening_notif_enabled';
-  static const String _themeKey = 'theme_mode';
-  static const String _fontScaleKey = 'font_scale';
-
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final themeIndex = prefs.getInt(_themeKey) ?? ThemeMode.system.index;
+      final themeIndex =
+          prefs.getInt(AppConstants.themeKey) ?? ThemeMode.system.index;
       final themeMode = ThemeMode.values[themeIndex];
-      final fontScale = prefs.getDouble(_fontScaleKey) ?? 1.0;
-      // ✨ [جديد] تحميل إعدادات الإشعارات
-      final morningEnabled = prefs.getBool(_morningNotifKey) ?? false;
-      final eveningEnabled = prefs.getBool(_eveningNotifKey) ?? false;
+      final fontScale = prefs.getDouble(AppConstants.fontScaleKey) ?? 1.0;
+      final morningEnabled =
+          prefs.getBool(AppConstants.morningNotifKey) ?? false;
+      final eveningEnabled =
+          prefs.getBool(AppConstants.eveningNotifKey) ?? false;
 
       state = state.copyWith(
         themeMode: themeMode,
@@ -54,7 +49,7 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
     await _initCompleter.future;
     if (state.themeMode == newTheme) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_themeKey, newTheme.index);
+    await prefs.setInt(AppConstants.themeKey, newTheme.index);
     state = state.copyWith(themeMode: newTheme);
   }
 
@@ -62,20 +57,18 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
     await _initCompleter.future;
     if (state.fontScale == newScale) return;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_fontScaleKey, newScale);
+    await prefs.setDouble(AppConstants.fontScaleKey, newScale);
     state = state.copyWith(fontScale: newScale);
   }
 
-  // ✨ [جديد] دالة لتحديث إشعارات الصباح
   Future<void> updateMorningNotification(bool isEnabled) async {
     await _initCompleter.future;
     if (state.morningNotificationEnabled == isEnabled) return;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_morningNotifKey, isEnabled);
+    await prefs.setBool(AppConstants.morningNotifKey, isEnabled);
     state = state.copyWith(morningNotificationEnabled: isEnabled);
 
-    // جدولة أو إلغاء الإشعار
     final notifService = _ref.read(notificationServiceProvider);
     if (isEnabled) {
       await notifService.scheduleMorningReminder();
@@ -84,16 +77,14 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
     }
   }
 
-  // ✨ [جديد] دالة لتحديث إشعارات المساء
   Future<void> updateEveningNotification(bool isEnabled) async {
     await _initCompleter.future;
     if (state.eveningNotificationEnabled == isEnabled) return;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_eveningNotifKey, isEnabled);
+    await prefs.setBool(AppConstants.eveningNotifKey, isEnabled);
     state = state.copyWith(eveningNotificationEnabled: isEnabled);
 
-    // جدولة أو إلغاء الإشعار
     final notifService = _ref.read(notificationServiceProvider);
     if (isEnabled) {
       await notifService.scheduleEveningReminder();

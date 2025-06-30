@@ -1,8 +1,10 @@
-// lib/features/adhkar_list/widgets/adhkar_card.dart
+// lib/features/azkar_list/widgets/azkar_card.dart
+import 'package:azkari/core/constants/app_colors.dart';
+import 'package:azkari/core/constants/app_text_styles.dart';
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/azkar_model.dart';
-import 'package:azkari/features/azkar_list/providers/azkar_card_provider.dart'; // <-- استيراد جديد
+import 'package:azkari/features/azkar_list/providers/azkar_card_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,9 +15,7 @@ class AzkarCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ مشاهدة الحالة من الـ Notifier الخاص بهذه البطاقة
     final cardState = ref.watch(adhkarCardProvider(adhkar));
-    // ✨ الوصول للـ Notifier لتنفيذ الأوامر
     final cardNotifier = ref.read(adhkarCardProvider(adhkar).notifier);
 
     final bool isFinished = cardState.isFinished;
@@ -44,10 +44,8 @@ class AzkarCard extends ConsumerWidget {
             child: Text(
               adhkar.text,
               textAlign: TextAlign.right,
-              style: TextStyle(
-                fontFamily: 'Amiri',
+              style: AppTextStyles.amiri.copyWith(
                 fontSize: context.responsiveSize(20) * fontScale,
-                height: 1.8,
                 color: theme.textTheme.bodyLarge?.color,
               ),
             ),
@@ -79,7 +77,7 @@ class AzkarCard extends ConsumerWidget {
                           Text(adhkar.virtue!,
                               textAlign: TextAlign.right,
                               style: TextStyle(
-                                  color: Colors.grey[600],
+                                  color: theme.textTheme.bodyMedium?.color,
                                   fontStyle: FontStyle.italic)),
                         if (adhkar.note != null && adhkar.note!.isNotEmpty)
                           Padding(
@@ -87,7 +85,8 @@ class AzkarCard extends ConsumerWidget {
                                 top: context.responsiveSize(8.0)),
                             child: Text(adhkar.note!,
                                 textAlign: TextAlign.right,
-                                style: TextStyle(color: Colors.grey[700])),
+                                style: TextStyle(
+                                    color: theme.textTheme.bodyMedium?.color)),
                           ),
                       ],
                     ),
@@ -99,7 +98,6 @@ class AzkarCard extends ConsumerWidget {
           Padding(
             padding: EdgeInsets.all(context.responsiveSize(16.0)),
             child: GestureDetector(
-              // ✨ تم تبسيط المنطق هنا بشكل كبير
               onTap: isFinished
                   ? cardNotifier.resetCount
                   : cardNotifier.decrementCount,
@@ -123,8 +121,8 @@ class AzkarCard extends ConsumerWidget {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(30),
                             color: isFinished
-                                ? Colors.green.withOpacity(0.7)
-                                : Colors.teal.withOpacity(0.4),
+                                ? AppColors.success.withOpacity(0.7)
+                                : theme.primaryColor.withOpacity(0.4),
                           ),
                         ),
                       ),
@@ -142,7 +140,6 @@ class AzkarCard extends ConsumerWidget {
                               size: context.responsiveSize(30),
                             )
                           : Text(
-                              // ✨ أصبح يقرأ من الحالة الجديدة
                               cardState.currentCount.toString(),
                               key: ValueKey(
                                   'count_text_${cardState.currentCount}'),

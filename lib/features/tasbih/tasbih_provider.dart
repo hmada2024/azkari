@@ -1,5 +1,6 @@
 // lib/features/tasbih/tasbih_provider.dart
 import 'dart:async';
+import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
 import 'package:azkari/features/progress/providers/statistics_provider.dart';
@@ -60,8 +61,6 @@ class TasbihState {
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   final Ref _ref;
   late final SharedPreferences _prefs;
-  static const _activeTasbihIdKey = 'active_tasbih_id_v2';
-  static const _lastResetDateKey = 'last_reset_date_v2';
 
   TasbihStateNotifier(this._ref) : super(TasbihState()) {
     _init();
@@ -70,7 +69,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   Future<void> _init() async {
     _prefs = await SharedPreferences.getInstance();
     await _resetIfNewDay();
-    final activeId = _prefs.getInt(_activeTasbihIdKey);
+    final activeId = _prefs.getInt(AppConstants.activeTasbihIdKey);
     final countsValue = await _ref.read(dailyTasbihCountsProvider.future);
 
     state = state.copyWith(
@@ -80,10 +79,10 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   Future<void> _resetIfNewDay() async {
-    final lastOpenDate = _prefs.getString(_lastResetDateKey);
+    final lastOpenDate = _prefs.getString(AppConstants.lastResetDateKey);
     final today = DateTime.now().toIso8601String().substring(0, 10);
     if (lastOpenDate != today) {
-      await _prefs.setString(_lastResetDateKey, today);
+      await _prefs.setString(AppConstants.lastResetDateKey, today);
     }
   }
 
@@ -96,14 +95,10 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     await repo.incrementTasbihDailyCount(state.activeTasbihId!);
     _ref.invalidate(dailyTasbihCountsProvider);
     _ref.invalidate(dailyGoalsProvider);
-    _ref.invalidate(statisticsProvider); // [مهم] تحديث الإحصائيات فوراً
+    _ref.invalidate(statisticsProvider);
   }
 
-  // [تصحيح وإعادة تفعيل]
   Future<void> resetCount() async {
-    // هذا سيعيد العداد في الواجهة إلى 0 مؤقتاً
-    // وعند اختيار ذكر آخر ثم العودة إليه، سيعرض الإجمالي اليومي مرة أخرى
-    // وهو السلوك المطلوب (تصفير الجلسة الحالية)
     state = state.copyWith(count: 0);
   }
 
@@ -113,6 +108,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       activeTasbihId: id,
       count: countsValue[id] ?? 0,
     );
-    await _prefs.setInt(_activeTasbihIdKey, id);
+    await _prefs.setInt(AppConstants.activeTasbihIdKey, id);
   }
 }

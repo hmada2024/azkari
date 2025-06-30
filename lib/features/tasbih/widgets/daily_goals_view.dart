@@ -1,5 +1,7 @@
 // lib/features/tasbih/widgets/daily_goals_view.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,11 +16,11 @@ class DailyGoalsView extends ConsumerWidget {
 
     return goalsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
-      error: (error, stack) => Text('خطأ في تحميل الأهداف: $error',
-          style: const TextStyle(color: Colors.red)),
+      error: (error, stack) => CustomErrorWidget(
+        errorMessage: 'خطأ في تحميل الأهداف: $error',
+      ),
       data: (goals) {
         if (goals.isEmpty) {
-          // لا تعرض شيئاً إذا لم يحدد المستخدم أي أهداف
           return const SizedBox.shrink();
         }
 
@@ -72,7 +74,7 @@ class DailyGoalsView extends ConsumerWidget {
                             '${goal.currentProgress} / ${goal.targetCount}',
                             style: TextStyle(
                               fontSize: context.responsiveSize(14),
-                              color: theme.textTheme.bodySmall?.color,
+                              color: theme.textTheme.bodyMedium?.color,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -80,7 +82,7 @@ class DailyGoalsView extends ConsumerWidget {
                             Padding(
                               padding: const EdgeInsets.only(left: 4.0),
                               child: Icon(Icons.check_circle,
-                                  color: Colors.green,
+                                  color: AppColors.success,
                                   size: context.responsiveSize(18)),
                             ),
                         ],
@@ -94,7 +96,7 @@ class DailyGoalsView extends ConsumerWidget {
                           backgroundColor: theme.scaffoldBackgroundColor,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             goal.isCompleted
-                                ? Colors.green
+                                ? AppColors.success
                                 : theme.primaryColor,
                           ),
                         ),
