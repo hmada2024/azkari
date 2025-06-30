@@ -1,6 +1,6 @@
 // lib/data/dao/adhkar_dao.dart
 import 'package:sqflite/sqflite.dart';
-import '../models/adhkar_model.dart';
+import '../models/azkar_model.dart';
 
 /// كلاس كائن الوصول للبيانات (DAO) الخاص بجدول الأذكار (adhkar).
 /// يحتوي على جميع الاستعلامات المتعلقة بالأذكار الرئيسية.

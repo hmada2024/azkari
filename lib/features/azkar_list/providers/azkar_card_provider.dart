@@ -1,5 +1,5 @@
 // lib/features/adhkar_list/providers/adhkar_card_provider.dart
-import 'package:azkari/data/models/adhkar_model.dart';
+import 'package:azkari/data/models/azkar_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';

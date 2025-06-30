@@ -3,7 +3,7 @@ import '../dao/azkar_dao.dart';
 import '../dao/goal_dao.dart';
 import '../dao/tasbih_dao.dart';
 import '../dao/tasbih_progress_dao.dart'; // [جديد]
-import '../models/adhkar_model.dart';
+import '../models/azkar_model.dart';
 import '../models/daily_goal_model.dart';
 import '../models/tasbih_model.dart';
 

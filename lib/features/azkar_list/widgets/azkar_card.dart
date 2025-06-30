@@ -1,7 +1,7 @@
 // lib/features/adhkar_list/widgets/adhkar_card.dart
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/data/models/adhkar_model.dart';
+import 'package:azkari/data/models/azkar_model.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_card_provider.dart'; // <-- استيراد جديد
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
