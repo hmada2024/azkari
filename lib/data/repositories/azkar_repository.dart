@@ -1,8 +1,8 @@
-// lib/data/repositories/adhkar_repository.dart
+// lib/data/repositories/azkar_repository.dart
 import '../dao/azkar_dao.dart';
 import '../dao/goal_dao.dart';
 import '../dao/tasbih_dao.dart';
-import '../dao/tasbih_progress_dao.dart'; // [جديد]
+import '../dao/tasbih_progress_dao.dart';
 import '../models/azkar_model.dart';
 import '../models/daily_goal_model.dart';
 import '../models/tasbih_model.dart';
@@ -11,7 +11,7 @@ class AzkarRepository {
   final AzkarDao _azkarDao;
   final TasbihDao _tasbihDao;
   final GoalDao _goalDao;
-  final TasbihProgressDao _tasbihProgressDao; // [جديد]
+  final TasbihProgressDao _tasbihProgressDao;
 
   AzkarRepository(
       this._azkarDao, this._tasbihDao, this._goalDao, this._tasbihProgressDao);
@@ -43,7 +43,7 @@ class AzkarRepository {
     return getGoalsWithProgressForDate(today);
   }
 
-  // --- Tasbih Daily Progress Methods (جديدة) ---
+  // --- Tasbih Daily Progress Methods ---
   Future<void> incrementTasbihDailyCount(int tasbihId) =>
       _tasbihProgressDao.incrementCount(tasbihId);
   Future<Map<int, int>> getTodayTasbihCounts() =>
@@ -51,4 +51,9 @@ class AzkarRepository {
   Future<Map<String, List<Map<String, dynamic>>>> getProgressForDateRange(
           String startDate, String endDate) =>
       _tasbihProgressDao.getProgressForDateRange(startDate, endDate);
+
+  /// ✨ [جديد] تمرير الدالة الجديدة من الـ DAO.
+  Future<Map<String, double>> getMonthlyProgressSummary(
+          String startDate, String endDate) =>
+      _goalDao.getMonthlyProgressSummary(startDate, endDate);
 }

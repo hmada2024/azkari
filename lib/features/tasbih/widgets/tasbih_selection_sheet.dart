@@ -8,9 +8,9 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tasbihListAsync = ref.watch(tasbihListProvider);
-    // [جديد] مراقبة العدادات اليومية
-    final countsAsync = ref.watch(dailyTasbihCountsProvider);
+    // ✨ [تعديل جذري] مراقبة Provider واحد مدمج بدلاً من اثنين.
+    // هذا يجعل الكود أبسط وأكثر كفاءة.
+    final listAsync = ref.watch(tasbihListWithCountsProvider);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
@@ -36,42 +36,37 @@ class TasbihSelectionSheet extends ConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: tasbihListAsync.when(
+            // استخدام .when على الـ Provider المدمج مباشرة.
+            child: listAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Center(child: Text('خطأ: $e')),
-              data: (tasbihList) {
-                return countsAsync.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, s) =>
-                        const Center(child: Text('خطأ في تحميل العدادات')),
-                    data: (counts) {
-                      return ListView.builder(
-                        itemCount: tasbihList.length,
-                        itemBuilder: (context, index) {
-                          final tasbih = tasbihList[index];
-                          final count = counts[tasbih.id] ?? 0;
-                          return ListTile(
-                            title: Text(tasbih.text),
-                            // [مهم] عرض العداد اليومي
-                            trailing: Text(
-                              count.toString(),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                            ),
-                            onTap: () {
-                              ref
-                                  .read(tasbihStateProvider.notifier)
-                                  .setActiveTasbih(tasbih.id);
-                              Navigator.pop(context);
-                            },
-                          );
-                        },
-                      );
-                    });
+              data: (items) {
+                if (items.isEmpty) {
+                  return const Center(child: Text('لم يتم إضافة أي ذكر بعد.'));
+                }
+                return ListView.builder(
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return ListTile(
+                      title: Text(item.tasbih.text),
+                      trailing: Text(
+                        item.count.toString(),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                      onTap: () {
+                        ref
+                            .read(tasbihStateProvider.notifier)
+                            .setActiveTasbih(item.tasbih.id);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
               },
             ),
           ),

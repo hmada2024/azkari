@@ -1,6 +1,7 @@
 // lib/presentation/shell/splash_screen.dart
 import 'dart:math';
 import 'package:azkari/core/constants/app_colors.dart';
+import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
 import 'package:azkari/presentation/shell/app_shell.dart';
 import 'package:flutter/material.dart';
@@ -20,42 +21,17 @@ class SplashScreen extends ConsumerWidget {
     "أذكارك حصنك المنيع، فلا تهجره.",
   ];
 
+  // ✨ [تبسيط] دالة الانتقال أصبحت أبسط.
   void _navigateToHome(BuildContext context) {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (context.mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AppShell()),
-        );
-      }
-    });
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const AppShell()),
+      );
+    }
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final randomMessage =
-        _inspirationalMessages[Random().nextInt(_inspirationalMessages.length)];
-
-    final categoriesAsync = ref.watch(categoriesProvider);
-
-    categoriesAsync.whenOrNull(
-      data: (_) {
-        Future.microtask(() => _navigateToHome(context));
-      },
-      error: (error, stack) {
-        Future.microtask(() {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('حدث خطأ في تهيئة التطبيق: $error'),
-                backgroundColor: AppColors.error,
-              ),
-            );
-            _navigateToHome(context);
-          }
-        });
-      },
-    );
-
+  // ✨ [جديد] واجهة التحميل الموحدة.
+  Widget _buildLoadingUI(BuildContext context, String randomMessage) {
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
@@ -82,6 +58,36 @@ class SplashScreen extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final randomMessage =
+        _inspirationalMessages[Random().nextInt(_inspirationalMessages.length)];
+
+    final categoriesAsync = ref.watch(categoriesProvider);
+
+    // ✨ [تعديل جذري] استخدام .when الكامل لمعالجة جميع الحالات (التحميل، الخطأ، البيانات).
+    return categoriesAsync.when(
+      loading: () => _buildLoadingUI(context, randomMessage),
+      error: (error, stack) {
+        // ✨ في حالة الخطأ، نعرض واجهة خطأ واضحة مع زر إعادة المحاولة.
+        return Scaffold(
+          body: CustomErrorWidget(
+            errorMessage:
+                'فشل تحميل البيانات الأساسية. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.',
+            onRetry: () => ref.invalidate(categoriesProvider),
+          ),
+        );
+      },
+      data: (_) {
+        // ✨ عند نجاح تحميل البيانات، ننتقل للشاشة الرئيسية.
+        // استخدام Future.microtask يضمن أن الانتقال يحدث بعد اكتمال بناء الإطار الحالي.
+        Future.microtask(() => _navigateToHome(context));
+        // نستمر في عرض واجهة التحميل أثناء الانتقال السلس.
+        return _buildLoadingUI(context, randomMessage);
+      },
     );
   }
 }

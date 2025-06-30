@@ -3,12 +3,39 @@ import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
-import 'package:azkari/features/progress/providers/statistics_provider.dart';
-import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-final dailyTasbihCountsProvider = FutureProvider<Map<int, int>>((ref) async {
+// ✨ [جديد] موديل مدمج لواجهة قائمة اختيار الذكر.
+class TasbihListItem {
+  final TasbihModel tasbih;
+  final int count;
+  TasbihListItem({required this.tasbih, required this.count});
+}
+
+// ✨ [جديد] Provider مدمج يجمع بين قائمة التسابيح وعداداتها.
+// هذا يحل مشكلة مراقبة اثنين FutureProviders في الواجهة.
+final tasbihListWithCountsProvider =
+    FutureProvider.autoDispose<List<TasbihListItem>>((ref) async {
+  // استخدام Future.wait لانتظار الاثنين معاً بكفاءة.
+  final results = await Future.wait([
+    ref.watch(tasbihListProvider.future),
+    ref.watch(dailyTasbihCountsProvider.future),
+  ]);
+
+  final tasbihList = results[0] as List<TasbihModel>;
+  final counts = results[1] as Map<int, int>;
+
+  return tasbihList.map((tasbih) {
+    return TasbihListItem(
+      tasbih: tasbih,
+      count: counts[tasbih.id] ?? 0,
+    );
+  }).toList();
+});
+
+final dailyTasbihCountsProvider =
+    FutureProvider.autoDispose<Map<int, int>>((ref) async {
   final repo = await ref.watch(adhkarRepositoryProvider.future);
   return repo.getTodayTasbihCounts();
 });
@@ -47,9 +74,7 @@ final tasbihStateProvider =
 class TasbihState {
   final int count;
   final int? activeTasbihId;
-
   TasbihState({this.count = 0, this.activeTasbihId});
-
   TasbihState copyWith({int? count, int? activeTasbihId}) {
     return TasbihState(
       count: count ?? this.count,
@@ -93,9 +118,11 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
 
     final repo = await _ref.read(adhkarRepositoryProvider.future);
     await repo.incrementTasbihDailyCount(state.activeTasbihId!);
+
+    // ✨ [تعديل] إزالة الإبطال اليدوي المتعدد (Invalidation Cascade).
+    // الآن، نحن نبطل فقط المصدر المباشر للبيانات.
+    // الـ Providers الأخرى ستتحدث تلقائياً بفضل الاعتمادية التي أنشأناها.
     _ref.invalidate(dailyTasbihCountsProvider);
-    _ref.invalidate(dailyGoalsProvider);
-    _ref.invalidate(statisticsProvider);
   }
 
   Future<void> resetCount() async {

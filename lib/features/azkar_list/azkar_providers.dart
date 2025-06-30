@@ -4,7 +4,7 @@ import 'package:azkari/data/dao/goal_dao.dart';
 import 'package:azkari/data/dao/tasbih_dao.dart';
 import 'package:azkari/data/dao/tasbih_progress_dao.dart'; // [جديد]
 import 'package:azkari/data/models/azkar_model.dart';
-import 'package:azkari/data/repositories/adhkar_repository.dart';
+import 'package:azkari/data/repositories/azkar_repository.dart';
 import 'package:azkari/data/services/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';

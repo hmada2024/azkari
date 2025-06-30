@@ -1,16 +1,14 @@
 // lib/features/tasbih/daily_goals_provider.dart
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
+import 'package:azkari/features/tasbih/tasbih_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// [مهم] هذا الـ Provider أصبح للقراءة فقط، وظيفته جلب أهداف اليوم لعرضها
-// في شاشتي "السبحة" و "تقدمي".
 final dailyGoalsProvider = FutureProvider<List<DailyGoalModel>>((ref) async {
+  // ✨ [تعديل] إضافة .watch لـ dailyTasbihCountsProvider.
+  // هذا يخلق اعتمادية صريحة. عندما تتغير العدادات، سيعاد بناء هذا الـ Provider تلقائياً.
+  ref.watch(dailyTasbihCountsProvider);
+
   final repository = await ref.watch(adhkarRepositoryProvider.future);
-  // [تصحيح] استخدام اسم الدالة الجديد من المستودع
   return repository.getTodayGoalsWithProgress();
 });
-
-// [ملاحظة] لم نعد بحاجة إلى DailyGoalsNotifier هنا.
-// تم نقل منطق الكتابة (التعديل والإضافة) إلى GoalManagementNotifier
-// مما يجعل هذا الملف أبسط وأكثر تركيزاً على وظيفته.
