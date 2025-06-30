@@ -12,112 +12,33 @@ class StatisticsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final statsState = ref.watch(statisticsProvider);
-    final statsNotifier = ref.read(statisticsProvider.notifier);
-
-    return Column(
-      children: [
-        _buildHeader(context, theme, statsState, statsNotifier),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
-          ),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: statsState.isLoading
-                ? Center(
-                    key: UniqueKey(), child: const CircularProgressIndicator())
-                : statsState.error != null
-                    ? Center(
-                        key: UniqueKey(),
-                        child: Text('خطأ: ${statsState.error}'))
-                    : _buildContent(context, statsState, theme),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, ThemeData theme,
-      StatisticsState state, StatisticsNotifier notifier) {
-    return Column(
-      children: [
-        Text('الإحصائيات',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: theme.primaryColor)),
-        const SizedBox(height: 8),
-        SegmentedButton<StatPeriod>(
-          segments: const [
-            ButtonSegment(value: StatPeriod.weekly, label: Text('أسبوعي')),
-            ButtonSegment(value: StatPeriod.monthly, label: Text('شهري')),
-          ],
-          selected: {state.period},
-          onSelectionChanged: (selection) =>
-              notifier.fetchStatsForPeriod(selection.first),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContent(
-      BuildContext context, StatisticsState state, ThemeData theme) {
-    final key = UniqueKey();
-    if (state.period == StatPeriod.weekly) {
-      return _buildWeeklyView(context, state.data, theme, key: key);
-    } else {
-      return _buildMonthlyView(context, state.data, theme, key: key);
-    }
-  }
-
-  Widget _buildWeeklyView(
-      BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
-      {required Key key}) {
-    final today = DateTime.now();
-    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
-    final weekDays = [
-      'الإثنين',
-      'الثلاثاء',
-      'الأربعاء',
-      'الخميس',
-      'الجمعة',
-      'السبت',
-      'الأحد'
-    ];
 
     return Container(
-      key: key,
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 7,
-        itemBuilder: (context, index) {
-          final date = startOfWeek.add(Duration(days: index));
-          final dateOnly = DateTime(date.year, date.month, date.day);
-          final status = data[dateOnly];
-
-          return ListTile(
-            title: Text(weekDays[index]),
-            trailing: _buildStatusIcon(status, theme),
-          );
-        },
-        separatorBuilder: (_, __) => const Divider(height: 1),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+      ),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: statsState.isLoading
+            ? Center(key: UniqueKey(), child: const CircularProgressIndicator())
+            : statsState.error != null
+                ? Center(
+                    key: UniqueKey(), child: Text('خطأ: ${statsState.error}'))
+                : _buildMonthlyView(context, statsState.data, theme),
       ),
     );
   }
 
   Widget _buildMonthlyView(
-      BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
-      {required Key key}) {
+      BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme) {
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
 
     return Column(
-      key: key,
+      key: UniqueKey(),
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0),
@@ -146,19 +67,6 @@ class StatisticsView extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildStatusIcon(DailyStat? status, ThemeData theme) {
-    if (status == null || status.type == StatDayType.future) {
-      return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
-    }
-    if (status.type == StatDayType.today && !status.isCompleted) {
-      return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
-    }
-
-    return status.isCompleted
-        ? const Icon(Icons.check_circle, color: AppColors.success)
-        : const Icon(Icons.cancel, color: AppColors.error);
   }
 
   Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {

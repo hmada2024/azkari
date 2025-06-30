@@ -28,8 +28,8 @@ class TasbihCounterButton extends ConsumerWidget {
         HapticFeedback.lightImpact();
       },
       child: Container(
-        width: context.screenWidth * 0.6,
-        height: context.screenWidth * 0.6,
+        width: context.screenWidth * 0.5,
+        height: context.screenWidth * 0.5,
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
           shape: BoxShape.circle,
@@ -47,7 +47,7 @@ class TasbihCounterButton extends ConsumerWidget {
           child: Text(
             count.toString(),
             style: TextStyle(
-              fontSize: context.responsiveSize(75),
+              fontSize: context.responsiveSize(65),
               fontWeight: FontWeight.bold,
               color: isDarkMode ? Colors.white : theme.primaryColor,
             ),
