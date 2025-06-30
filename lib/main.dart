@@ -39,7 +39,6 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
   // نهاية الجزء المضاف
-
   runApp(const ProviderScope(
     child: MyApp(),
   ));

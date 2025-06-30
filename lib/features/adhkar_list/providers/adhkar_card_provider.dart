@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 
-/// 1. الحالة (State): كلاس بسيط وغير قابل للتغيير يمثل حالة البطاقة.
 @immutable
 class AdhkarCardState {
   final AdhkarModel adhkar;
