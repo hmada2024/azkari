@@ -47,11 +47,27 @@ class DatabaseService {
         throw Exception("Failed to copy database from assets: $e");
       }
     }
-    return await openDatabase(path, version: _dbVersion, onUpgrade: _onUpgrade);
+    // [تعديل مهم] إضافة دالة onCreate هنا
+    return await openDatabase(
+      path,
+      version: _dbVersion,
+      onCreate: _onCreate, // يتم استدعاؤها عند الإنشاء لأول مرة
+      onUpgrade: _onUpgrade, // يتم استدعاؤها عند تحديث الإصدار
+    );
+  }
+
+  // [جديد] هذه الدالة تُستدعى فقط عندما يتم إنشاء قاعدة البيانات من الصفر
+  // (أي بعد نسخها من assets لأول مرة).
+  Future<void> _onCreate(Database db, int version) async {
+    debugPrint(
+        "Creating database for the first time, applying all migrations...");
+    // سنقوم بتشغيل كل الترقيات بالترتيب لضمان بناء كل الجداول
+    await _onUpgrade(db, 0, version);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
+    // استخدام if متسلسل يضمن تنفيذ الترقيات بالترتيب
     if (oldVersion < 2) {
       await _createGoalTablesV2(db);
     }
@@ -63,25 +79,66 @@ class DatabaseService {
     }
   }
 
-  Future<void> _createGoalTablesV2(Database db) async {/* ... كود سابق ... */}
-  Future<void> _upgradeToV3(Database db) async {/* ... كود سابق ... */}
-  // ---------------------------------------------
+  // لقد قمت بإعادة الكود الكامل لدوال الترقية هنا للتأكد من أنه صحيح
+  Future<void> _createGoalTablesV2(Database db) async {
+    debugPrint("Applying V2 migration: Creating goal tables...");
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS daily_goals (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tasbih_id INTEGER NOT NULL UNIQUE,
+          target_count INTEGER NOT NULL,
+          FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE
+        )
+      ''');
+    await db.execute('''
+        CREATE TABLE IF NOT EXISTS goal_progress (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          goal_id INTEGER NOT NULL,
+          date TEXT NOT NULL,
+          current_count INTEGER NOT NULL DEFAULT 0,
+          FOREIGN KEY (goal_id) REFERENCES daily_goals (id) ON DELETE CASCADE,
+          UNIQUE(goal_id, date)
+        )
+      ''');
+  }
+
+  Future<void> _upgradeToV3(Database db) async {
+    debugPrint(
+        "Applying V3 migration: Creating tasbih_daily_progress table...");
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS tasbih_daily_progress (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tasbih_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE,
+        UNIQUE(tasbih_id, date)
+      )
+    ''');
+    final batch = db.batch();
+    batch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    await batch.commit(noResult: true);
+  }
 
   Future<void> _upgradeToV4(Database db) async {
-    // خطوة 0: التحقق من وجود العمود قبل محاولة إضافته
+    debugPrint("Applying V4 migration: Adding alias column and new data...");
     var tableInfo = await db.rawQuery('PRAGMA table_info(custom_tasbih)');
     bool aliasExists = tableInfo.any((column) => column['name'] == 'alias');
 
     if (!aliasExists) {
-      debugPrint("Column 'alias' does not exist. Adding it now...");
       await db.execute('ALTER TABLE custom_tasbih ADD COLUMN alias TEXT');
-    } else {
-      debugPrint("Column 'alias' already exists. Skipping ALTER TABLE.");
     }
 
-    // الآن يمكننا تنفيذ باقي العمليات بأمان باستخدام batch
     final batch = db.batch();
-
     batch.update('custom_tasbih', {'alias': 'الاستغفار'},
         where: 'id = ?', whereArgs: [2]);
     batch.update('custom_tasbih', {'alias': 'الحوقلة'},
@@ -92,9 +149,7 @@ class DatabaseService {
         where: 'id = ?', whereArgs: [5]);
     batch.update('custom_tasbih', {'alias': 'الصلاة على النبي'},
         where: 'id = ?', whereArgs: [6]);
-
     batch.delete('custom_tasbih', where: 'id = ?', whereArgs: [1]);
-
     batch.insert(
         'custom_tasbih',
         {
@@ -131,8 +186,6 @@ class DatabaseService {
           'alias': null
         },
         conflictAlgorithm: ConflictAlgorithm.ignore);
-
     await batch.commit();
-    debugPrint("Database migration to v4 completed successfully.");
   }
 }
