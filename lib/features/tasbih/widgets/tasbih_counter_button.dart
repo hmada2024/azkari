@@ -17,39 +17,41 @@ class TasbihCounterButton extends ConsumerWidget {
     final count = ref.watch(tasbihStateProvider.select((s) => s.count));
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
 
-    return GestureDetector(
-      onTap: () {
-        final currentTasbihState = ref.read(tasbihStateProvider);
-        if (currentTasbihState.activeTasbihId == null &&
-            tasbihList.isNotEmpty) {
-          tasbihNotifier.setActiveTasbih(tasbihList.first.id);
-        }
-        tasbihNotifier.increment();
-        HapticFeedback.lightImpact();
-      },
-      child: Container(
-        width: context.screenWidth * 0.5,
-        height: context.screenWidth * 0.5,
-        decoration: BoxDecoration(
-          color: theme.scaffoldBackgroundColor,
-          shape: BoxShape.circle,
-          border:
-              Border.all(color: theme.primaryColor.withOpacity(0.5), width: 4),
-          boxShadow: [
-            BoxShadow(
-              color: theme.primaryColor.withOpacity(0.2),
-              spreadRadius: 5,
-              blurRadius: 15,
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: context.responsiveSize(65),
-              fontWeight: FontWeight.bold,
-              color: isDarkMode ? Colors.white : theme.primaryColor,
+    return Center(
+      child: GestureDetector(
+        onTap: () {
+          final currentTasbihState = ref.read(tasbihStateProvider);
+          if (currentTasbihState.activeTasbihId == null &&
+              tasbihList.isNotEmpty) {
+            tasbihNotifier.setActiveTasbih(tasbihList.first.id);
+          }
+          tasbihNotifier.increment();
+          HapticFeedback.lightImpact();
+        },
+        child: Container(
+          width: context.screenWidth * 0.5,
+          height: context.screenWidth * 0.5,
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            shape: BoxShape.circle,
+            border: Border.all(
+                color: theme.primaryColor.withOpacity(0.5), width: 4),
+            boxShadow: [
+              BoxShadow(
+                color: theme.primaryColor.withOpacity(0.2),
+                spreadRadius: 5,
+                blurRadius: 15,
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              count.toString(),
+              style: TextStyle(
+                fontSize: context.responsiveSize(65),
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : theme.primaryColor,
+              ),
             ),
           ),
         ),

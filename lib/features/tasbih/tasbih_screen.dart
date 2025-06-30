@@ -32,18 +32,11 @@ class TasbihScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const TasbihHeader(),
-
                     SizedBox(height: context.screenHeight * 0.04),
-
                     ActiveTasbihView(activeTasbih: activeTasbih),
-
                     SizedBox(height: context.screenHeight * 0.04),
-
                     TasbihCounterButton(tasbihList: tasbihList),
-
                     SizedBox(height: context.screenHeight * 0.04),
-
-                    // ✨ [جديد] إضافة واجهة عرض الأهداف اليومية
                     const DailyGoalsView(),
                   ],
                 ),

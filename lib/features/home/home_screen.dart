@@ -1,4 +1,5 @@
 // lib/features/home/home_screen.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/azkar_providers.dart';
@@ -27,7 +28,10 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('أذكاري'),
+        title: const Text(
+          'أذكاري',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -54,13 +58,16 @@ class HomeScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final category = categories[index];
               final icon = categoryIcons[category] ?? Icons.list_alt_rounded;
-              return Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
+              return Container(
                 margin: EdgeInsets.symmetric(
                   vertical: context.responsiveSize(6),
-                  horizontal: context.screenWidth * 0.05,
+                  horizontal: context.screenWidth * 0.1,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(15),
+                  border:
+                      Border.all(color: theme.dividerColor.withOpacity(0.5)),
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(15),
@@ -72,12 +79,16 @@ class HomeScreen extends ConsumerWidget {
                     );
                   },
                   child: Padding(
-                    padding: EdgeInsets.all(context.responsiveSize(18.0)),
+                    padding: EdgeInsets.all(context.responsiveSize(16.0)),
                     child: Row(
                       children: [
-                        Icon(icon,
-                            color: theme.primaryColor,
-                            size: context.responsiveSize(24)),
+                        CircleAvatar(
+                          radius: context.responsiveSize(22),
+                          backgroundColor: AppColors.accent.withOpacity(0.5),
+                          child: Icon(icon,
+                              color: AppColors.primary,
+                              size: context.responsiveSize(22)),
+                        ),
                         SizedBox(width: context.responsiveSize(16)),
                         Expanded(
                           child: Text(
@@ -85,7 +96,6 @@ class HomeScreen extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: context.responsiveSize(16),
                               fontWeight: FontWeight.w600,
-                              color: theme.textTheme.bodyLarge?.color,
                             ),
                           ),
                         ),

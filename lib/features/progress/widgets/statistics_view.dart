@@ -70,37 +70,47 @@ class StatisticsView extends ConsumerWidget {
   }
 
   Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {
-    if (stat == null) {
-      return Text(
-        dayNumber.toString(),
-        textAlign: TextAlign.center,
-        style: TextStyle(color: theme.disabledColor),
-        softWrap: false,
+    if (stat == null || stat.type == StatDayType.future) {
+      return Container(
+        alignment: Alignment.center,
+        child: Text(dayNumber.toString(),
+            style: TextStyle(color: theme.disabledColor)),
       );
     }
 
-    Color textColor;
+    Color cellColor = Colors.transparent;
+    Color borderColor = Colors.transparent;
     FontWeight fontWeight = FontWeight.normal;
 
-    if (stat.type == StatDayType.future) {
-      textColor = theme.disabledColor;
-    } else if (stat.type == StatDayType.today) {
-      textColor = stat.isCompleted ? AppColors.success : theme.primaryColor;
-      fontWeight = FontWeight.bold;
+    if (stat.isCompleted) {
+      cellColor = AppColors.success.withOpacity(0.9);
+    } else if (stat.percentage > 0) {
+      // تدرج لوني بناءً على النسبة
+      cellColor = AppColors.primary.withOpacity((stat.percentage * 0.7) + 0.2);
     } else {
-      textColor = stat.isCompleted ? AppColors.success : AppColors.error;
+      // يوم مضى بدون إنجاز
+      cellColor = AppColors.error.withOpacity(0.15);
     }
 
-    return Center(
+    if (stat.type == StatDayType.today) {
+      borderColor = AppColors.primary;
+      fontWeight = FontWeight.bold;
+    }
+
+    return Container(
+      margin: const EdgeInsets.all(1.0),
+      decoration: BoxDecoration(
+        color: cellColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 2),
+      ),
+      alignment: Alignment.center,
       child: Text(
         dayNumber.toString(),
-        textAlign: TextAlign.center,
         style: TextStyle(
-          color: textColor,
+          color: theme.textTheme.bodyLarge?.color,
           fontWeight: fontWeight,
-          fontSize: 16,
         ),
-        softWrap: false,
       ),
     );
   }

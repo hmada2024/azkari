@@ -1,4 +1,5 @@
-import 'package:azkari/core/utils/size_config.dart'; // سيعمل الآن كـ extension
+// lib/features/tasbih/widgets/active_tasbih_view.dart
+import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,6 @@ class ActiveTasbihView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      // [تحسين] ✨: استخدام الـ extension الجديد
       padding: EdgeInsets.all(context.responsiveSize(16)),
       decoration: BoxDecoration(
           color: theme.cardColor,
@@ -21,7 +21,7 @@ class ActiveTasbihView extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Amiri',
-          fontSize: context.responsiveSize(20), // [تحسين] ✨
+          fontSize: context.responsiveSize(20),
           color: theme.textTheme.bodyLarge?.color,
           height: 1.7,
         ),
