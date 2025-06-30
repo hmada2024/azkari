@@ -110,51 +110,45 @@ class StatisticsView extends ConsumerWidget {
     );
   }
 
-  // ✨ [إعادة بناء كاملة] تم إعادة بناء هذه الدالة بالكامل لتلبية المتطلبات الجديدة
+  // ✨ [إعادة بناء كاملة] تم استبدال Wrap بـ GridView.builder لحل مشكلة التنسيق
   Widget _buildMonthlyView(
       BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
       {required Key key}) {
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // يمكنك التحكم بعدد الأعمدة هنا بتغيير الرقم 7
-      const int crossAxisCount = 7;
-      const double spacing = 8.0;
-      final double itemWidth =
-          (constraints.maxWidth - (spacing * (crossAxisCount - 1))) /
-              crossAxisCount;
-
-      return Column(
-        key: key,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Text(
-              "إنجاز شهر: ${intl.DateFormat.MMMM('ar').format(now)}",
-              style: theme.textTheme.titleMedium,
-            ),
+    return Column(
+      key: key,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: Text(
+            "إنجاز شهر: ${intl.DateFormat.MMMM('ar').format(now)}",
+            style: theme.textTheme.titleMedium,
           ),
-          const SizedBox(height: 8),
+        ),
+        const SizedBox(height: 8),
 
-          // ✨ [تغيير] استخدام Wrap لإنشاء شبكة بسيطة تبدأ من الأعلى
-          Wrap(
-            spacing: spacing,
-            runSpacing: spacing,
-            children: List.generate(daysInMonth, (index) {
-              final dayNumber = index + 1;
-              final date = DateTime(now.year, now.month, dayNumber);
-              final stat = data[date];
-
-              return SizedBox(
-                width: itemWidth,
-                child: _buildDayNumberCell(stat, dayNumber, theme),
-              );
-            }),
+        // ✨ [تغيير] استخدام GridView الأكثر قوة للشبكات
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 7, // 7 أعمدة دائمًا
+            mainAxisSpacing: 8.0,
+            crossAxisSpacing: 4.0,
           ),
-        ],
-      );
-    });
+          itemCount: daysInMonth,
+          itemBuilder: (context, index) {
+            final dayNumber = index + 1;
+            final date = DateTime(now.year, now.month, dayNumber);
+            final stat = data[date];
+
+            return _buildDayNumberCell(stat, dayNumber, theme);
+          },
+        ),
+      ],
+    );
   }
 
   Widget _buildStatusIcon(DailyStat? status, ThemeData theme) {
@@ -170,39 +164,40 @@ class StatisticsView extends ConsumerWidget {
         : const Icon(Icons.cancel, color: AppColors.error);
   }
 
-  // ✨ [جديد] دالة جديدة لعرض رقم اليوم مع التلوين المناسب
+  // ✨ [تحسين] إضافة `softWrap: false` لمنع التفاف النص نهائيًا
   Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {
     if (stat == null) {
-      // حالة غير متوقعة، نعرض الرقم بلون محايد
       return Text(
         dayNumber.toString(),
         textAlign: TextAlign.center,
         style: TextStyle(color: theme.disabledColor),
+        softWrap: false, // يمنع التفاف النص
       );
     }
 
     Color textColor;
     FontWeight fontWeight = FontWeight.normal;
 
-    // تحديد اللون بناءً على حالة اليوم
     if (stat.type == StatDayType.future) {
       textColor = theme.disabledColor;
     } else if (stat.type == StatDayType.today) {
-      // اليوم الحالي يُميَّز بلون الثيم الأساسي وخط عريض
       textColor = stat.isCompleted ? AppColors.success : theme.primaryColor;
       fontWeight = FontWeight.bold;
     } else {
-      // يوم ماضي
       textColor = stat.isCompleted ? AppColors.success : AppColors.error;
     }
 
-    return Text(
-      dayNumber.toString(),
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        color: textColor,
-        fontWeight: fontWeight,
-        fontSize: 16,
+    return Center(
+      // ✨ [تحسين] استخدام Center لضمان التوسيط الرأسي والأفقي
+      child: Text(
+        dayNumber.toString(),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: textColor,
+          fontWeight: fontWeight,
+          fontSize: 16,
+        ),
+        softWrap: false, // يمنع التفاف النص
       ),
     );
   }
