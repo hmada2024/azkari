@@ -1,6 +1,6 @@
 // lib/features/tasbih/tasbih_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/features/tasbih/tasbih_provider.dart';
+import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/active_tasbih_view.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';

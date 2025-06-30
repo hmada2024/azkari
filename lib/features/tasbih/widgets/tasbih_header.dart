@@ -1,6 +1,6 @@
 // lib/features/tasbih/widgets/tasbih_header.dart
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/features/tasbih/tasbih_provider.dart';
+import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

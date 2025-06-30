@@ -1,5 +1,5 @@
 // lib/features/goal_management/goal_management_screen.dart
-import 'package:azkari/features/goal_management/goal_management_provider.dart';
+import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

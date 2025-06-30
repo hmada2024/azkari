@@ -1,8 +1,8 @@
 // lib/features/progress/progress_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/primary_button.dart';
-import 'package:azkari/features/goal_management/goal_management_screen.dart';
-import 'package:azkari/features/tasbih/daily_goals_provider.dart';
+import 'package:azkari/features/goal_management/screens/goal_management_screen.dart';
+import 'package:azkari/features/tasbih/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
 import 'package:azkari/features/progress/widgets/statistics_view.dart';
 import 'package:flutter/material.dart';

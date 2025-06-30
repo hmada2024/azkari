@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:azkari/core/providers/app_providers.dart';
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/theme/app_theme.dart';
-import 'package:azkari/presentation/shell/splash_screen.dart';
+import 'package:azkari/shell/shell/splash_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,7 +1,7 @@
 // lib/features/progress/providers/statistics_provider.dart
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
-import 'package:azkari/features/goal_management/goal_management_provider.dart';
-import 'package:azkari/features/tasbih/daily_goals_provider.dart'; // ✨ استيراد جديد
+import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
+import 'package:azkari/features/tasbih/providers/daily_goals_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;

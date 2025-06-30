@@ -1,6 +1,6 @@
 // lib/presentation/shell/app_shell.dart
-import 'package:azkari/features/progress/progress_screen.dart'; // ✨ 1. استيراد الشاشة الجديدة
-import 'package:azkari/features/tasbih/tasbih_screen.dart';
+import 'package:azkari/features/progress/screens/progress_screen.dart'; // ✨ 1. استيراد الشاشة الجديدة
+import 'package:azkari/features/tasbih/screens/tasbih_screen.dart';
 // import 'package:azkari/features/favorites/favorites_screen.dart'; // ✨ 2. حذف استيراد المفضلة
 import 'package:azkari/features/home/home_screen.dart';
 import 'package:flutter/material.dart';
