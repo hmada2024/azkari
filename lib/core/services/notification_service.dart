@@ -1,4 +1,5 @@
 // lib/core/services/notification_service.dart
+import 'dart:io'; // ✨ 1. استيراد مكتبة المنصة
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -47,6 +48,12 @@ class NotificationService {
     required int hour,
     required int minute,
   }) async {
+    // ✨ 2. حارس المنصة: تحقق من المنصة قبل محاولة جدولة الإشعار
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      debugPrint("Skipping scheduled notification on unsupported platform.");
+      return; // اخرج من الدالة إذا كانت المنصة غير مدعومة
+    }
+
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -62,6 +69,7 @@ class NotificationService {
       return scheduledDate;
     }
 
+    // هذا الكود سيتم تشغيله فقط على المنصات المدعومة
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -88,6 +96,7 @@ class NotificationService {
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
+    debugPrint("Notification scheduled with id: $id");
   }
 
   Future<void> scheduleMorningReminder() async {
@@ -111,10 +120,16 @@ class NotificationService {
   }
 
   Future<void> cancelMorningReminder() async {
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      return;
+    }
     await _notificationsPlugin.cancel(AppConstants.morningNotificationId);
   }
 
   Future<void> cancelEveningReminder() async {
+    if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+      return;
+    }
     await _notificationsPlugin.cancel(AppConstants.eveningNotificationId);
   }
 }

@@ -1,6 +1,8 @@
 // lib/features/settings/settings_screen.dart
+import 'dart:io'; // ✨ 1. استيراد مكتبة المنصة
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +14,9 @@ class SettingsScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
     final theme = Theme.of(context);
+
+    final bool notificationsSupported =
+        !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
 
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +78,6 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
-          // ✨ [جديد] قسم الإشعارات
           SizedBox(height: context.responsiveSize(24)),
           _buildSectionTitle('التنبيهات', theme, context),
           Card(
@@ -81,19 +85,29 @@ class SettingsScreen extends ConsumerWidget {
               children: [
                 SwitchListTile(
                   title: const Text('تذكير أذكار الصباح'),
-                  subtitle: const Text('يومياً الساعة 8:00 صباحاً'),
+                  // ✨ 3. تحديث النص بناءً على دعم المنصة
+                  subtitle: Text(notificationsSupported
+                      ? 'يومياً الساعة 8:00 صباحاً'
+                      : 'غير مدعوم على هذه المنصة'),
                   value: settings.morningNotificationEnabled,
-                  onChanged: (bool value) {
-                    settingsNotifier.updateMorningNotification(value);
-                  },
+                  // ✨ 4. تعطيل المفتاح إذا كانت المنصة غير مدعومة
+                  onChanged: notificationsSupported
+                      ? (bool value) {
+                          settingsNotifier.updateMorningNotification(value);
+                        }
+                      : null,
                 ),
                 SwitchListTile(
                   title: const Text('تذكير أذكار المساء'),
-                  subtitle: const Text('يومياً الساعة 5:30 مساءً'),
+                  subtitle: Text(notificationsSupported
+                      ? 'يومياً الساعة 5:30 مساءً'
+                      : 'غير مدعوم على هذه المنصة'),
                   value: settings.eveningNotificationEnabled,
-                  onChanged: (bool value) {
-                    settingsNotifier.updateEveningNotification(value);
-                  },
+                  onChanged: notificationsSupported
+                      ? (bool value) {
+                          settingsNotifier.updateEveningNotification(value);
+                        }
+                      : null,
                 ),
               ],
             ),
