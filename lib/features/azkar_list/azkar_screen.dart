@@ -1,9 +1,9 @@
 // lib/features/adhkar_list/adhkar_screen.dart
-import 'package:azkari/features/adhkar_list/widgets/completion_counter_chip.dart';
+import 'package:azkari/features/azkar_list/widgets/completion_counter_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'azkar_providers.dart';
-import 'widgets/adhkar_card.dart';
+import 'widgets/azkar_card.dart';
 
 class AzkarScreen extends ConsumerWidget {
   final String category;
