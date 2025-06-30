@@ -1,6 +1,6 @@
 // lib/features/settings/settings_screen.dart
 import 'package:azkari/core/providers/settings_provider.dart';
-import 'package:azkari/core/utils/size_config.dart'; // [تعديل التجاوب] استيراد الملف
+import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -18,7 +18,6 @@ class SettingsScreen extends ConsumerWidget {
         title: const Text('الإعدادات'),
       ),
       body: ListView(
-        // [تعديل التجاوب] استخدام قيم متجاوبة
         padding: EdgeInsets.all(context.responsiveSize(16.0)),
         children: [
           _buildSectionTitle('المظهر', theme, context),
@@ -46,12 +45,10 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
-          // [تعديل التجاوب] استخدام قيم متجاوبة
           SizedBox(height: context.responsiveSize(24)),
           _buildSectionTitle('حجم الخط', theme, context),
           Card(
             child: Padding(
-              // [تعديل التجاوب] استخدام قيم متجاوبة
               padding: EdgeInsets.all(context.responsiveSize(16.0)),
               child: Column(
                 children: [
@@ -76,6 +73,31 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+          // ✨ [جديد] قسم الإشعارات
+          SizedBox(height: context.responsiveSize(24)),
+          _buildSectionTitle('التنبيهات', theme, context),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('تذكير أذكار الصباح'),
+                  subtitle: const Text('يومياً الساعة 8:00 صباحاً'),
+                  value: settings.morningNotificationEnabled,
+                  onChanged: (bool value) {
+                    settingsNotifier.updateMorningNotification(value);
+                  },
+                ),
+                SwitchListTile(
+                  title: const Text('تذكير أذكار المساء'),
+                  subtitle: const Text('يومياً الساعة 5:30 مساءً'),
+                  value: settings.eveningNotificationEnabled,
+                  onChanged: (bool value) {
+                    settingsNotifier.updateEveningNotification(value);
+                  },
+                ),
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -84,7 +106,6 @@ class SettingsScreen extends ConsumerWidget {
   Widget _buildSectionTitle(
       String title, ThemeData theme, BuildContext context) {
     return Padding(
-      // [تعديل التجاوب] استخدام قيم متجاوبة
       padding: EdgeInsets.only(bottom: context.responsiveSize(8.0)),
       child: Text(
         title,

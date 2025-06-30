@@ -3,6 +3,7 @@ import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/tasbih/management/tasbih_management_screen.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
+import 'package:azkari/features/progress/widgets/statistics_view.dart'; // ✨ [جديد] استيراد
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,8 +24,7 @@ class ProgressScreen extends ConsumerWidget {
         data: (goals) {
           if (goals.isEmpty) {
             return SingleChildScrollView(
-              physics:
-                  const BouncingScrollPhysics(), // تأثير ارتداد لطيف عند التمرير
+              physics: const BouncingScrollPhysics(),
               child: _buildNoGoalsSetView(context),
             );
           }
@@ -33,9 +33,15 @@ class ProgressScreen extends ConsumerWidget {
               goals.fold<int>(0, (sum, goal) => sum + goal.currentProgress);
 
           if (totalTodayProgress > 0) {
-            return const SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: DailyGoalsView(),
+            // ✨ [تعديل] استخدام ListView بدلاً من SingleChildScrollView
+            return ListView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              children: const [
+                DailyGoalsView(),
+                SizedBox(height: 24), // فاصل
+                StatisticsView(), // ✨ [جديد] إضافة واجهة الإحصائيات
+              ],
             );
           } else {
             return SingleChildScrollView(
@@ -49,7 +55,6 @@ class ProgressScreen extends ConsumerWidget {
   }
 
   Widget _buildInitialView(BuildContext context) {
-    // ... هذا الجزء يبقى كما هو بدون تغيير
     final theme = Theme.of(context);
     return Center(
       child: Padding(
@@ -87,7 +92,6 @@ class ProgressScreen extends ConsumerWidget {
   Widget _buildNoGoalsSetView(BuildContext context) {
     final theme = Theme.of(context);
     return Center(
-      // استخدام Padding لضمان عدم وصول المحتوى لحواف الشاشة
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
         child: Column(
@@ -106,7 +110,7 @@ class ProgressScreen extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: context.responsiveSize(10)), // تقليل المسافة
+            SizedBox(height: context.responsiveSize(10)),
             Text(
               'حدد أهدافك اليومية للبدء في تتبع تقدمك.',
               style: theme.textTheme.bodyLarge?.copyWith(
@@ -114,8 +118,7 @@ class ProgressScreen extends ConsumerWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: context.responsiveSize(20)), // تقليل المسافة
-            // ✨ 3. تصغير الزر وتطبيق المقاسات النسبية عليه
+            SizedBox(height: context.responsiveSize(20)),
             FilledButton.icon(
               icon: const Icon(Icons.add_task_outlined),
               label: const Text('تحديد الأهداف الآن'),
@@ -125,7 +128,7 @@ class ProgressScreen extends ConsumerWidget {
                   vertical: context.responsiveSize(10),
                 ),
                 textStyle: TextStyle(
-                  fontSize: context.responsiveSize(15), // خط أصغر ومتجاوب
+                  fontSize: context.responsiveSize(15),
                   fontFamily: 'Cairo',
                 ),
               ),

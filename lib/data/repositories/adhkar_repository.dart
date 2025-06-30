@@ -6,8 +6,6 @@ import '../models/adhkar_model.dart';
 import '../models/daily_goal_model.dart';
 import '../models/tasbih_model.dart';
 
-/// طبقة المستودع التي تعمل كوسيط بين منطق التطبيق (Features) و طبقة الوصول للبيانات (DAOs).
-/// هذا الفصل يسمح بتغيير مصدر البيانات دون التأثير على منطق التطبيق.
 class AdhkarRepository {
   final AdhkarDao _adhkarDao;
   final TasbihDao _tasbihDao;
@@ -42,4 +40,8 @@ class AdhkarRepository {
       _goalDao.getGoalsWithTodayProgress();
   Future<Map<String, dynamic>?> getGoalForTasbih(int tasbihId) =>
       _goalDao.getGoalForTasbih(tasbihId);
+
+  Future<Map<String, int>> getProgressForDateRange(
+          String startDate, String endDate) =>
+      _goalDao.getProgressForDateRange(startDate, endDate);
 }

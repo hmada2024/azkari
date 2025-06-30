@@ -2,7 +2,6 @@
 import 'package:sqflite/sqflite.dart';
 import '../models/daily_goal_model.dart';
 
-/// كائن الوصول للبيانات (DAO) الخاص بجداول الأهداف (daily_goals, goal_progress).
 class GoalDao {
   final Database _db;
 
@@ -23,7 +22,6 @@ class GoalDao {
 
   Future<void> incrementGoalProgress(int goalId) async {
     final today = DateTime.now().toIso8601String().substring(0, 10);
-    // تأكد من وجود سجل لليوم أولاً (مهم جداً)
     await _ensureTodayProgressRecordsForGoalId(_db, today, goalId);
 
     await _db.rawUpdate('''
@@ -52,7 +50,6 @@ class GoalDao {
     return List.generate(maps.length, (i) => DailyGoalModel.fromMap(maps[i]));
   }
 
-  /// يضمن وجود سجلات لتقدم اليوم لجميع الأهداف المحددة.
   Future<void> _ensureAllTodayProgressRecords(Database db, String today) async {
     final List<Map<String, dynamic>> goals =
         await db.query('daily_goals', columns: ['id']);
@@ -68,7 +65,6 @@ class GoalDao {
     await batch.commit(noResult: true);
   }
 
-  /// يضمن وجود سجل تقدم اليوم لهدف معين قبل محاولة زيادته.
   Future<void> _ensureTodayProgressRecordsForGoalId(
       Database db, String today, int goalId) async {
     await db.insert(
@@ -82,5 +78,19 @@ class GoalDao {
     final result = await _db
         .query('daily_goals', where: 'tasbih_id = ?', whereArgs: [tasbihId]);
     return result.isNotEmpty ? result.first : null;
+  }
+
+  // ✨ [جديد] دالة لجلب إجمالي التقدم في نطاق زمني محدد
+  Future<Map<String, int>> getProgressForDateRange(
+      String startDate, String endDate) async {
+    final List<Map<String, dynamic>> result = await _db.rawQuery('''
+      SELECT date, SUM(current_count) as total_count
+      FROM goal_progress
+      WHERE date >= ? AND date <= ?
+      GROUP BY date
+      ORDER BY date ASC
+    ''', [startDate, endDate]);
+
+    return {for (var item in result) item['date']: item['total_count']};
   }
 }
