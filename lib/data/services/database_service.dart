@@ -63,58 +63,24 @@ class DatabaseService {
     }
   }
 
-  Future<void> _createGoalTablesV2(Database db) async {
-    await db.execute('''
-        CREATE TABLE daily_goals (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          tasbih_id INTEGER NOT NULL UNIQUE,
-          target_count INTEGER NOT NULL,
-          FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE
-        )
-      ''');
-    await db.execute('''
-        CREATE TABLE goal_progress (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          goal_id INTEGER NOT NULL,
-          date TEXT NOT NULL,
-          current_count INTEGER NOT NULL DEFAULT 0,
-          FOREIGN KEY (goal_id) REFERENCES daily_goals (id) ON DELETE CASCADE,
-          UNIQUE(goal_id, date)
-        )
-      ''');
-  }
-
-  Future<void> _upgradeToV3(Database db) async {
-    await db.execute('''
-      CREATE TABLE tasbih_daily_progress (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tasbih_id INTEGER NOT NULL,
-        date TEXT NOT NULL,
-        count INTEGER NOT NULL DEFAULT 0,
-        FOREIGN KEY (tasbih_id) REFERENCES custom_tasbih (id) ON DELETE CASCADE,
-        UNIQUE(tasbih_id, date)
-      )
-    ''');
-    final batch = db.batch();
-    batch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    batch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    await batch.commit(noResult: true);
-  }
+  Future<void> _createGoalTablesV2(Database db) async {/* ... كود سابق ... */}
+  Future<void> _upgradeToV3(Database db) async {/* ... كود سابق ... */}
   // ---------------------------------------------
 
-  // [تعديل جذري] منطق الترقية الآمن للإصدار الرابع
   Future<void> _upgradeToV4(Database db) async {
-    final batch = db.batch();
+    // خطوة 0: التحقق من وجود العمود قبل محاولة إضافته
+    var tableInfo = await db.rawQuery('PRAGMA table_info(custom_tasbih)');
+    bool aliasExists = tableInfo.any((column) => column['name'] == 'alias');
 
-    batch.execute('ALTER TABLE custom_tasbih ADD COLUMN alias TEXT');
+    if (!aliasExists) {
+      debugPrint("Column 'alias' does not exist. Adding it now...");
+      await db.execute('ALTER TABLE custom_tasbih ADD COLUMN alias TEXT');
+    } else {
+      debugPrint("Column 'alias' already exists. Skipping ALTER TABLE.");
+    }
+
+    // الآن يمكننا تنفيذ باقي العمليات بأمان باستخدام batch
+    final batch = db.batch();
 
     batch.update('custom_tasbih', {'alias': 'الاستغفار'},
         where: 'id = ?', whereArgs: [2]);
@@ -167,6 +133,6 @@ class DatabaseService {
         conflictAlgorithm: ConflictAlgorithm.ignore);
 
     await batch.commit();
-    debugPrint("Database upgraded to v4 successfully for old users.");
+    debugPrint("Database migration to v4 completed successfully.");
   }
 }
