@@ -14,7 +14,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsyncValue = ref.watch(categoriesProvider);
-    final theme = Theme.of(context);
+    Theme.of(context);
 
     final Map<String, IconData> categoryIcons = {
       "أذكار الصباح": Icons.wb_sunny_outlined,
@@ -53,24 +53,25 @@ class HomeScreen extends ConsumerWidget {
           return ListView.builder(
             padding: EdgeInsets.symmetric(
                 vertical: context.responsiveSize(8.0),
-                horizontal: context.responsiveSize(10.0)),
+                horizontal:
+                    context.responsiveSize(12.0)), // تعديل بسيط للهامش العام
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
               final icon = categoryIcons[category] ?? Icons.list_alt_rounded;
-              return Container(
+
+              return Card(
                 margin: EdgeInsets.symmetric(
-                  vertical: context.responsiveSize(6),
-                  horizontal: context.screenWidth * 0.1,
+                  vertical: context.responsiveSize(5),
+                  horizontal: context.screenWidth * 0.05,
                 ),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
-                  border:
-                      Border.all(color: theme.dividerColor.withOpacity(0.5)),
                 ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(15),
+                clipBehavior:
+                    Clip.antiAlias, // لضمان أن تأثير الضغط يتبع الحواف الدائرية
+                child: ListTile(
+                  // ListTile هو الويدجت المثالي لهذا التصميم
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -78,33 +79,30 @@ class HomeScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  child: Padding(
-                    padding: EdgeInsets.all(context.responsiveSize(16.0)),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: context.responsiveSize(22),
-                          backgroundColor: AppColors.accent.withOpacity(0.5),
-                          child: Icon(icon,
-                              color: AppColors.primary,
-                              size: context.responsiveSize(22)),
-                        ),
-                        SizedBox(width: context.responsiveSize(16)),
-                        Expanded(
-                          child: Text(
-                            category,
-                            style: TextStyle(
-                              fontSize: context.responsiveSize(16),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        Icon(Icons.arrow_forward_ios,
-                            size: context.responsiveSize(16),
-                            color: Colors.grey.shade400),
-                      ],
+                  // التحكم في الحشوات الداخلية لجعل البطاقة مدمجة أكثر
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: context.responsiveSize(12),
+                    vertical: context
+                        .responsiveSize(4), // تقليل الحشوة العمودية بشكل كبير
+                  ),
+                  leading: CircleAvatar(
+                    // تصغير حجم الدائرة والأيقونة بداخلها
+                    radius: context.responsiveSize(20),
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    child: Icon(icon,
+                        color: AppColors.primary,
+                        size: context.responsiveSize(20)),
+                  ),
+                  title: Text(
+                    category,
+                    style: TextStyle(
+                      fontSize: context.responsiveSize(15), // تصغير الخط قليلاً
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                  trailing: Icon(Icons.arrow_forward_ios,
+                      size: context.responsiveSize(15),
+                      color: Colors.grey.shade400),
                 ),
               );
             },
