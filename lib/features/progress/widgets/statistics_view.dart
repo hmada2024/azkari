@@ -74,14 +74,19 @@ class StatisticsView extends ConsumerWidget {
     }
   }
 
-  // ✨ [مُعدَّل] تغيير بسيط لـ DayStatus وتمرير الثيم
-  Widget _buildWeeklyView(BuildContext context, Map<DateTime, DailyStat> data,
-      ThemeData theme,
+  Widget _buildWeeklyView(
+      BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
       {required Key key}) {
     final today = DateTime.now();
     final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
     final weekDays = [
-      'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'
+      'الإثنين',
+      'الثلاثاء',
+      'الأربعاء',
+      'الخميس',
+      'الجمعة',
+      'السبت',
+      'الأحد'
     ];
 
     return Container(
@@ -105,19 +110,20 @@ class StatisticsView extends ConsumerWidget {
     );
   }
 
-  // ✨ [إعادة بناء كاملة] تم إعادة بناء هذه الدالة بالكامل
-  Widget _buildMonthlyView(BuildContext context, Map<DateTime, DailyStat> data,
-      ThemeData theme,
+  // ✨ [إعادة بناء كاملة] تم إعادة بناء هذه الدالة بالكامل لتلبية المتطلبات الجديدة
+  Widget _buildMonthlyView(
+      BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
       {required Key key}) {
     final now = DateTime.now();
-    final firstDayOfMonth = DateTime(now.year, now.month, 1);
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    final int emptyCells = firstDayOfMonth.weekday % 7;
-    final weekDayHeaders = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
 
     return LayoutBuilder(builder: (context, constraints) {
-      const double horizontalSpacing = 4.0;
-      const double verticalSpacing = 8.0;
+      // يمكنك التحكم بعدد الأعمدة هنا بتغيير الرقم 7
+      const int crossAxisCount = 7;
+      const double spacing = 8.0;
+      final double itemWidth =
+          (constraints.maxWidth - (spacing * (crossAxisCount - 1))) /
+              crossAxisCount;
 
       return Column(
         key: key,
@@ -129,36 +135,20 @@ class StatisticsView extends ConsumerWidget {
               style: theme.textTheme.titleMedium,
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: weekDayHeaders
-                .map((day) => Expanded(
-                      child: Text(
-                        day,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: theme.textTheme.bodySmall?.color),
-                      ),
-                    ))
-                .toList(),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
+
+          // ✨ [تغيير] استخدام Wrap لإنشاء شبكة بسيطة تبدأ من الأعلى
           Wrap(
-            spacing: horizontalSpacing,
-            runSpacing: verticalSpacing,
-            children: List.generate(daysInMonth + emptyCells, (index) {
-              if (index < emptyCells) {
-                return SizedBox(
-                    width: (constraints.maxWidth - (horizontalSpacing * 6)) / 7);
-              }
-              final dayNumber = index - emptyCells + 1;
+            spacing: spacing,
+            runSpacing: spacing,
+            children: List.generate(daysInMonth, (index) {
+              final dayNumber = index + 1;
               final date = DateTime(now.year, now.month, dayNumber);
               final stat = data[date];
 
               return SizedBox(
-                width: (constraints.maxWidth - (horizontalSpacing * 6)) / 7,
-                child: _buildDayStatCell(stat, theme),
+                width: itemWidth,
+                child: _buildDayNumberCell(stat, dayNumber, theme),
               );
             }),
           ),
@@ -166,14 +156,13 @@ class StatisticsView extends ConsumerWidget {
       );
     });
   }
-  
-  // ✨ [مُعدَّل] تغيير بسيط لـ DayStatus وتمرير الثيم
+
   Widget _buildStatusIcon(DailyStat? status, ThemeData theme) {
     if (status == null || status.type == StatDayType.future) {
-       return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
+      return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
     }
     if (status.type == StatDayType.today && !status.isCompleted) {
-        return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
+      return const Icon(Icons.radio_button_unchecked, color: AppColors.grey);
     }
 
     return status.isCompleted
@@ -181,40 +170,39 @@ class StatisticsView extends ConsumerWidget {
         : const Icon(Icons.cancel, color: AppColors.error);
   }
 
-  // ✨ [جديد] دالة جديدة لعرض خلية الإحصائيات بدلاً من الدائرة
-  Widget _buildDayStatCell(DailyStat? stat, ThemeData theme) {
+  // ✨ [جديد] دالة جديدة لعرض رقم اليوم مع التلوين المناسب
+  Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {
     if (stat == null) {
-      // أيام من الشهر الماضي أو التالي تظهر كفراغ
-      return const SizedBox.shrink();
-    }
-    
-    // الأيام المستقبلية تظهر كـ نقطة
-    if (stat.type == StatDayType.future) {
+      // حالة غير متوقعة، نعرض الرقم بلون محايد
       return Text(
-        '·',
+        dayNumber.toString(),
         textAlign: TextAlign.center,
-        style: TextStyle(color: theme.disabledColor, fontWeight: FontWeight.bold),
+        style: TextStyle(color: theme.disabledColor),
       );
     }
 
     Color textColor;
-    if (stat.type == StatDayType.today && !stat.isCompleted) {
-       textColor = theme.primaryColor;
-    } else if (stat.isCompleted) {
-      textColor = AppColors.success;
+    FontWeight fontWeight = FontWeight.normal;
+
+    // تحديد اللون بناءً على حالة اليوم
+    if (stat.type == StatDayType.future) {
+      textColor = theme.disabledColor;
+    } else if (stat.type == StatDayType.today) {
+      // اليوم الحالي يُميَّز بلون الثيم الأساسي وخط عريض
+      textColor = stat.isCompleted ? AppColors.success : theme.primaryColor;
+      fontWeight = FontWeight.bold;
     } else {
-      textColor = AppColors.error;
+      // يوم ماضي
+      textColor = stat.isCompleted ? AppColors.success : AppColors.error;
     }
 
-    final percentText = '${(stat.percentage * 100).round()}%';
-
     return Text(
-      percentText,
+      dayNumber.toString(),
       textAlign: TextAlign.center,
       style: TextStyle(
         color: textColor,
-        fontWeight: FontWeight.bold,
-        fontSize: 13,
+        fontWeight: fontWeight,
+        fontSize: 16,
       ),
     );
   }
