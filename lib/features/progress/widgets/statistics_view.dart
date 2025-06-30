@@ -110,7 +110,6 @@ class StatisticsView extends ConsumerWidget {
     );
   }
 
-  // ✨ [إعادة بناء كاملة] تم استبدال Wrap بـ GridView.builder لحل مشكلة التنسيق
   Widget _buildMonthlyView(
       BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme,
       {required Key key}) {
@@ -128,13 +127,11 @@ class StatisticsView extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-
-        // ✨ [تغيير] استخدام GridView الأكثر قوة للشبكات
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7, // 7 أعمدة دائمًا
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 50.0,
             mainAxisSpacing: 8.0,
             crossAxisSpacing: 4.0,
           ),
@@ -164,14 +161,13 @@ class StatisticsView extends ConsumerWidget {
         : const Icon(Icons.cancel, color: AppColors.error);
   }
 
-  // ✨ [تحسين] إضافة `softWrap: false` لمنع التفاف النص نهائيًا
   Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {
     if (stat == null) {
       return Text(
         dayNumber.toString(),
         textAlign: TextAlign.center,
         style: TextStyle(color: theme.disabledColor),
-        softWrap: false, // يمنع التفاف النص
+        softWrap: false,
       );
     }
 
@@ -188,7 +184,6 @@ class StatisticsView extends ConsumerWidget {
     }
 
     return Center(
-      // ✨ [تحسين] استخدام Center لضمان التوسيط الرأسي والأفقي
       child: Text(
         dayNumber.toString(),
         textAlign: TextAlign.center,
@@ -197,7 +192,7 @@ class StatisticsView extends ConsumerWidget {
           fontWeight: fontWeight,
           fontSize: 16,
         ),
-        softWrap: false, // يمنع التفاف النص
+        softWrap: false,
       ),
     );
   }
