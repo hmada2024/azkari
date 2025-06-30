@@ -15,7 +15,7 @@ class GoalManagementItem {
 // Provider لجلب البيانات ودمجها (Read-only)
 final goalManagementProvider =
     FutureProvider<List<GoalManagementItem>>((ref) async {
-  final repo = await ref.watch(adhkarRepositoryProvider.future);
+  final repo = await ref.watch(azkarRepositoryProvider.future);
   final tasbihList = await repo.getCustomTasbihList();
   final goals = await repo.getTodayGoalsWithProgress();
 
@@ -55,21 +55,21 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
 
   Future<void> setGoal(int tasbihId, int count) async {
     await _performAction(() async {
-      final repo = await _ref.read(adhkarRepositoryProvider.future);
+      final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.setGoal(tasbihId, count);
     });
   }
 
   Future<void> addTasbih(String text) async {
     await _performAction(() async {
-      final repo = await _ref.read(adhkarRepositoryProvider.future);
+      final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.addTasbih(text);
     });
   }
 
   Future<void> deleteTasbih(int id) async {
     await _performAction(() async {
-      final repo = await _ref.read(adhkarRepositoryProvider.future);
+      final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.deleteTasbih(id);
     });
   }
@@ -87,7 +87,7 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     };
 
     await _performAction(() async {
-      final repo = await _ref.read(adhkarRepositoryProvider.future);
+      final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.updateSortOrders(newOrders);
     });
   }

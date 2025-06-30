@@ -9,6 +9,6 @@ final dailyGoalsProvider = FutureProvider<List<DailyGoalModel>>((ref) async {
   // هذا يخلق اعتمادية صريحة. عندما تتغير العدادات، سيعاد بناء هذا الـ Provider تلقائياً.
   ref.watch(dailyTasbihCountsProvider);
 
-  final repository = await ref.watch(adhkarRepositoryProvider.future);
+  final repository = await ref.watch(azkarRepositoryProvider.future);
   return repository.getTodayGoalsWithProgress();
 });

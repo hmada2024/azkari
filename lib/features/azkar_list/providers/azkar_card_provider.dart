@@ -58,7 +58,7 @@ class AzkarCardNotifier extends StateNotifier<AzkarCardState> {
 /// 3. الرابط (Provider): يقوم بإنشاء Notifier لكل بطاقة على حدة.
 /// نستخدم `.family` لأن كل بطاقة تحتاج إلى نسخة خاصة بها من الـ Notifier.
 /// نستخدم `.autoDispose` لحذف الـ Notifier من الذاكرة عندما تختفي البطاقة من الشاشة.
-final adhkarCardProvider = StateNotifierProvider.family
+final azkarCardProvider = StateNotifierProvider.family
     .autoDispose<AzkarCardNotifier, AzkarCardState, AzkarModel>(
   (ref, adhkar) => AzkarCardNotifier(adhkar),
 );

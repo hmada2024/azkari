@@ -16,7 +16,7 @@ final databaseProvider = FutureProvider<Database>((ref) {
 });
 
 // [تعديل] تحديث المستودع ليتضمن الـ DAO الجديد
-final adhkarRepositoryProvider = FutureProvider<AzkarRepository>((ref) async {
+final azkarRepositoryProvider = FutureProvider<AzkarRepository>((ref) async {
   final db = await ref.watch(databaseProvider.future);
   return AzkarRepository(
     AzkarDao(db),
@@ -29,11 +29,11 @@ final adhkarRepositoryProvider = FutureProvider<AzkarRepository>((ref) async {
 // -- Level 3: Feature-Specific Providers --
 final azkarByCategoryProvider =
     FutureProvider.family<List<AzkarModel>, String>((ref, category) async {
-  final repository = await ref.watch(adhkarRepositoryProvider.future);
+  final repository = await ref.watch(azkarRepositoryProvider.future);
   return repository.getAzkarByCategory(category);
 });
 
 final categoriesProvider = FutureProvider<List<String>>((ref) async {
-  final repository = await ref.watch(adhkarRepositoryProvider.future);
+  final repository = await ref.watch(azkarRepositoryProvider.future);
   return repository.getCategories();
 });

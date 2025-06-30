@@ -15,8 +15,8 @@ class AzkarCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cardState = ref.watch(adhkarCardProvider(adhkar));
-    final cardNotifier = ref.read(adhkarCardProvider(adhkar).notifier);
+    final cardState = ref.watch(azkarCardProvider(adhkar));
+    final cardNotifier = ref.read(azkarCardProvider(adhkar).notifier);
 
     final bool isFinished = cardState.isFinished;
     final theme = Theme.of(context);

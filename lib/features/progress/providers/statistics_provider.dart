@@ -45,7 +45,7 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final repo = await _ref.read(adhkarRepositoryProvider.future);
+      final repo = await _ref.read(azkarRepositoryProvider.future);
       final today = DateTime.now();
       final todayDateOnly = DateTime(today.year, today.month, today.day);
 

@@ -25,7 +25,7 @@ class AzkarScreen extends ConsumerWidget {
 
               int completedCount = 0;
               for (var adhkar in adhkarList) {
-                final cardState = ref.watch(adhkarCardProvider(adhkar));
+                final cardState = ref.watch(azkarCardProvider(adhkar));
                 if (cardState.isFinished) {
                   completedCount++;
                 }

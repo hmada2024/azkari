@@ -36,12 +36,12 @@ final tasbihListWithCountsProvider =
 
 final dailyTasbihCountsProvider =
     FutureProvider.autoDispose<Map<int, int>>((ref) async {
-  final repo = await ref.watch(adhkarRepositoryProvider.future);
+  final repo = await ref.watch(azkarRepositoryProvider.future);
   return repo.getTodayTasbihCounts();
 });
 
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
-  final repository = await ref.watch(adhkarRepositoryProvider.future);
+  final repository = await ref.watch(azkarRepositoryProvider.future);
   return repository.getCustomTasbihList();
 });
 
@@ -116,7 +116,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
 
     state = state.copyWith(count: state.count + 1);
 
-    final repo = await _ref.read(adhkarRepositoryProvider.future);
+    final repo = await _ref.read(azkarRepositoryProvider.future);
     await repo.incrementTasbihDailyCount(state.activeTasbihId!);
 
     // ✨ [تعديل] إزالة الإبطال اليدوي المتعدد (Invalidation Cascade).
