@@ -2,8 +2,8 @@
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
-import 'package:azkari/features/azkar_list/azkar_providers.dart';
-import 'package:azkari/features/azkar_list/azkar_screen.dart';
+import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
+import 'package:azkari/features/azkar_list/screens/azkar_screen.dart';
 import 'package:azkari/features/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

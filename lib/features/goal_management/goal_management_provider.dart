@@ -1,6 +1,6 @@
 // lib/features/goal_management/goal_management_provider.dart
 import 'package:azkari/data/models/tasbih_model.dart';
-import 'package:azkari/features/azkar_list/azkar_providers.dart';
+import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 

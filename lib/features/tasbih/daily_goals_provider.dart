@@ -1,6 +1,6 @@
 // lib/features/tasbih/daily_goals_provider.dart
 import 'package:azkari/data/models/daily_goal_model.dart';
-import 'package:azkari/features/azkar_list/azkar_providers.dart';
+import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/tasbih/tasbih_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

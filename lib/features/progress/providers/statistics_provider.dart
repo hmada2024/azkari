@@ -1,5 +1,5 @@
 // lib/features/progress/providers/statistics_provider.dart
-import 'package:azkari/features/azkar_list/azkar_providers.dart';
+import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/goal_management/goal_management_provider.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter/foundation.dart';

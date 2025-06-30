@@ -3,8 +3,8 @@ import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/widgets/completion_counter_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'azkar_providers.dart';
-import 'widgets/azkar_card.dart';
+import '../providers/azkar_list_providers.dart';
+import '../widgets/azkar_card.dart';
 
 class AzkarScreen extends ConsumerWidget {
   final String category;

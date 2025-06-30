@@ -8,7 +8,7 @@ import 'package:azkari/data/repositories/azkar_repository.dart';
 import 'package:azkari/data/services/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
-export 'providers/azkar_card_provider.dart';
+export 'azkar_card_provider.dart';
 
 // -- Level 1: Database Service --
 final databaseProvider = FutureProvider<Database>((ref) {
