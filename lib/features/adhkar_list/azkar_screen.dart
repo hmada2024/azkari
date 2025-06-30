@@ -2,7 +2,7 @@
 import 'package:azkari/features/adhkar_list/widgets/completion_counter_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'adhkar_providers.dart';
+import 'azkar_providers.dart';
 import 'widgets/adhkar_card.dart';
 
 class AzkarScreen extends ConsumerWidget {
@@ -12,7 +12,7 @@ class AzkarScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final adhkarAsyncValue = ref.watch(adhkarByCategoryProvider(category));
+    final adhkarAsyncValue = ref.watch(azkarByCategoryProvider(category));
 
     return Scaffold(
       appBar: AppBar(

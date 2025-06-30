@@ -1,5 +1,5 @@
 // lib/features/progress/providers/statistics_provider.dart
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
+import 'package:azkari/features/adhkar_list/azkar_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:meta/meta.dart';

@@ -24,7 +24,7 @@ final adhkarRepositoryProvider = FutureProvider<AzkarRepository>((ref) async {
 });
 
 // -- Level 3: Feature-Specific Providers --
-final adhkarByCategoryProvider =
+final azkarByCategoryProvider =
     FutureProvider.family<List<AzkarModel>, String>((ref, category) async {
   final repository = await ref.watch(adhkarRepositoryProvider.future);
   return repository.getAzkarByCategory(category);

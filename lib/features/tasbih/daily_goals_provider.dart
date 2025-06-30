@@ -1,6 +1,6 @@
 // lib/features/tasbih/daily_goals_provider.dart
 import 'package:azkari/data/models/daily_goal_model.dart';
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
+import 'package:azkari/features/adhkar_list/azkar_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ✨ [تعديل] التعامل مع المستودع كـ Future

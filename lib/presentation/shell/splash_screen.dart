@@ -1,6 +1,6 @@
 // lib/presentation/shell/splash_screen.dart
 import 'dart:math';
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
+import 'package:azkari/features/adhkar_list/azkar_providers.dart';
 import 'package:azkari/presentation/shell/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
+import 'package:azkari/features/adhkar_list/azkar_providers.dart';
 import 'package:azkari/features/tasbih/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';

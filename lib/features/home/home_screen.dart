@@ -1,7 +1,7 @@
 // lib/features/home/home_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/features/adhkar_list/adhkar_providers.dart';
-import 'package:azkari/features/adhkar_list/adhkar_screen.dart';
+import 'package:azkari/features/adhkar_list/azkar_providers.dart';
+import 'package:azkari/features/adhkar_list/azkar_screen.dart';
 import 'package:azkari/features/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
