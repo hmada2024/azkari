@@ -1,5 +1,5 @@
 // lib/features/azkar_list/azkar_providers.dart
-import 'package:azkari/data/dao/adhkar_dao.dart';
+import 'package:azkari/data/dao/azkar_dao.dart';
 import 'package:azkari/data/dao/goal_dao.dart';
 import 'package:azkari/data/dao/tasbih_dao.dart';
 import 'package:azkari/data/dao/tasbih_progress_dao.dart'; // [جديد]

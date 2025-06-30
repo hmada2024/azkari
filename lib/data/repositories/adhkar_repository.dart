@@ -1,5 +1,5 @@
 // lib/data/repositories/adhkar_repository.dart
-import '../dao/adhkar_dao.dart';
+import '../dao/azkar_dao.dart';
 import '../dao/goal_dao.dart';
 import '../dao/tasbih_dao.dart';
 import '../dao/tasbih_progress_dao.dart'; // [جديد]
