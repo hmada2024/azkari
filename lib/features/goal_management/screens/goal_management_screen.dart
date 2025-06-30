@@ -1,6 +1,5 @@
 // lib/features/goal_management/screens/goal_management_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
