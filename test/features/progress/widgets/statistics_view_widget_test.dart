@@ -21,7 +21,8 @@ void main() {
   setUpAll(() => initializeDateFormatting('ar'));
 
   final today = DateTime.now();
-  final completedDay = today.subtract(const Duration(days: 2));
+  // تأكد من أن اليوم المكتمل ليس في بداية الشهر لتجنب النجاح بالصدفة
+  final completedDay = DateTime(today.year, today.month, 25);
 
   final mockData = {
     completedDay: DailyStat(type: StatDayType.past, percentage: 1.0),
@@ -29,27 +30,33 @@ void main() {
 
   testWidgets('StatisticsView renders COMPLETED day cell correctly',
       (WidgetTester tester) async {
+    // ✨ [الإصلاح النهائي القاطع] - نجعل شاشة الاختبار طويلة جداً
+    // هذا يضمن أن GridView بالكامل سيتم بناؤه ورسمه.
+    await tester.binding.setSurfaceSize(const Size(800, 3000));
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           statisticsProvider.overrideWith((ref) => MockStatisticsNotifier(
               StatisticsState(isLoading: false, data: mockData)))
         ],
-        child: const MaterialApp(home: Scaffold(body: StatisticsView())),
+        child: const MaterialApp(
+            home:
+                Scaffold(body: SingleChildScrollView(child: StatisticsView()))),
       ),
     );
     await tester.pumpAndSettle();
 
-    // ✨ [الإصلاح النهائي القاطع] - البحث باستخدام المفتاح الفريد.
-    // هذا هو الأسلوب الأكثر قوة وموثوقية في اختبارات الواجهات.
+    // الآن بما أن الشاشة طويلة، فإن البحث بالمفتاح سيعمل 100%
     final cellFinder = find.byKey(ValueKey('stat_cell_${completedDay.day}'));
 
-    // 1. تحقق من أننا وجدنا الخلية.
     expect(cellFinder, findsOneWidget);
 
-    // 2. الآن بعد أن وجدنا الويدجت الصحيح، نتحقق من لونه.
     final container = tester.widget<Container>(cellFinder);
     expect((container.decoration as BoxDecoration).color,
         AppColors.success.withOpacity(0.9));
+
+    // إعادة حجم الشاشة لوضعه الطبيعي بعد الاختبار
+    await tester.binding.setSurfaceSize(null);
   });
 }
