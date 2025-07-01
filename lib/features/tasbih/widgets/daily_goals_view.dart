@@ -1,8 +1,8 @@
 // lib/features/tasbih/widgets/daily_goals_view.dart
-import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
+import 'package:azkari/features/progress/widgets/daily_goal_item.dart'; // [جديد]
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,55 +54,8 @@ class DailyGoalsView extends ConsumerWidget {
                 itemCount: goals.length,
                 itemBuilder: (context, index) {
                   final goal = goals[index];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              goal.tasbihText,
-                              style: TextStyle(
-                                  fontSize: context.responsiveSize(15)),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          SizedBox(width: context.responsiveSize(8)),
-                          Text(
-                            '${goal.currentProgress} / ${goal.targetCount}',
-                            style: TextStyle(
-                              fontSize: context.responsiveSize(14),
-                              color: theme.textTheme.bodyMedium?.color,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (goal.isCompleted)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4.0),
-                              child: Icon(Icons.check_circle,
-                                  color: AppColors.success,
-                                  size: context.responsiveSize(18)),
-                            ),
-                        ],
-                      ),
-                      SizedBox(height: context.responsiveSize(6)),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: LinearProgressIndicator(
-                          value: goal.progressFraction,
-                          minHeight: 6,
-                          backgroundColor: theme.scaffoldBackgroundColor,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            goal.isCompleted
-                                ? AppColors.success
-                                : theme.primaryColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
+                  // [تعديل] استدعاء الويدجت الجديد لتصيير عنصر الهدف.
+                  return DailyGoalItem(goal: goal);
                 },
                 separatorBuilder: (context, index) =>
                     Divider(height: context.responsiveSize(24)),
