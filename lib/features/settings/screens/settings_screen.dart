@@ -1,7 +1,8 @@
 // lib/features/settings/settings_screen.dart
-import 'dart:io'; // ✨ 1. استيراد مكتبة المنصة
+import 'dart:io';
 import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/features/settings/widgets/section_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,7 +26,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.all(context.responsiveSize(16.0)),
         children: [
-          _buildSectionTitle('المظهر', theme, context),
+          const SectionTitle(title: 'المظهر'),
           Card(
             child: Column(
               children: [
@@ -51,7 +52,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SizedBox(height: context.responsiveSize(24)),
-          _buildSectionTitle('حجم الخط', theme, context),
+          const SectionTitle(title: 'حجم الخط'),
           Card(
             child: Padding(
               padding: EdgeInsets.all(context.responsiveSize(16.0)),
@@ -79,18 +80,16 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           SizedBox(height: context.responsiveSize(24)),
-          _buildSectionTitle('التنبيهات', theme, context),
+          const SectionTitle(title: 'التنبيهات'),
           Card(
             child: Column(
               children: [
                 SwitchListTile(
                   title: const Text('تذكير أذكار الصباح'),
-                  // ✨ 3. تحديث النص بناءً على دعم المنصة
                   subtitle: Text(notificationsSupported
                       ? 'يومياً الساعة 8:00 صباحاً'
                       : 'غير مدعوم على هذه المنصة'),
                   value: settings.morningNotificationEnabled,
-                  // ✨ 4. تعطيل المفتاح إذا كانت المنصة غير مدعومة
                   onChanged: notificationsSupported
                       ? (bool value) {
                           settingsNotifier.updateMorningNotification(value);
@@ -113,21 +112,6 @@ class SettingsScreen extends ConsumerWidget {
             ),
           )
         ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(
-      String title, ThemeData theme, BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: context.responsiveSize(8.0)),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: theme.primaryColor,
-          fontWeight: FontWeight.bold,
-          fontSize: context.responsiveSize(16),
-        ),
       ),
     );
   }

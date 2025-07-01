@@ -1,10 +1,10 @@
-// lib/features/progress/progress_screen.dart
-import 'package:azkari/core/utils/size_config.dart';
-import 'package:azkari/core/widgets/primary_button.dart';
+//lib/features/progress/screens/progress_screen.dart
 import 'package:azkari/features/goal_management/screens/goal_management_screen.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/daily_goals_view.dart';
 import 'package:azkari/features/progress/widgets/statistics_view.dart';
+import 'package:azkari/features/progress/widgets/initial_progress_view.dart'; // [جديد] استيراد الويدجت
+import 'package:azkari/features/progress/widgets/no_goals_set_view.dart'; // [جديد] استيراد الويدجت
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,17 +34,19 @@ class ProgressScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('خطأ: $error')),
         data: (goals) {
+          // [تعديل] أصبح المنطق أكثر وضوحًا
           if (goals.isEmpty) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: _buildNoGoalsSetView(context),
+            return const SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: NoGoalsSetView(), // [تعديل] استدعاء الويدجت الجديد
             );
           }
 
           final totalTodayProgress =
               goals.fold<int>(0, (sum, goal) => sum + goal.currentProgress);
 
-          if (totalTodayProgress > 0 || goals.isNotEmpty) {
+          if (totalTodayProgress > 0) {
+            // [بدون تغيير] عرض التقدم الفعلي
             return ListView(
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -55,90 +57,13 @@ class ProgressScreen extends ConsumerWidget {
               ],
             );
           } else {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: _buildInitialView(context),
+            // [تعديل] الحالة التي فيها أهداف ولكن لا يوجد تقدم بعد
+            return const SingleChildScrollView(
+              physics: BouncingScrollPhysics(),
+              child: InitialProgressView(), // [تعديل] استدعاء الويدجت الجديد
             );
           }
         },
-      ),
-    );
-  }
-
-  Widget _buildInitialView(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.trending_up_rounded,
-              size: context.responsiveSize(80),
-              color: theme.primaryColor.withOpacity(0.6),
-            ),
-            SizedBox(height: context.responsiveSize(24)),
-            Text(
-              'ابدأ رحلتك اليومية',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: context.responsiveSize(12)),
-            Text(
-              'سيظهر تقدمك في أهدافك اليومية هنا بمجرد البدء في التسبيح من شاشة السبحة.',
-              style: theme.textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNoGoalsSetView(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.flag_outlined,
-              size: context.responsiveSize(70),
-              color: theme.disabledColor,
-            ),
-            SizedBox(height: context.responsiveSize(20)),
-            Text(
-              'لم تقم بتحديد أي أهداف بعد',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: context.responsiveSize(10)),
-            Text(
-              'حدد أهدافك اليومية للبدء في تتبع تقدمك.',
-              style: theme.textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: context.responsiveSize(20)),
-            PrimaryButton(
-              icon: Icons.add_task_outlined,
-              text: 'تحديد الأهداف الآن',
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const GoalManagementScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
       ),
     );
   }
