@@ -1,7 +1,6 @@
 // lib/features/goal_management/screens/goal_management_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
-import 'package:azkari/features/tasbih/providers/tasbih_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,8 +10,7 @@ class GoalManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    // ✨ [الإصلاح] نراقب الـ FutureProvider الأصلي للحصول على حالات التحميل والخطأ
-    final stateAsync = ref.watch(tasbihListProvider);
+    final stateAsync = ref.watch(goalManagementProvider);
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
     ref.listen<AsyncValue<void>>(goalManagementStateProvider, (_, state) {
@@ -26,14 +24,10 @@ class GoalManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة أهدافي')),
-      // ✨ [الإصلاح] نستخدم .when على AsyncValue
       body: stateAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('خطأ: $err')),
-        data: (_) {
-          // ✨ بمجرد وجود البيانات، نقرأ الـ Provider المشتق للحصول على القائمة المدمجة
-          final items = ref.read(goalManagementProvider);
-
+        data: (items) {
           return ReorderableListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
                 .copyWith(bottom: 90),
@@ -61,11 +55,13 @@ class GoalManagementScreen extends ConsumerWidget {
     );
   }
 
+  // [تعديل] أصبحت الدالة async
   void _showEditGoalDialog(BuildContext context,
-      GoalManagementNotifier notifier, GoalManagementItem item) {
+      GoalManagementNotifier notifier, GoalManagementItem item) async {
     final controller = TextEditingController(
         text: item.targetCount > 0 ? item.targetCount.toString() : '');
-    showDialog(
+    // [مهم] يجب استخدام showDialog بطريقة async
+    await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('تحديد الهدف لـ "${item.tasbih.displayName}"'),
@@ -80,8 +76,10 @@ class GoalManagementScreen extends ConsumerWidget {
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
+            // [تعديل] أصبحت onPressed async
             onPressed: () async {
               final count = int.tryParse(controller.text) ?? 0;
+              // [الإصلاح النهائي الحاسم] ننتظر اكتمال العملية قبل إغلاق النافذة
               await notifier.setGoal(item.tasbih.id, count);
               if (ctx.mounted) Navigator.pop(ctx);
             },
@@ -92,22 +90,27 @@ class GoalManagementScreen extends ConsumerWidget {
     );
   }
 
+  // [تعديل] أصبحت الدالة async
   void _showAddTasbihDialog(
-      BuildContext context, GoalManagementNotifier notifier) {
+      BuildContext context, GoalManagementNotifier notifier) async {
     final controller = TextEditingController();
-    showDialog(
+    // [مهم] يجب استخدام showDialog بطريقة async
+    await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('إضافة ذكر جديد'),
         content: TextField(
             controller: controller,
+            autofocus: true,
             decoration: const InputDecoration(hintText: 'اكتب الذكر هنا...')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
+            // [تعديل] أصبحت onPressed async
             onPressed: () async {
               if (controller.text.trim().isNotEmpty) {
+                // [الإصلاح النهائي الحاسم] ننتظر اكتمال العملية قبل إغلاق النافذة
                 await notifier.addTasbih(controller.text.trim());
                 if (ctx.mounted) Navigator.pop(ctx);
               }

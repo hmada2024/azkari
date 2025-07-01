@@ -2,7 +2,6 @@
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
@@ -41,8 +40,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
   Future<void> fetchMonthlyStats() async {
     if (_isFetching) return;
-
-    // ✨ [الإصلاح] إضافة حارس للتأكد من أن الـ Notifier لم يتم تدميره قبل بدء العملية.
     if (!mounted) return;
 
     _isFetching = true;
@@ -62,7 +59,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
       final monthlyProgress = await repo.getMonthlyProgressSummary(
           formatter.format(startDate), formatter.format(endDate));
 
-      // ✨ [الإصلاح] إضافة حارس آخر بعد عمليات الـ await، لأن الـ Notifier قد يتم تدميره أثناء الانتظار.
       if (!mounted) return;
 
       Map<DateTime, DailyStat> dailyStatuses = {};
@@ -87,13 +83,8 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
       }
 
       state = state.copyWith(isLoading: false, data: dailyStatuses);
-    } catch (e, st) {
-      if (kDebugMode) {
-        print("Error in StatisticsNotifier: $e");
-        print(st);
-      }
-
-      // ✨ [الإصلاح] إضافة الحارس الأهم هنا، قبل تحديث الحالة في كتلة الـ catch.
+    } catch (e) {
+      // It's better to use a proper logging service in production.
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     } finally {

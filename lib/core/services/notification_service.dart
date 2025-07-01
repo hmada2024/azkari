@@ -1,5 +1,6 @@
 // lib/core/services/notification_service.dart
-import 'dart:io'; // ✨ 1. استيراد مكتبة المنصة
+// [تنظيف] إزالة جملة debugPrint.
+import 'dart:io';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -32,7 +33,8 @@ class NotificationService {
     try {
       tz.setLocalLocation(tz.getLocation('Asia/Riyadh'));
     } catch (e) {
-      debugPrint('Could not set timezone: $e');
+      // It's acceptable to have a debugPrint in a catch block during development,
+      // but for release prep, we'll rely on more robust logging if needed.
     }
 
     await _notificationsPlugin.initialize(
@@ -48,10 +50,9 @@ class NotificationService {
     required int hour,
     required int minute,
   }) async {
-    // ✨ 2. حارس المنصة: تحقق من المنصة قبل محاولة جدولة الإشعار
+    // Platform guard: Check the platform before trying to schedule a notification.
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
-      debugPrint("Skipping scheduled notification on unsupported platform.");
-      return; // اخرج من الدالة إذا كانت المنصة غير مدعومة
+      return; // Exit the function if the platform is not supported.
     }
 
     await _notificationsPlugin
@@ -69,7 +70,6 @@ class NotificationService {
       return scheduledDate;
     }
 
-    // هذا الكود سيتم تشغيله فقط على المنصات المدعومة
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -96,7 +96,6 @@ class NotificationService {
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
-    debugPrint("Notification scheduled with id: $id");
   }
 
   Future<void> scheduleMorningReminder() async {

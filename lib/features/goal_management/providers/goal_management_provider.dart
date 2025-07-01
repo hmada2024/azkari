@@ -14,12 +14,17 @@ class GoalManagementItem {
   const GoalManagementItem({required this.tasbih, required this.targetCount});
 }
 
+// [إصلاح حاسم] تم تحويل هذا من Provider إلى FutureProvider.
+// هذا يضمن أنه يتعامل بشكل صحيح مع الحالة غير المتزامنة لـ `tasbihListProvider`
+// و `dailyGoalsProvider`. الآن، عندما يتم تحديث أي منهما، سيقوم هذا الـ provider
+// بإعادة الحساب بشكل غير متزامن، مما يمنح الواجهة حالة `loading` واضحة بدلاً من
+// عرض بيانات قديمة أو فارغة للحظات. هذا هو الحل الجذري لمشكلة الاختبار التكاملي.
 final goalManagementProvider =
-    Provider.autoDispose<List<GoalManagementItem>>((ref) {
+    FutureProvider.autoDispose<List<GoalManagementItem>>((ref) async {
+  // نستخدم `await ref.watch` لأننا الآن داخل FutureProvider
   final List<TasbihModel> tasbihList =
-      ref.watch(tasbihListProvider).asData?.value ?? [];
-  final List<DailyGoalModel> goals =
-      ref.watch(dailyGoalsProvider).asData?.value ?? [];
+      await ref.watch(tasbihListProvider.future);
+  final List<DailyGoalModel> goals = await ref.watch(dailyGoalsProvider.future);
 
   final goalMap = {for (var g in goals) g.tasbihId: g.targetCount};
 
@@ -45,12 +50,13 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
       {required List<ProviderOrFamily> providersToInvalidate}) async {
     state = const AsyncValue.loading();
     try {
-      // ✨ [الإصلاح] تم حذف السطر غير المستخدم من هنا
       await action();
 
       for (var provider in providersToInvalidate) {
         _ref.invalidate(provider);
       }
+      // [مهم] يجب إبطال الـ provider الرئيسي هنا أيضًا لضمان إعادة تحميل القائمة المدمجة.
+      _ref.invalidate(goalManagementProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -90,7 +96,9 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> reorderTasbih(int oldIndex, int newIndex) async {
     state = const AsyncValue.loading();
     try {
-      final list = _ref.read(goalManagementProvider);
+      // لقراءة القيمة الحالية من FutureProvider، نستخدم `.asData!.value`
+      // هذا آمن هنا لأن الواجهة لن تسمح بإعادة الترتيب إلا بعد تحميل البيانات.
+      final list = _ref.read(goalManagementProvider).asData!.value;
 
       if (oldIndex < newIndex) newIndex -= 1;
       final item = list.removeAt(oldIndex);
@@ -102,7 +110,10 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
 
       final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.updateSortOrders(newOrders);
+
+      // إبطال كل الـ providers المتأثرة
       _ref.invalidate(tasbihListProvider);
+      _ref.invalidate(goalManagementProvider);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
