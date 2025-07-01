@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:azkari/data/services/database_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -24,9 +25,13 @@ Future<void> setupIntegrationTest() async {
     // تجاهل أي أخطاء في حال كان الملف مستخدمًا، ولكن حاول الحذف
     try {
       await dbFile.delete();
-      print("Deleted existing test database at $path");
+      if (kDebugMode) {
+        print("Deleted existing test database at $path");
+      }
     } catch (e) {
-      print("Could not delete test database: $e");
+      if (kDebugMode) {
+        print("Could not delete test database: $e");
+      }
     }
   }
 

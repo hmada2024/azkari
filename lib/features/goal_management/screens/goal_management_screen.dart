@@ -74,10 +74,12 @@ class GoalManagementScreen extends ConsumerWidget {
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
+              // ✨ [الإصلاح] 1. جعل الدالة async
               final count = int.tryParse(controller.text) ?? 0;
-              notifier.setGoal(item.tasbih.id, count);
-              Navigator.pop(ctx);
+              // ✨ [الإصلاح] 2. انتظار اكتمال العملية قبل إغلاق الحوار
+              await notifier.setGoal(item.tasbih.id, count);
+              if (ctx.mounted) Navigator.pop(ctx);
             },
             child: const Text('حفظ'),
           ),
@@ -86,7 +88,6 @@ class GoalManagementScreen extends ConsumerWidget {
     );
   }
 
-  // هذه هي الدالة التي كانت ناقصة
   void _showAddTasbihDialog(
       BuildContext context, GoalManagementNotifier notifier) {
     final controller = TextEditingController();
@@ -101,10 +102,12 @@ class GoalManagementScreen extends ConsumerWidget {
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
+              // ✨ [الإصلاح] 1. جعل الدالة async
               if (controller.text.trim().isNotEmpty) {
-                notifier.addTasbih(controller.text.trim());
-                Navigator.pop(ctx);
+                // ✨ [الإصلاح] 2. انتظار اكتمال العملية قبل إغلاق الحوار
+                await notifier.addTasbih(controller.text.trim());
+                if (ctx.mounted) Navigator.pop(ctx);
               }
             },
             child: const Text('إضافة'),
@@ -177,7 +180,6 @@ class _GoalItemCard extends StatelessWidget {
       ),
     );
 
-    // هذا هو منطق الحذف الكامل الذي كان ناقصًا
     if (item.tasbih.isDeletable) {
       return Dismissible(
         key: ValueKey('dismissible_${item.tasbih.id}'),

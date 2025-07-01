@@ -5,14 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-
-// ✨ [الإصلاح] تصحيح مسار الاستيراد ليكون نسبيًا من المجلد الجذر
 import '../test/test_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  // استخدام setUp لضمان بيئة نظيفة قبل كل اختبار في هذا الملف
   setUp(() async {
     await setupIntegrationTest();
   });
@@ -23,24 +20,25 @@ void main() {
       (WidgetTester tester) async {
         // --- الإعداد والبدء ---
         await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
-
-        // الانتظار الديناميكي يبقى كما هو لأنه الأفضل
-        await tester.pumpUntilFound(find.text('أذكاري'),
-            timeout: const Duration(seconds: 20));
+        await tester.pumpUntilFound(find.text('أذكاري'));
 
         // --- رحلة إدارة الأهداف ---
-
-        // الخطوة 1: انتقل إلى شاشة "تقدمي"
         await tester.tap(find.byKey(const Key('bottom_nav_progress')));
         await tester.pumpAndSettle();
-        expect(find.text('تقدمي'), findsOneWidget);
 
-        // الخطوة 2: انتقل إلى شاشة "إدارة الأهداف"
+        // ✨ [الإصلاح] البحث عن العنوان داخل الـ AppBar لضمان الدقة
+        expect(
+            find.descendant(
+                of: find.byType(AppBar), matching: find.text('تقدمي')),
+            findsOneWidget);
+
         await tester.tap(find.byIcon(Icons.settings_outlined));
         await tester.pumpAndSettle();
-        expect(find.text('إدارة أهدافي'), findsOneWidget);
+        expect(
+            find.descendant(
+                of: find.byType(AppBar), matching: find.text('إدارة أهدافي')),
+            findsOneWidget);
 
-        // الخطوة 3: أضف ذكرًا جديدًا
         const newDhikrText = 'ذكر جديد للاختبار';
         await tester.tap(find.byType(FloatingActionButton));
         await tester.pumpAndSettle();
@@ -49,7 +47,6 @@ void main() {
         await tester.tap(find.text('إضافة'));
         await tester.pumpAndSettle();
 
-        // تحقق من ظهور الذكر الجديد في القائمة
         expect(find.text(newDhikrText), findsOneWidget);
         final newDhikrRow = find.ancestor(
             of: find.text(newDhikrText), matching: find.byType(InkWell));
@@ -57,37 +54,32 @@ void main() {
             find.descendant(of: newDhikrRow, matching: find.text('غير محدد')),
             findsOneWidget);
 
-        // الخطوة 4: حدد هدفًا عدديًا لهذا الذكر
         await tester.tap(find.text(newDhikrText));
         await tester.pumpAndSettle();
-
         await tester.enterText(find.byType(TextField).last, '77');
         await tester.tap(find.text('حفظ'));
         await tester.pumpAndSettle();
 
-        // تحقق من تحديث الهدف في القائمة
         expect(find.descendant(of: newDhikrRow, matching: find.text('77 مرة')),
             findsOneWidget);
 
-        // الخطوة 5: عد إلى شاشة "تقدمي" وتحقق من ظهور الهدف الجديد
         Navigator.of(tester.element(find.byType(GoalManagementScreen))).pop();
         await tester.pumpAndSettle();
 
-        expect(find.text('تقدمي'), findsOneWidget);
+        expect(
+            find.descendant(
+                of: find.byType(AppBar), matching: find.text('تقدمي')),
+            findsOneWidget);
         expect(find.text(newDhikrText), findsOneWidget);
         final progressRow = find.ancestor(
             of: find.text(newDhikrText), matching: find.byType(Column));
         expect(find.descendant(of: progressRow, matching: find.text('0 / 77')),
             findsOneWidget);
 
-        // الخطوة 6: قم بحذف الذكر الذي أضفته وتأكد من اختفائه
         await tester.tap(find.byIcon(Icons.settings_outlined));
         await tester.pumpAndSettle();
-
         await tester.drag(find.text(newDhikrText), const Offset(500.0, 0.0));
         await tester.pumpAndSettle();
-
-        // تحقق من اختفاء الذكر
         expect(find.text(newDhikrText), findsNothing);
       },
     );
@@ -96,11 +88,10 @@ void main() {
 
 extension on WidgetTester {
   Future<void> pumpUntilFound(Finder finder,
-      {Duration timeout = const Duration(seconds: 10)}) async {
+      {Duration timeout = const Duration(seconds: 20)}) async {
     bool found = false;
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
-      // تم تعديل هذه لتعمل بشكل أفضل مع pumpAndSettle
       await pumpAndSettle();
       if (any(finder)) {
         found = true;

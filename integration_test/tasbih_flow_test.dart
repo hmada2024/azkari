@@ -1,18 +1,16 @@
 // integration_test/tasbih_flow_test.dart
 import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
+import 'package:azkari/features/tasbih/widgets/tasbih_header.dart';
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-
-// ✨ [الإصلاح] تصحيح مسار الاستيراد ليكون نسبيًا من المجلد الجذر
 import '../test/test_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  // استخدام setUp لضمان بيئة نظيفة قبل كل اختبار في هذا الملف
   setUp(() async {
     await setupIntegrationTest();
   });
@@ -21,16 +19,18 @@ void main() {
     testWidgets(
       'Full user journey: Using tasbih, changing dhikr, and verifying progress',
       (WidgetTester tester) async {
-        // الخطوة 1: ابدأ التطبيق
         await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
-
-        await tester.pumpUntilFound(find.text('أذكاري'),
-            timeout: const Duration(seconds: 20));
+        await tester.pumpUntilFound(find.text('أذكاري'));
 
         // -- رحلة السبحة --
         await tester.tap(find.byKey(const Key('bottom_nav_tasbih')));
         await tester.pumpAndSettle();
-        expect(find.text('السبحة'), findsOneWidget);
+
+        // ✨ [الإصلاح] البحث عن العنوان داخل الـ TasbihHeader لضمان الدقة
+        expect(
+            find.descendant(
+                of: find.byType(TasbihHeader), matching: find.text('السبحة')),
+            findsOneWidget);
         expect(find.textContaining('أَسْتَغْفِرُ اللَّهَ'), findsOneWidget);
 
         final counterButton = find.byType(TasbihCounterButton);
@@ -43,7 +43,6 @@ void main() {
 
         await tester.tap(find.byTooltip('اختيار الذكر'));
         await tester.pumpAndSettle();
-
         final dhikrToSelect =
             find.text('لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ');
         await tester.ensureVisible(dhikrToSelect);
@@ -63,7 +62,12 @@ void main() {
         // -- التحقق من شاشة التقدم --
         await tester.tap(find.byKey(const Key('bottom_nav_progress')));
         await tester.pumpAndSettle();
-        expect(find.text('تقدمي'), findsOneWidget);
+
+        // ✨ [الإصلاح] البحث عن العنوان داخل الـ AppBar لضمان الدقة
+        expect(
+            find.descendant(
+                of: find.byType(AppBar), matching: find.text('تقدمي')),
+            findsOneWidget);
 
         final goal1Finder = find.ancestor(
             of: find.text('الاستغفار'), matching: find.byType(Column));
@@ -81,11 +85,10 @@ void main() {
 
 extension on WidgetTester {
   Future<void> pumpUntilFound(Finder finder,
-      {Duration timeout = const Duration(seconds: 10)}) async {
+      {Duration timeout = const Duration(seconds: 20)}) async {
     bool found = false;
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
-      // تم تعديل هذه لتعمل بشكل أفضل مع pumpAndSettle
       await pumpAndSettle();
       if (any(finder)) {
         found = true;
