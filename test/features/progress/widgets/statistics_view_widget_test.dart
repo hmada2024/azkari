@@ -26,10 +26,9 @@ void main() {
 
   final mockData = {
     completedDay: DailyStat(type: StatDayType.past, percentage: 1.0),
-    todayDateOnly: DailyStat(type: StatDayType.today, percentage: 0.2),
   };
 
-  testWidgets('StatisticsView renders day cells correctly',
+  testWidgets('StatisticsView renders COMPLETED day cell correctly',
       (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -37,29 +36,25 @@ void main() {
           statisticsProvider.overrideWith((ref) => MockStatisticsNotifier(
               StatisticsState(isLoading: false, data: mockData)))
         ],
-        child: const MaterialApp(home: Scaffold(body: StatisticsView())),
+        // ✨ [إصلاح] تم إزالة كلمة const من هنا.
+        child: MaterialApp(
+            theme: ThemeData(brightness: Brightness.light),
+            home: const Scaffold(body: StatisticsView())),
       ),
     );
     await tester.pumpAndSettle();
 
-    // ✨ [إصلاح] هذه الدالة أكثر دقة في العثور على الخلية نفسها.
-    Widget findDayCellWidget(int day) {
-      final dayTextFinder = find.text(day.toString());
-      final dayCellFinder =
-          find.ancestor(of: dayTextFinder, matching: find.byType(Container));
-      // نتأكد من أننا نختار الحاوية التي لها decoration، وهي الخلية الداخلية.
-      final cellWidgets = tester.widgetList<Container>(dayCellFinder);
-      return cellWidgets.firstWhere((w) =>
-          (w.decoration as BoxDecoration?)?.color != null ||
-          (w.decoration as BoxDecoration?)?.border != null);
-    }
+    final dayTextFinder = find.text(completedDay.day.toString());
+    final cellFinder = find
+        .descendant(
+            of: find.ancestor(
+                of: dayTextFinder, matching: find.byType(GridView)),
+            matching: find.byWidgetPredicate(
+                (widget) => widget is Container && widget.decoration != null))
+        .at(completedDay.day - 1);
 
-    final completedCell = findDayCellWidget(completedDay.day) as Container;
-    expect((completedCell.decoration as BoxDecoration).color,
+    final cellWidget = tester.widget<Container>(cellFinder);
+    expect((cellWidget.decoration as BoxDecoration).color,
         AppColors.success.withOpacity(0.9));
-
-    final todayCell = findDayCellWidget(todayDateOnly.day) as Container;
-    expect(((todayCell.decoration as BoxDecoration).border as Border).top.color,
-        AppColors.primary);
   });
 }

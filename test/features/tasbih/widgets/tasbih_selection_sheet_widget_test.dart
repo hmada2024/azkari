@@ -28,13 +28,15 @@ void main() {
 
   testWidgets('tapping an item calls setActiveTasbih and closes sheet',
       (WidgetTester tester) async {
+    // ✨ [إصلاح] تم إضافة الـ mock الناقص
     when(mockRepo.getCustomTasbihList())
         .thenAnswer((_) async => mockItems.map((e) => e.tasbih).toList());
     when(mockRepo.getTodayTasbihCounts()).thenAnswer((_) async => {1: 10});
+    when(mockRepo.getTodayGoalsWithProgress())
+        .thenAnswer((_) async => []); // هذا كان ناقصًا
 
     final container = ProviderContainer(
       overrides: [
-        // ✨ [إصلاح] تم استخدام overrideWith بدلاً من overrideWithValue
         azkarRepositoryProvider.overrideWith((ref) => Future.value(mockRepo)),
       ],
     );
