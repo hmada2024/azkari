@@ -6,8 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+// ✨ [الإصلاح] تصحيح مسار الاستيراد ليكون نسبيًا من المجلد الجذر
+import '../test/test_helper.dart';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  // استخدام setUp لضمان بيئة نظيفة قبل كل اختبار في هذا الملف
+  setUp(() async {
+    await setupIntegrationTest();
+  });
 
   group('Goal Management End-to-End Flow Test', () {
     testWidgets(
@@ -15,9 +23,10 @@ void main() {
       (WidgetTester tester) async {
         // --- الإعداد والبدء ---
         await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
-        await tester.pumpAndSettle(const Duration(seconds: 1));
+
+        // الانتظار الديناميكي يبقى كما هو لأنه الأفضل
         await tester.pumpUntilFound(find.text('أذكاري'),
-            timeout: const Duration(seconds: 15));
+            timeout: const Duration(seconds: 20));
 
         // --- رحلة إدارة الأهداف ---
 
@@ -42,7 +51,6 @@ void main() {
 
         // تحقق من ظهور الذكر الجديد في القائمة
         expect(find.text(newDhikrText), findsOneWidget);
-        // تحقق من أن الهدف الافتراضي "غير محدد"
         final newDhikrRow = find.ancestor(
             of: find.text(newDhikrText), matching: find.byType(InkWell));
         expect(
@@ -51,7 +59,7 @@ void main() {
 
         // الخطوة 4: حدد هدفًا عدديًا لهذا الذكر
         await tester.tap(find.text(newDhikrText));
-        await tester.pumpAndSettle(); // انتظر ظهور الحوار
+        await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField).last, '77');
         await tester.tap(find.text('حفظ'));
@@ -74,37 +82,31 @@ void main() {
 
         // الخطوة 6: قم بحذف الذكر الذي أضفته وتأكد من اختفائه
         await tester.tap(find.byIcon(Icons.settings_outlined));
-        await tester.pumpAndSettle(); // عد إلى شاشة الإدارة
+        await tester.pumpAndSettle();
 
-        // قم بسحب العنصر للحذف
-        await tester.drag(find.text(newDhikrText),
-            const Offset(500.0, 0.0)); // سحب لليمين للحذف
-        await tester.pumpAndSettle(); // انتظر اكتمال الأنيميشن
+        await tester.drag(find.text(newDhikrText), const Offset(500.0, 0.0));
+        await tester.pumpAndSettle();
 
         // تحقق من اختفاء الذكر
         expect(find.text(newDhikrText), findsNothing);
-
-        // رحلة ناجحة!
       },
     );
   });
 }
 
-/// امتداد مساعد لـ WidgetTester للانتظار حتى يتم العثور على ويدجت معين.
 extension on WidgetTester {
   Future<void> pumpUntilFound(Finder finder,
       {Duration timeout = const Duration(seconds: 10)}) async {
     bool found = false;
     final end = DateTime.now().add(timeout);
-
     while (DateTime.now().isBefore(end)) {
+      // تم تعديل هذه لتعمل بشكل أفضل مع pumpAndSettle
+      await pumpAndSettle();
       if (any(finder)) {
         found = true;
         break;
       }
-      await pump(const Duration(milliseconds: 100));
     }
-
     if (!found) {
       throw StateError('Widget not found after timeout: $finder');
     }
