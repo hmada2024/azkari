@@ -1,5 +1,4 @@
 // integration_test/goal_management_flow_test.dart
-import 'package:azkari/features/goal_management/screens/goal_management_screen.dart';
 import 'package:azkari/main.dart' as app;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,11 +39,19 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(find.byType(TextField), newDhikrText);
+
+        // هذا هو السطر الذي سيغير كل شيء
         await tester.tap(find.text('إضافة'));
-        // ✨ [الإصلاح النهائي] هنا يكمن الحل.
-        // بدلاً من pumpAndSettle، ننتظر تحديدًا ظهور النص الجديد.
-        // هذا يضمن أننا ننتظر اكتمال دورة invalidate -> FutureProvider -> UI rebuild.
-        await tester.pumpUntilFound(find.text(newDhikrText));
+
+ر        // بعد النقر، تحدث سلسلة من العمليات غير المتزامنة (حفظ في قاعدة البيانات،
+        // إبطال الـ provider، إغلاق الـ dialog، إعادة بناء الواجهة).
+        // يجب أن ننتظر حتى تستقر الواجهة تمامًا قبل محاولة العثور على العنصر الجديد.
+        // `pumpAndSettle` يفعل ذلك بالضبط.
+        await tester.pumpAndSettle(
+            const Duration(seconds: 2)); // نعطيه وقتاً إضافياً للاحتياط
+
+        // الآن بعد أن استقرت الواجهة، يمكننا البحث بثقة.
+        expect(find.text(newDhikrText), findsOneWidget);
 
         final newDhikrRow = find.ancestor(
             of: find.text(newDhikrText), matching: find.byType(InkWell));
@@ -56,10 +63,14 @@ void main() {
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField).last, '77');
         await tester.tap(find.text('حفظ'));
-        // ننتظر أيضًا ظهور النتيجة الجديدة هنا لضمان الموثوقية
+        await tester.pumpAndSettle(
+            const Duration(seconds: 2)); // ننتظر الاستقرار هنا أيضًا
+
+        // الآن `pumpUntilFound` لم يعد ضروريًا، ولكن يمكن استخدامه كطبقة أمان إضافية
         await tester.pumpUntilFound(find.text('77 مرة'));
 
-        Navigator.of(tester.element(find.byType(GoalManagementScreen))).pop();
+        // للخروج من الشاشة، بدلاً من الاعتماد على السياق الداخلي، نستخدم زر الرجوع العام
+        await tester.pageBack();
         await tester.pumpAndSettle();
 
         expect(
@@ -89,13 +100,16 @@ extension on WidgetTester {
     bool found = false;
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
-      await pumpAndSettle(const Duration(milliseconds: 200));
+      // نستخدم pump فقط لتجنب الانتظار غير الضروري إذا كان pumpAndSettle يعلق
+      await pump(const Duration(milliseconds: 200));
       if (any(finder)) {
         found = true;
         break;
       }
     }
     if (!found) {
+      // لتصحيح الأخطاء، اطبع شجرة الويدجات
+      // debugDumpApp();
       throw StateError('Widget not found after timeout: $finder');
     }
   }
