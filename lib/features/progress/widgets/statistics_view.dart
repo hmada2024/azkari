@@ -1,6 +1,6 @@
 // lib/features/progress/widgets/statistics_view.dart
-import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/features/progress/providers/statistics_provider.dart';
+import 'package:azkari/features/progress/widgets/stat_day_cell.dart'; // [جديد]
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
@@ -62,56 +62,10 @@ class StatisticsView extends ConsumerWidget {
             final date = DateTime(now.year, now.month, dayNumber);
             final stat = data[date];
 
-            return _buildDayNumberCell(stat, dayNumber, theme);
+            return StatDayCell(stat: stat, dayNumber: dayNumber);
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildDayNumberCell(DailyStat? stat, int dayNumber, ThemeData theme) {
-    if (stat == null || stat.type == StatDayType.future) {
-      return Container(
-        alignment: Alignment.center,
-        child: Text(dayNumber.toString(),
-            style: TextStyle(color: theme.disabledColor)),
-      );
-    }
-
-    Color cellColor = Colors.transparent;
-    Color borderColor = Colors.transparent;
-    FontWeight fontWeight = FontWeight.normal;
-
-    if (stat.isCompleted) {
-      cellColor = AppColors.success.withOpacity(0.9);
-    } else if (stat.percentage > 0) {
-      cellColor = AppColors.primary.withOpacity((stat.percentage * 0.7) + 0.2);
-    } else {
-      cellColor = AppColors.error.withOpacity(0.15);
-    }
-
-    if (stat.type == StatDayType.today) {
-      borderColor = AppColors.primary;
-      fontWeight = FontWeight.bold;
-    }
-
-    return Container(
-      // ✨ [الإصلاح النهائي] إضافة مفتاح فريد لجعل الويدجت قابلاً للاختبار.
-      key: ValueKey('stat_cell_$dayNumber'),
-      margin: const EdgeInsets.all(1.0),
-      decoration: BoxDecoration(
-        color: cellColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        dayNumber.toString(),
-        style: TextStyle(
-          color: theme.textTheme.bodyLarge?.color,
-          fontWeight: fontWeight,
-        ),
-      ),
     );
   }
 }
