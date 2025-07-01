@@ -1,4 +1,4 @@
-// lib/features/tasbih/tasbih_screen.dart
+// lib/features/tasbih/screens/tasbih_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:azkari/features/tasbih/widgets/active_tasbih_view.dart';
@@ -14,13 +14,16 @@ class TasbihScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasbihListAsync = ref.watch(tasbihListProvider);
-    final activeTasbih = ref.watch(activeTasbihProvider);
+    // ✨ [الإصلاح] سنقوم بمراقبة activeTasbihProvider داخل .when الخاصة بـ tasbihListAsync
 
     return Scaffold(
       body: tasbihListAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
+          // بعد التأكد من تحميل قائمة التسابيح، نقوم بالتعامل مع الذكر النشط
+          final activeTasbihAsync = ref.watch(activeTasbihProvider);
+
           return SafeArea(
             child: SingleChildScrollView(
               child: Padding(
@@ -33,7 +36,19 @@ class TasbihScreen extends ConsumerWidget {
                   children: [
                     const TasbihHeader(),
                     SizedBox(height: context.screenHeight * 0.04),
-                    ActiveTasbihView(activeTasbih: activeTasbih),
+
+                    // ✨ [الإصلاح] استخدام .when لمعالجة AsyncValue
+                    activeTasbihAsync.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (err, stack) => Center(child: Text('خطأ: $err')),
+                      data: (loadedActiveTasbih) {
+                        // الآن لدينا TasbihModel الفعلي ويمكننا تمريره
+                        return ActiveTasbihView(
+                            activeTasbih: loadedActiveTasbih);
+                      },
+                    ),
+
                     SizedBox(height: context.screenHeight * 0.04),
                     TasbihCounterButton(tasbihList: tasbihList),
                     SizedBox(height: context.screenHeight * 0.04),
