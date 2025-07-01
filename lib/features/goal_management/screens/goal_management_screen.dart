@@ -1,6 +1,7 @@
 // lib/features/goal_management/screens/goal_management_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
+import 'package:azkari/features/tasbih/providers/tasbih_provider.dart'; // ✨ استيراد جديد
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,7 +11,8 @@ class GoalManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final state = ref.watch(goalManagementProvider);
+    // ✨ [الإصلاح] نراقب الـ FutureProvider الأصلي للحصول على حالات التحميل والخطأ
+    final stateAsync = ref.watch(tasbihListProvider);
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
     ref.listen<AsyncValue<void>>(goalManagementStateProvider, (_, state) {
@@ -24,13 +26,17 @@ class GoalManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة أهدافي')),
-      body: state.when(
+      // ✨ [الإصلاح] نستخدم .when على AsyncValue
+      body: stateAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, st) => Center(child: Text('خطأ: $err')),
-        data: (items) {
+        data: (_) {
+          // ✨ بمجرد وجود البيانات، نقرأ الـ Provider المشتق للحصول على القائمة المدمجة
+          final items = ref.read(goalManagementProvider);
+
           return ReorderableListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-                .copyWith(bottom: 90), // مساحة للـ FAB
+                .copyWith(bottom: 90),
             itemCount: items.length,
             itemBuilder: (context, index) {
               final item = items[index];
@@ -75,9 +81,7 @@ class GoalManagementScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
             onPressed: () async {
-              // ✨ [الإصلاح] 1. جعل الدالة async
               final count = int.tryParse(controller.text) ?? 0;
-              // ✨ [الإصلاح] 2. انتظار اكتمال العملية قبل إغلاق الحوار
               await notifier.setGoal(item.tasbih.id, count);
               if (ctx.mounted) Navigator.pop(ctx);
             },
@@ -103,9 +107,7 @@ class GoalManagementScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           FilledButton(
             onPressed: () async {
-              // ✨ [الإصلاح] 1. جعل الدالة async
               if (controller.text.trim().isNotEmpty) {
-                // ✨ [الإصلاح] 2. انتظار اكتمال العملية قبل إغلاق الحوار
                 await notifier.addTasbih(controller.text.trim());
                 if (ctx.mounted) Navigator.pop(ctx);
               }
@@ -118,7 +120,6 @@ class GoalManagementScreen extends ConsumerWidget {
   }
 }
 
-// ويدجت البطاقة الكامل
 class _GoalItemCard extends StatelessWidget {
   final GoalManagementItem item;
   final int index;
@@ -155,9 +156,8 @@ class _GoalItemCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   item.tasbih.displayName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: context.responsiveSize(16),
-                  ),
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontSize: context.responsiveSize(16)),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

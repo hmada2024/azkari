@@ -1,10 +1,12 @@
-// lib/features/goal_management/goal_management_provider.dart
+// lib/features/goal_management/providers/goal_management_provider.dart
+import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
+import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
+import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 
-// نموذج عرض مخصص لهذه الشاشة فقط
 @immutable
 class GoalManagementItem {
   final TasbihModel tasbih;
@@ -12,12 +14,12 @@ class GoalManagementItem {
   const GoalManagementItem({required this.tasbih, required this.targetCount});
 }
 
-// Provider لجلب البيانات ودمجها (Read-only)
 final goalManagementProvider =
-    FutureProvider<List<GoalManagementItem>>((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
-  final tasbihList = await repo.getCustomTasbihList();
-  final goals = await repo.getTodayGoalsWithProgress();
+    Provider.autoDispose<List<GoalManagementItem>>((ref) {
+  final List<TasbihModel> tasbihList =
+      ref.watch(tasbihListProvider).asData?.value ?? [];
+  final List<DailyGoalModel> goals =
+      ref.watch(dailyGoalsProvider).asData?.value ?? [];
 
   final goalMap = {for (var g in goals) g.tasbihId: g.targetCount};
 
@@ -29,7 +31,6 @@ final goalManagementProvider =
   }).toList();
 });
 
-// Provider لإدارة عمليات التعديل (Write)
 final goalManagementStateProvider =
     StateNotifierProvider.autoDispose<GoalManagementNotifier, AsyncValue<void>>(
         (ref) {
@@ -40,13 +41,16 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   final Ref _ref;
   GoalManagementNotifier(this._ref) : super(const AsyncData(null));
 
-  // دالة مساعدة لتنفيذ الأوامر وتحديث الواجهة
-  Future<void> _performAction(Future<void> Function() action) async {
+  Future<void> _performAction(Future<void> Function() action,
+      {required List<ProviderOrFamily> providersToInvalidate}) async {
     state = const AsyncValue.loading();
     try {
+      // ✨ [الإصلاح] تم حذف السطر غير المستخدم من هنا
       await action();
-      _ref.invalidate(
-          goalManagementProvider); // [مهم] إعادة تحميل البيانات بعد التعديل
+
+      for (var provider in providersToInvalidate) {
+        _ref.invalidate(provider);
+      }
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -54,41 +58,54 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> setGoal(int tasbihId, int count) async {
-    await _performAction(() async {
-      final repo = await _ref.read(azkarRepositoryProvider.future);
-      await repo.setGoal(tasbihId, count);
-    });
+    await _performAction(
+      () async {
+        final repo = await _ref.read(azkarRepositoryProvider.future);
+        await repo.setGoal(tasbihId, count);
+      },
+      providersToInvalidate: [dailyGoalsProvider],
+    );
   }
 
   Future<void> addTasbih(String text) async {
-    await _performAction(() async {
-      final repo = await _ref.read(azkarRepositoryProvider.future);
-      await repo.addTasbih(text);
-    });
+    await _performAction(
+      () async {
+        final repo = await _ref.read(azkarRepositoryProvider.future);
+        await repo.addTasbih(text);
+      },
+      providersToInvalidate: [tasbihListProvider],
+    );
   }
 
   Future<void> deleteTasbih(int id) async {
-    await _performAction(() async {
-      final repo = await _ref.read(azkarRepositoryProvider.future);
-      await repo.deleteTasbih(id);
-    });
+    await _performAction(
+      () async {
+        final repo = await _ref.read(azkarRepositoryProvider.future);
+        await repo.deleteTasbih(id);
+      },
+      providersToInvalidate: [tasbihListProvider, dailyGoalsProvider],
+    );
   }
 
   Future<void> reorderTasbih(int oldIndex, int newIndex) async {
-    final list = _ref.read(goalManagementProvider).value;
-    if (list == null) return;
+    state = const AsyncValue.loading();
+    try {
+      final list = _ref.read(goalManagementProvider);
 
-    if (oldIndex < newIndex) newIndex -= 1;
-    final item = list.removeAt(oldIndex);
-    list.insert(newIndex, item);
+      if (oldIndex < newIndex) newIndex -= 1;
+      final item = list.removeAt(oldIndex);
+      list.insert(newIndex, item);
 
-    final Map<int, int> newOrders = {
-      for (int i = 0; i < list.length; i++) list[i].tasbih.id: i
-    };
+      final Map<int, int> newOrders = {
+        for (int i = 0; i < list.length; i++) list[i].tasbih.id: i
+      };
 
-    await _performAction(() async {
       final repo = await _ref.read(azkarRepositoryProvider.future);
       await repo.updateSortOrders(newOrders);
-    });
+      _ref.invalidate(tasbihListProvider);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
   }
 }
