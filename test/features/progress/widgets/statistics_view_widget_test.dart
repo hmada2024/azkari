@@ -36,25 +36,29 @@ void main() {
               StatisticsState(isLoading: false, data: mockData)))
         ],
         child: MaterialApp(
-            theme: ThemeData(brightness: Brightness.light),
+            theme: ThemeData(
+                brightness: Brightness.light, cardColor: Colors.white),
             home: const Scaffold(body: StatisticsView())),
       ),
     );
     await tester.pumpAndSettle();
 
-    final cellFinder = find.byWidgetPredicate((widget) {
-      if (widget is! Container || widget.decoration == null) return false;
+    // ✨ [الإصلاح القاطع]
+    // 1. نجد النص الفريد لليوم المطلوب.
+    final dayTextFinder = find.text(completedDay.day.toString());
+    expect(dayTextFinder, findsOneWidget);
 
-      final textFinder = find.descendant(
-          of: find.byWidget(widget),
-          matching: find.text(completedDay.day.toString()));
-      return textFinder.evaluate().isNotEmpty;
-    });
+    // 2. نبحث عن "الجد" (ancestor) الذي هو من نوع Container والذي هو "ابن" (descendant) للـ GridView.
+    // هذا يضمن أننا نختار الخلية الصحيحة من الشبكة.
+    final parentCellFinder = find.ancestor(
+        of: dayTextFinder,
+        matching: find.descendant(
+            of: find.byType(GridView), matching: find.byType(Container)));
+    expect(parentCellFinder, findsWidgets);
 
-    expect(cellFinder, findsOneWidget);
-
-    final cellWidget = tester.widget<Container>(cellFinder);
-    expect((cellWidget.decoration as BoxDecoration).color,
+    // 3. الآن بعد أن وجدنا الخلية الأبوية، نتحقق من لونها.
+    final container = tester.widget<Container>(parentCellFinder.first);
+    expect((container.decoration as BoxDecoration).color,
         AppColors.success.withOpacity(0.9));
   });
 }
