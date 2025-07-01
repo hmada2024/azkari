@@ -1,7 +1,7 @@
 // lib/features/progress/providers/statistics_provider.dart
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
-import 'package:azkari/features/progress/providers/daily_goals_provider.dart'; // ✨ استيراد جديد
+import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
@@ -41,6 +41,10 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
   Future<void> fetchMonthlyStats() async {
     if (_isFetching) return;
+
+    // ✨ [الإصلاح] إضافة حارس للتأكد من أن الـ Notifier لم يتم تدميره قبل بدء العملية.
+    if (!mounted) return;
+
     _isFetching = true;
     state = state.copyWith(isLoading: true, error: null);
 
@@ -55,9 +59,11 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
       final formatter = intl.DateFormat('yyyy-MM-dd');
 
-      // ✨ [تعديل جذري] استدعاء واحد فقط لقاعدة البيانات لجلب كل البيانات المطلوبة.
       final monthlyProgress = await repo.getMonthlyProgressSummary(
           formatter.format(startDate), formatter.format(endDate));
+
+      // ✨ [الإصلاح] إضافة حارس آخر بعد عمليات الـ await، لأن الـ Notifier قد يتم تدميره أثناء الانتظار.
+      if (!mounted) return;
 
       Map<DateTime, DailyStat> dailyStatuses = {};
 
@@ -70,7 +76,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
           continue;
         }
 
-        // جلب النسبة من الخريطة التي تم الحصول عليها مسبقاً.
         final percentage = monthlyProgress[formatter.format(dateOnly)] ?? 0.0;
 
         dailyStatuses[dateOnly] = DailyStat(
@@ -83,10 +88,14 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
       state = state.copyWith(isLoading: false, data: dailyStatuses);
     } catch (e, st) {
-      state = state.copyWith(isLoading: false, error: e.toString());
       if (kDebugMode) {
+        print("Error in StatisticsNotifier: $e");
         print(st);
       }
+
+      // ✨ [الإصلاح] إضافة الحارس الأهم هنا، قبل تحديث الحالة في كتلة الـ catch.
+      if (!mounted) return;
+      state = state.copyWith(isLoading: false, error: e.toString());
     } finally {
       _isFetching = false;
     }
@@ -98,12 +107,10 @@ final statisticsProvider =
         (ref) {
   final notifier = StatisticsNotifier(ref);
 
-  // يراقب تغيير الأهداف (إضافة/حذف)
   ref.listen(goalManagementProvider, (_, __) {
     notifier.fetchMonthlyStats();
   });
 
-  // ✨ [جديد] يراقب تغيير التقدم اليومي الفعلي (عند زيادة العداد)
   ref.listen(dailyGoalsProvider, (_, __) {
     notifier.fetchMonthlyStats();
   });
