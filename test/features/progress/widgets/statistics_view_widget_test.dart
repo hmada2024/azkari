@@ -42,23 +42,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // ✨ [إصلاح نهائي ومؤكد] هذا هو أبسط وأقوى Finder.
-    // 1. يجد كل الحاويات (Containers).
-    // 2. يبحث عن الحاوية التي تحتوي بداخلها على نص رقم اليوم المطلوب.
-    final cellFinder = find
-        .ancestor(
-            of: find.text(completedDay.day.toString()),
-            matching: find.byType(Container))
-        .first;
+    final cellFinder = find.byWidgetPredicate((widget) {
+      if (widget is! Container || widget.decoration == null) return false;
 
-    final containerWidget = tester.widget<Container>(cellFinder);
+      final textFinder = find.descendant(
+          of: find.byWidget(widget),
+          matching: find.text(completedDay.day.toString()));
+      return textFinder.evaluate().isNotEmpty;
+    });
 
-    // بما أن هناك حاوية خارجية وحاوية داخلية للون، نحتاج للتأكد من أننا نختبر الحاوية الصحيحة.
-    // الحاوية الداخلية هي التي لها decoration.
-    final decoration = containerWidget.decoration as BoxDecoration?;
+    expect(cellFinder, findsOneWidget);
 
-    expect(decoration, isNotNull,
-        reason: 'The day cell container should have a decoration');
-    expect(decoration!.color, AppColors.success.withOpacity(0.9));
+    final cellWidget = tester.widget<Container>(cellFinder);
+    expect((cellWidget.decoration as BoxDecoration).color,
+        AppColors.success.withOpacity(0.9));
   });
 }
