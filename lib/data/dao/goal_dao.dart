@@ -1,4 +1,5 @@
 // lib/data/dao/goal_dao.dart
+import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/daily_goal_model.dart';
 
@@ -11,62 +12,64 @@ class GoalDao {
       await removeGoal(tasbihId);
     } else {
       await _db.insert(
-        'daily_goals',
-        {'tasbih_id': tasbihId, 'target_count': targetCount},
+        DbConstants.dailyGoals.name,
+        {
+          DbConstants.dailyGoals.colTasbihId: tasbihId,
+          DbConstants.dailyGoals.colTargetCount: targetCount
+        },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
   }
 
   Future<void> removeGoal(int tasbihId) async {
-    await _db
-        .delete('daily_goals', where: 'tasbih_id = ?', whereArgs: [tasbihId]);
+    await _db.delete(DbConstants.dailyGoals.name,
+        where: '${DbConstants.dailyGoals.colTasbihId} = ?',
+        whereArgs: [tasbihId]);
   }
 
-  // ✨ [إصلاح] تم تعديل الاستعلام ليعيد فقط الأذكار التي لها هدف محدد (JOIN)
-  // بدلاً من كل الأذكار (LEFT JOIN).
   Future<List<DailyGoalModel>> getGoalsWithProgressForDate(String date) async {
-    final List<Map<String, dynamic>> maps = await _db.rawQuery('''
+    final query = '''
       SELECT 
-        t.id as tasbihId,
-        t.text as tasbihText,
-        g.target_count as targetCount,
-        IFNULL(p.count, 0) as currentProgress
-      FROM daily_goals g
-      JOIN custom_tasbih t ON g.tasbih_id = t.id
-      LEFT JOIN tasbih_daily_progress p ON g.tasbih_id = p.tasbih_id AND p.date = ?
-      ORDER BY t.sort_order ASC, t.id ASC
-    ''', [date]);
+        t.${DbConstants.customTasbih.colId} as tasbihId,
+        t.${DbConstants.customTasbih.colText} as tasbihText,
+        g.${DbConstants.dailyGoals.colTargetCount} as targetCount,
+        IFNULL(p.${DbConstants.tasbihDailyProgress.colCount}, 0) as currentProgress
+      FROM ${DbConstants.dailyGoals.name} g
+      JOIN ${DbConstants.customTasbih.name} t ON g.${DbConstants.dailyGoals.colTasbihId} = t.${DbConstants.customTasbih.colId}
+      LEFT JOIN ${DbConstants.tasbihDailyProgress.name} p ON g.${DbConstants.dailyGoals.colTasbihId} = p.${DbConstants.tasbihDailyProgress.colTasbihId} AND p.${DbConstants.tasbihDailyProgress.colDate} = ?
+      ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC, t.${DbConstants.customTasbih.colId} ASC
+    ''';
+    final List<Map<String, dynamic>> maps = await _db.rawQuery(query, [date]);
 
     return List.generate(maps.length, (i) => DailyGoalModel.fromMap(maps[i]));
   }
 
-  /// ✨ [إصلاح] تم تعديل الاستعلام بالكامل ليحسب الهدف الإجمالي بشكل صحيح.
   Future<Map<String, double>> getMonthlyProgressSummary(
       String startDate, String endDate) async {
-    // الخطوة 1: جلب مجموع التقدم اليومي
-    final List<Map<String, dynamic>> progressResult = await _db.rawQuery('''
+    final progressQuery = '''
       SELECT 
-        p.date,
-        SUM(p.count) as totalProgress
-      FROM tasbih_daily_progress p
-      WHERE p.date BETWEEN ? AND ?
-      GROUP BY p.date
-    ''', [startDate, endDate]);
+        p.${DbConstants.tasbihDailyProgress.colDate},
+        SUM(p.${DbConstants.tasbihDailyProgress.colCount}) as totalProgress
+      FROM ${DbConstants.tasbihDailyProgress.name} p
+      WHERE p.${DbConstants.tasbihDailyProgress.colDate} BETWEEN ? AND ?
+      GROUP BY p.${DbConstants.tasbihDailyProgress.colDate}
+    ''';
+    final List<Map<String, dynamic>> progressResult =
+        await _db.rawQuery(progressQuery, [startDate, endDate]);
 
-    // الخطوة 2: جلب مجموع الأهداف الكلي (لكل الأهداف المحددة في التطبيق)
-    final totalTargetResult = await _db
-        .rawQuery('SELECT SUM(target_count) as totalTarget FROM daily_goals');
+    final totalTargetQuery =
+        'SELECT SUM(${DbConstants.dailyGoals.colTargetCount}) as totalTarget FROM ${DbConstants.dailyGoals.name}';
+    final totalTargetResult = await _db.rawQuery(totalTargetQuery);
     final int totalTarget =
         (totalTargetResult.first['totalTarget'] as int?) ?? 0;
 
     final Map<String, double> progressMap = {};
-    if (totalTarget == 0) return progressMap; // لا يوجد أهداف، أعد خريطة فارغة
+    if (totalTarget == 0) return progressMap;
 
     for (var row in progressResult) {
-      final date = row['date'] as String;
+      final date = row[DbConstants.tasbihDailyProgress.colDate] as String;
       final totalProgress = (row['totalProgress'] as int?) ?? 0;
-
       progressMap[date] = (totalProgress / totalTarget).clamp(0.0, 1.0);
     }
     return progressMap;

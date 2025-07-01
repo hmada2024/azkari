@@ -1,4 +1,5 @@
 // lib/data/dao/tasbih_progress_dao.dart
+import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
 
 class TasbihProgressDao {
@@ -7,52 +8,60 @@ class TasbihProgressDao {
 
   final String _today = DateTime.now().toIso8601String().substring(0, 10);
 
-  // [مهم] دالة تزيد العداد لذكر معين في اليوم الحالي
   Future<void> incrementCount(int tasbihId) async {
-    // تأكد من وجود سجل لليوم الحالي، إذا لم يكن موجوداً قم بإنشائه
     await _db.insert(
-      'tasbih_daily_progress',
-      {'tasbih_id': tasbihId, 'date': _today, 'count': 0},
+      DbConstants.tasbihDailyProgress.name,
+      {
+        DbConstants.tasbihDailyProgress.colTasbihId: tasbihId,
+        DbConstants.tasbihDailyProgress.colDate: _today,
+        DbConstants.tasbihDailyProgress.colCount: 0
+      },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
 
-    // قم بزيادة العداد
     await _db.rawUpdate('''
-      UPDATE tasbih_daily_progress 
-      SET count = count + 1 
-      WHERE tasbih_id = ? AND date = ?
+      UPDATE ${DbConstants.tasbihDailyProgress.name} 
+      SET ${DbConstants.tasbihDailyProgress.colCount} = ${DbConstants.tasbihDailyProgress.colCount} + 1 
+      WHERE ${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?
     ''', [tasbihId, _today]);
   }
 
-  // [مهم] دالة لجلب جميع عدادات اليوم الحالي
   Future<Map<int, int>> getTodayCounts() async {
     final List<Map<String, dynamic>> result = await _db.query(
-      'tasbih_daily_progress',
-      columns: ['tasbih_id', 'count'],
-      where: 'date = ?',
+      DbConstants.tasbihDailyProgress.name,
+      columns: [
+        DbConstants.tasbihDailyProgress.colTasbihId,
+        DbConstants.tasbihDailyProgress.colCount
+      ],
+      where: '${DbConstants.tasbihDailyProgress.colDate} = ?',
       whereArgs: [_today],
     );
 
     if (result.isEmpty) return {};
-    return {for (var item in result) item['tasbih_id']: item['count']};
+    return {
+      for (var item in result)
+        item[DbConstants.tasbihDailyProgress.colTasbihId]:
+            item[DbConstants.tasbihDailyProgress.colCount]
+    };
   }
 
-  // دالة لجلب التقدم في نطاق زمني (مفيدة للإحصائيات)
   Future<Map<String, List<Map<String, dynamic>>>> getProgressForDateRange(
       String startDate, String endDate) async {
-    final List<Map<String, dynamic>> result = await _db.rawQuery('''
+    final query = '''
       SELECT 
-        p.date,
-        g.target_count as target,
-        p.count as progress
-      FROM tasbih_daily_progress p
-      JOIN daily_goals g ON p.tasbih_id = g.tasbih_id
-      WHERE p.date >= ? AND p.date <= ?
-    ''', [startDate, endDate]);
+        p.${DbConstants.tasbihDailyProgress.colDate},
+        g.${DbConstants.dailyGoals.colTargetCount} as target,
+        p.${DbConstants.tasbihDailyProgress.colCount} as progress
+      FROM ${DbConstants.tasbihDailyProgress.name} p
+      JOIN ${DbConstants.dailyGoals.name} g ON p.${DbConstants.tasbihDailyProgress.colTasbihId} = g.${DbConstants.dailyGoals.colTasbihId}
+      WHERE p.${DbConstants.tasbihDailyProgress.colDate} >= ? AND p.${DbConstants.tasbihDailyProgress.colDate} <= ?
+    ''';
+    final List<Map<String, dynamic>> result =
+        await _db.rawQuery(query, [startDate, endDate]);
 
     Map<String, List<Map<String, dynamic>>> groupedByDate = {};
     for (var row in result) {
-      String date = row['date'];
+      String date = row[DbConstants.tasbihDailyProgress.colDate];
       if (!groupedByDate.containsKey(date)) {
         groupedByDate[date] = [];
       }
