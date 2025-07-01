@@ -5,6 +5,7 @@ import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
+// ... (DailyStat and StatisticsState classes remain the same)
 enum StatDayType { past, today, future }
 
 class DailyStat {
@@ -29,6 +30,7 @@ class StatisticsState {
     );
   }
 }
+// ...
 
 class StatisticsNotifier extends StateNotifier<StatisticsState> {
   final Ref _ref;
@@ -46,13 +48,13 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final repo = await _ref.read(azkarRepositoryProvider.future);
+      // [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
+      final repo = await _ref.read(goalsRepositoryProvider.future);
       final today = DateTime.now();
       final todayDateOnly = DateTime(today.year, today.month, today.day);
 
       final startDate = DateTime(today.year, today.month, 1);
-      final endDate =
-          DateTime(today.year, today.month + 1, 0); // آخر يوم في الشهر
+      final endDate = DateTime(today.year, today.month + 1, 0);
 
       final formatter = intl.DateFormat('yyyy-MM-dd');
 
@@ -84,7 +86,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
       state = state.copyWith(isLoading: false, data: dailyStatuses);
     } catch (e) {
-      // It's better to use a proper logging service in production.
       if (!mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     } finally {

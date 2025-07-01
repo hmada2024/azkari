@@ -37,29 +37,30 @@ final goalManagementProvider =
 });
 
 // -- Use Case Providers --
-// [جديد] Provider لكل حالة استخدام.
+// [مُعدَّل] تم تحديث اعتماديات كل provider.
 final addTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  final repo = await ref.watch(tasbihRepositoryProvider.future);
   return AddTasbihUseCase(repo);
 });
 
 final deleteTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  final repo = await ref.watch(tasbihRepositoryProvider.future);
   return DeleteTasbihUseCase(repo);
 });
 
 final reorderTasbihListUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  final repo = await ref.watch(tasbihRepositoryProvider.future);
   return ReorderTasbihListUseCase(repo);
 });
 
 final setTasbihGoalUseCaseProvider = FutureProvider.autoDispose((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  final repo = await ref.watch(goalsRepositoryProvider.future);
   return SetTasbihGoalUseCase(repo);
 });
 
 // -- State Notifier (The Coordinator) --
+// ... (The rest of the file remains unchanged as it depends on the use case providers which are now correctly configured)
 final goalManagementStateProvider =
     StateNotifierProvider.autoDispose<GoalManagementNotifier, AsyncValue<void>>(
         (ref) {
@@ -70,7 +71,6 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   final Ref _ref;
   GoalManagementNotifier(this._ref) : super(const AsyncData(null));
 
-  /// دالة مساعدة لتغليف منطق التحميل والخطأ.
   Future<void> _performAction(
     Future<void> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
@@ -88,7 +88,6 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  // [مُعدَّل] الـ Notifier أصبح "منسقاً" الآن.
   Future<void> setGoal(int tasbihId, int count) async {
     await _performAction(
       () async {
@@ -99,7 +98,6 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
-  // [مُعدَّل]
   Future<void> addTasbih(String text) async {
     await _performAction(
       () async {
@@ -110,7 +108,6 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
-  // [مُعدَّل]
   Future<void> deleteTasbih(int id) async {
     await _performAction(
       () async {
@@ -125,20 +122,14 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
-  // [مُعدَّل]
   Future<void> reorderTasbih(int oldIndex, int newIndex) async {
-    // هذا الإجراء لا يتناسب تمامًا مع نمط `_performAction` لأنه لا يحتاج لإبطال
-    // الـ providers بنفس الطريقة (الواجهة تعيد البناء فورًا).
-    // يمكننا تحسينه لاحقًا إذا لزم الأمر.
     state = const AsyncValue.loading();
     try {
       final list = _ref.read(goalManagementProvider).asData!.value;
       final useCase = await _ref.read(reorderTasbihListUseCaseProvider.future);
 
-      // تمرير البيانات اللازمة للـ Use Case لتنفيذ المنطق.
       await useCase.execute(list, oldIndex, newIndex);
 
-      // إبطال الـ providers المتأثرة لإعادة تحميل البيانات من المصدر.
       _ref.invalidate(tasbihListProvider);
       _ref.invalidate(goalManagementProvider);
       state = const AsyncValue.data(null);

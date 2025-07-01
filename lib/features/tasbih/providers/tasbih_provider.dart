@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // -- SharedPreferences Provider --
-// [جديد] من الأفضل دائمًا توفير SharedPreferences كـ Provider.
 final sharedPreferencesProvider =
     FutureProvider<SharedPreferences>((ref) => SharedPreferences.getInstance());
 
@@ -39,12 +38,14 @@ final tasbihListWithCountsProvider =
 
 final dailyTasbihCountsProvider =
     FutureProvider.autoDispose<Map<int, int>>((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  // [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
+  final repo = await ref.watch(goalsRepositoryProvider.future);
   return repo.getTodayTasbihCounts();
 });
 
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
-  final repository = await ref.watch(azkarRepositoryProvider.future);
+  // [مُعدَّل] الاعتماد على tasbihRepositoryProvider الجديد
+  final repository = await ref.watch(tasbihRepositoryProvider.future);
   return repository.getCustomTasbihList();
 });
 
@@ -62,10 +63,10 @@ final activeTasbihProvider = FutureProvider<TasbihModel>((ref) async {
 });
 
 // -- Use Case Providers --
-// [جديد] Providers لحالات الاستخدام الخاصة بالسبحة.
+// [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
 final incrementDailyCountUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
-  final repo = await ref.watch(azkarRepositoryProvider.future);
+  final repo = await ref.watch(goalsRepositoryProvider.future);
   return IncrementDailyCountUseCase(repo);
 });
 
@@ -75,6 +76,7 @@ final setActiveTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
 });
 
 // -- State Model and Notifier --
+// ... (The rest of the file remains unchanged)
 class TasbihState {
   final int count;
   final int? activeTasbihId;
@@ -131,55 +133,42 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   Future<void> increment() async {
-    // التأكد من وجود ذكر نشط أولاً
     if (state.activeTasbihId == null) {
       final tasbihList = await _ref.read(tasbihListProvider.future);
       if (tasbihList.isNotEmpty) {
-        // إذا لم يكن هناك ذكر نشط، قم بتعيين أول ذكر في القائمة
         await setActiveTasbih(tasbihList.first.id);
       } else {
-        return; // لا يوجد أذكار لزيادة عدادها
+        return;
       }
     }
 
-    // [مُعدَّل] تحديث الحالة المحلية فورًا لتجربة مستخدم سلسة
     state = state.copyWith(count: state.count + 1);
 
     try {
-      // [مُعدَّل] استدعاء الـ Use Case لتنفيذ منطق العمل في الخلفية
       final useCase =
           await _ref.read(incrementDailyCountUseCaseProvider.future);
       await useCase.execute(state.activeTasbihId!);
-
-      // إبطال الـ provider الخاص بالعدادات لإعلام الأجزاء الأخرى من التطبيق
       _ref.invalidate(dailyTasbihCountsProvider);
     } catch (e) {
-      // يمكنك هنا إضافة معالجة للخطأ إذا فشلت عملية الحفظ في قاعدة البيانات
-      // على سبيل المثال، إعادة العداد إلى قيمته السابقة أو عرض رسالة خطأ
+      // Handle error
     }
   }
 
   Future<void> resetCount() async {
-    // هذا الإجراء محلي فقط ولا يتفاعل مع الـ repository، لذا لا يحتاج لـ Use Case
     state = state.copyWith(count: 0);
   }
 
   Future<void> setActiveTasbih(int id) async {
-    // جلب العدادات المحدثة
     final countsValue = await _ref.read(dailyTasbihCountsProvider.future);
-
-    // [مُعدَّل] تحديث الحالة المحلية
     state = state.copyWith(
       activeTasbihId: id,
       count: countsValue[id] ?? 0,
     );
-
-    // [مُعدَّل] استدعاء الـ Use Case لحفظ التغيير
     try {
       final useCase = await _ref.read(setActiveTasbihUseCaseProvider.future);
       await useCase.execute(id);
     } catch (e) {
-      // معالجة الخطأ
+      // Handle error
     }
   }
 }
