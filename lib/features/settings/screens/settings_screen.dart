@@ -1,7 +1,7 @@
-// lib/features/settings/settings_screen.dart
+// lib/features/settings/screens/settings_screen.dart
 import 'dart:io';
-import 'package:azkari/core/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/features/settings/providers/settings_provider.dart';
 import 'package:azkari/features/settings/widgets/section_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

@@ -1,5 +1,5 @@
 // lib/features/progress/providers/statistics_provider.dart
-import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
+import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +30,6 @@ class StatisticsState {
     );
   }
 }
-// ...
 
 class StatisticsNotifier extends StateNotifier<StatisticsState> {
   final Ref _ref;
@@ -48,7 +47,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
       final repo = await _ref.read(goalsRepositoryProvider.future);
       final today = DateTime.now();
       final todayDateOnly = DateTime(today.year, today.month, today.day);

@@ -1,6 +1,6 @@
 // lib/features/azkar_list/widgets/azkar_card.dart
 import 'package:azkari/core/constants/app_text_styles.dart';
-import 'package:azkari/core/providers/settings_provider.dart';
+import 'package:azkari/features/settings/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/azkar_model.dart';
 import 'package:azkari/features/azkar_list/widgets/adhkar_counter_button.dart'; // [جديد]

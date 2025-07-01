@@ -1,19 +1,17 @@
-// lib/core/providers/settings_provider.dart
+// lib/features/settings/providers/settings_providers.dart
 
 import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/core/models/settings_model.dart';
-import 'package:azkari/core/providers/app_providers.dart';
+import 'package:azkari/core/providers/core_providers.dart';
 import 'package:azkari/features/settings/use_cases/update_evening_notification_use_case.dart';
 import 'package:azkari/features/settings/use_cases/update_font_scale_use_case.dart';
 import 'package:azkari/features/settings/use_cases/update_morning_notification_use_case.dart';
 import 'package:azkari/features/settings/use_cases/update_theme_use_case.dart';
-import 'package:azkari/features/tasbih/providers/tasbih_provider.dart'; // For sharedPreferencesProvider
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // -- Use Case Providers --
-// [جديد] Providers لحالات استخدام الإعدادات.
 final updateThemeUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateThemeUseCase(prefs);
@@ -46,8 +44,6 @@ final settingsProvider =
 
 class SettingsNotifier extends StateNotifier<SettingsModel> {
   final Ref _ref;
-  final Completer<void> _initCompleter = Completer<void>();
-  Future<void> get initializationComplete => _initCompleter.future;
 
   SettingsNotifier(this._ref) : super(SettingsModel()) {
     _loadSettings();
@@ -71,17 +67,13 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
         morningNotificationEnabled: morningEnabled,
         eveningNotificationEnabled: eveningEnabled,
       );
-      if (!_initCompleter.isCompleted) _initCompleter.complete();
     } catch (e) {
-      if (!_initCompleter.isCompleted) _initCompleter.completeError(e);
+      // Handle loading error
     }
   }
 
-  // [مُعدَّل] أصبحت الدوال الآن تستدعي الـ Use Cases
   Future<void> updateTheme(ThemeMode newTheme) async {
     if (state.themeMode == newTheme) return;
-    await _initCompleter.future;
-
     final useCase = await _ref.read(updateThemeUseCaseProvider.future);
     await useCase.execute(newTheme);
     state = state.copyWith(themeMode: newTheme);
@@ -89,8 +81,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
 
   Future<void> updateFontScale(double newScale) async {
     if (state.fontScale == newScale) return;
-    await _initCompleter.future;
-
     final useCase = await _ref.read(updateFontScaleUseCaseProvider.future);
     await useCase.execute(newScale);
     state = state.copyWith(fontScale: newScale);
@@ -98,8 +88,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
 
   Future<void> updateMorningNotification(bool isEnabled) async {
     if (state.morningNotificationEnabled == isEnabled) return;
-    await _initCompleter.future;
-
     final useCase =
         await _ref.read(updateMorningNotificationUseCaseProvider.future);
     await useCase.execute(isEnabled);
@@ -108,8 +96,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
 
   Future<void> updateEveningNotification(bool isEnabled) async {
     if (state.eveningNotificationEnabled == isEnabled) return;
-    await _initCompleter.future;
-
     final useCase =
         await _ref.read(updateEveningNotificationUseCaseProvider.future);
     await useCase.execute(isEnabled);

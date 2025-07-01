@@ -1,17 +1,14 @@
-// lib/features/tasbih/providers/tasbih_provider.dart
+// lib/features/tasbih/providers/tasbih_providers.dart
 
 import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
+import 'package:azkari/core/providers/core_providers.dart';
+import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
-import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/tasbih/use_cases/increment_daily_count_use_case.dart';
 import 'package:azkari/features/tasbih/use_cases/set_active_tasbih_use_case.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// -- SharedPreferences Provider --
-final sharedPreferencesProvider =
-    FutureProvider<SharedPreferences>((ref) => SharedPreferences.getInstance());
 
 // -- Data Presentation Providers --
 class TasbihListItem {
@@ -38,13 +35,11 @@ final tasbihListWithCountsProvider =
 
 final dailyTasbihCountsProvider =
     FutureProvider.autoDispose<Map<int, int>>((ref) async {
-  // [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
   final repo = await ref.watch(goalsRepositoryProvider.future);
   return repo.getTodayTasbihCounts();
 });
 
 final tasbihListProvider = FutureProvider<List<TasbihModel>>((ref) async {
-  // [مُعدَّل] الاعتماد على tasbihRepositoryProvider الجديد
   final repository = await ref.watch(tasbihRepositoryProvider.future);
   return repository.getCustomTasbihList();
 });
@@ -63,7 +58,6 @@ final activeTasbihProvider = FutureProvider<TasbihModel>((ref) async {
 });
 
 // -- Use Case Providers --
-// [مُعدَّل] الاعتماد على goalsRepositoryProvider الجديد
 final incrementDailyCountUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(goalsRepositoryProvider.future);
@@ -76,7 +70,6 @@ final setActiveTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
 });
 
 // -- State Model and Notifier --
-// ... (The rest of the file remains unchanged)
 class TasbihState {
   final int count;
   final int? activeTasbihId;
@@ -96,8 +89,6 @@ final tasbihStateProvider =
 
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   final Ref _ref;
-  final Completer<void> _initCompleter = Completer<void>();
-  Future<void> get initializationComplete => _initCompleter.future;
 
   TasbihStateNotifier(this._ref) : super(TasbihState()) {
     _init();
@@ -114,13 +105,8 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
         activeTasbihId: activeId,
         count: activeId != null ? (countsValue[activeId] ?? 0) : 0,
       );
-      if (!_initCompleter.isCompleted) {
-        _initCompleter.complete();
-      }
     } catch (e) {
-      if (!_initCompleter.isCompleted) {
-        _initCompleter.completeError(e);
-      }
+      // Handle init error
     }
   }
 

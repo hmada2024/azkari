@@ -1,8 +1,8 @@
-// lib/features/goal_management/providers/goal_management_provider.dart
+// lib/features/goal_management/providers/goal_management_providers.dart
 
+import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
-import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/goal_management/use_cases/add_tasbih_use_case.dart';
 import 'package:azkari/features/goal_management/use_cases/delete_tasbih_use_case.dart';
 import 'package:azkari/features/goal_management/use_cases/reorder_tasbih_list_use_case.dart';
@@ -37,7 +37,6 @@ final goalManagementProvider =
 });
 
 // -- Use Case Providers --
-// [مُعدَّل] تم تحديث اعتماديات كل provider.
 final addTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(tasbihRepositoryProvider.future);
   return AddTasbihUseCase(repo);
@@ -60,7 +59,6 @@ final setTasbihGoalUseCaseProvider = FutureProvider.autoDispose((ref) async {
 });
 
 // -- State Notifier (The Coordinator) --
-// ... (The rest of the file remains unchanged as it depends on the use case providers which are now correctly configured)
 final goalManagementStateProvider =
     StateNotifierProvider.autoDispose<GoalManagementNotifier, AsyncValue<void>>(
         (ref) {
