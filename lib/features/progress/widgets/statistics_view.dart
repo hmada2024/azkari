@@ -85,10 +85,8 @@ class StatisticsView extends ConsumerWidget {
     if (stat.isCompleted) {
       cellColor = AppColors.success.withOpacity(0.9);
     } else if (stat.percentage > 0) {
-      // تدرج لوني بناءً على النسبة
       cellColor = AppColors.primary.withOpacity((stat.percentage * 0.7) + 0.2);
     } else {
-      // يوم مضى بدون إنجاز
       cellColor = AppColors.error.withOpacity(0.15);
     }
 
@@ -98,6 +96,8 @@ class StatisticsView extends ConsumerWidget {
     }
 
     return Container(
+      // ✨ [الإصلاح النهائي] إضافة مفتاح فريد لجعل الويدجت قابلاً للاختبار.
+      key: ValueKey('stat_cell_$dayNumber'),
       margin: const EdgeInsets.all(1.0),
       decoration: BoxDecoration(
         color: cellColor,

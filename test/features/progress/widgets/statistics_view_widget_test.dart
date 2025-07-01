@@ -35,29 +35,20 @@ void main() {
           statisticsProvider.overrideWith((ref) => MockStatisticsNotifier(
               StatisticsState(isLoading: false, data: mockData)))
         ],
-        child: MaterialApp(
-            theme: ThemeData(
-                brightness: Brightness.light, cardColor: Colors.white),
-            home: const Scaffold(body: StatisticsView())),
+        child: const MaterialApp(home: Scaffold(body: StatisticsView())),
       ),
     );
     await tester.pumpAndSettle();
 
-    // ✨ [الإصلاح القاطع]
-    // 1. نجد النص الفريد لليوم المطلوب.
-    final dayTextFinder = find.text(completedDay.day.toString());
-    expect(dayTextFinder, findsOneWidget);
+    // ✨ [الإصلاح النهائي القاطع] - البحث باستخدام المفتاح الفريد.
+    // هذا هو الأسلوب الأكثر قوة وموثوقية في اختبارات الواجهات.
+    final cellFinder = find.byKey(ValueKey('stat_cell_${completedDay.day}'));
 
-    // 2. نبحث عن "الجد" (ancestor) الذي هو من نوع Container والذي هو "ابن" (descendant) للـ GridView.
-    // هذا يضمن أننا نختار الخلية الصحيحة من الشبكة.
-    final parentCellFinder = find.ancestor(
-        of: dayTextFinder,
-        matching: find.descendant(
-            of: find.byType(GridView), matching: find.byType(Container)));
-    expect(parentCellFinder, findsWidgets);
+    // 1. تحقق من أننا وجدنا الخلية.
+    expect(cellFinder, findsOneWidget);
 
-    // 3. الآن بعد أن وجدنا الخلية الأبوية، نتحقق من لونها.
-    final container = tester.widget<Container>(parentCellFinder.first);
+    // 2. الآن بعد أن وجدنا الويدجت الصحيح، نتحقق من لونه.
+    final container = tester.widget<Container>(cellFinder);
     expect((container.decoration as BoxDecoration).color,
         AppColors.success.withOpacity(0.9));
   });
