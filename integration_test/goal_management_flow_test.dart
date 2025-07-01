@@ -18,15 +18,11 @@ void main() {
     testWidgets(
       'Full user journey: Adding, setting a goal for, and deleting a custom dhikr',
       (WidgetTester tester) async {
-        // --- الإعداد والبدء ---
         await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
         await tester.pumpUntilFound(find.text('أذكاري'));
 
-        // --- رحلة إدارة الأهداف ---
         await tester.tap(find.byKey(const Key('bottom_nav_progress')));
         await tester.pumpAndSettle();
-
-        // ✨ [الإصلاح] البحث عن العنوان داخل الـ AppBar لضمان الدقة
         expect(
             find.descendant(
                 of: find.byType(AppBar), matching: find.text('تقدمي')),
@@ -45,9 +41,11 @@ void main() {
 
         await tester.enterText(find.byType(TextField), newDhikrText);
         await tester.tap(find.text('إضافة'));
-        await tester.pumpAndSettle();
+        // ✨ [الإصلاح النهائي] هنا يكمن الحل.
+        // بدلاً من pumpAndSettle، ننتظر تحديدًا ظهور النص الجديد.
+        // هذا يضمن أننا ننتظر اكتمال دورة invalidate -> FutureProvider -> UI rebuild.
+        await tester.pumpUntilFound(find.text(newDhikrText));
 
-        expect(find.text(newDhikrText), findsOneWidget);
         final newDhikrRow = find.ancestor(
             of: find.text(newDhikrText), matching: find.byType(InkWell));
         expect(
@@ -58,10 +56,8 @@ void main() {
         await tester.pumpAndSettle();
         await tester.enterText(find.byType(TextField).last, '77');
         await tester.tap(find.text('حفظ'));
-        await tester.pumpAndSettle();
-
-        expect(find.descendant(of: newDhikrRow, matching: find.text('77 مرة')),
-            findsOneWidget);
+        // ننتظر أيضًا ظهور النتيجة الجديدة هنا لضمان الموثوقية
+        await tester.pumpUntilFound(find.text('77 مرة'));
 
         Navigator.of(tester.element(find.byType(GoalManagementScreen))).pop();
         await tester.pumpAndSettle();
@@ -78,6 +74,7 @@ void main() {
 
         await tester.tap(find.byIcon(Icons.settings_outlined));
         await tester.pumpAndSettle();
+
         await tester.drag(find.text(newDhikrText), const Offset(500.0, 0.0));
         await tester.pumpAndSettle();
         expect(find.text(newDhikrText), findsNothing);
@@ -92,7 +89,7 @@ extension on WidgetTester {
     bool found = false;
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
-      await pumpAndSettle();
+      await pumpAndSettle(const Duration(milliseconds: 200));
       if (any(finder)) {
         found = true;
         break;

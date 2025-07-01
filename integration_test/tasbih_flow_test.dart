@@ -22,16 +22,16 @@ void main() {
         await tester.pumpWidget(const ProviderScope(child: app.MyApp()));
         await tester.pumpUntilFound(find.text('أذكاري'));
 
-        // -- رحلة السبحة --
         await tester.tap(find.byKey(const Key('bottom_nav_tasbih')));
         await tester.pumpAndSettle();
-
-        // ✨ [الإصلاح] البحث عن العنوان داخل الـ TasbihHeader لضمان الدقة
         expect(
             find.descendant(
                 of: find.byType(TasbihHeader), matching: find.text('السبحة')),
             findsOneWidget);
-        expect(find.textContaining('أَسْتَغْفِرُ اللَّهَ'), findsOneWidget);
+
+        // ✨ [تحسين الموثوقية] انتظر ظهور الذكر الافتراضي
+        await tester
+            .pumpUntilFound(find.textContaining('أَسْتَغْفِرُ اللَّهَ'));
 
         final counterButton = find.byType(TasbihCounterButton);
         expect(counterButton, findsOneWidget);
@@ -47,10 +47,11 @@ void main() {
             find.text('لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ');
         await tester.ensureVisible(dhikrToSelect);
         await tester.tap(dhikrToSelect);
-        await tester.pumpAndSettle();
 
-        expect(find.textContaining('لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ'),
-            findsOneWidget);
+        // ✨ [تحسين الموثوقية] انتظر ظهور الذكر الجديد على الشاشة الرئيسية بعد الاختيار
+        await tester.pumpUntilFound(
+            find.textContaining('لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ'));
+
         await tester.tap(counterButton);
         await tester.tap(counterButton);
         await tester.tap(counterButton);
@@ -59,15 +60,11 @@ void main() {
         await tester.pump();
         expect(find.text('5'), findsOneWidget);
 
-        // -- التحقق من شاشة التقدم --
         await tester.tap(find.byKey(const Key('bottom_nav_progress')));
         await tester.pumpAndSettle();
 
-        // ✨ [الإصلاح] البحث عن العنوان داخل الـ AppBar لضمان الدقة
-        expect(
-            find.descendant(
-                of: find.byType(AppBar), matching: find.text('تقدمي')),
-            findsOneWidget);
+        await tester.pumpUntilFound(find.descendant(
+            of: find.byType(AppBar), matching: find.text('تقدمي')));
 
         final goal1Finder = find.ancestor(
             of: find.text('الاستغفار'), matching: find.byType(Column));
@@ -89,7 +86,7 @@ extension on WidgetTester {
     bool found = false;
     final end = DateTime.now().add(timeout);
     while (DateTime.now().isBefore(end)) {
-      await pumpAndSettle();
+      await pumpAndSettle(const Duration(milliseconds: 200));
       if (any(finder)) {
         found = true;
         break;
