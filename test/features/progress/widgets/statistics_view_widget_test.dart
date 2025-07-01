@@ -21,8 +21,7 @@ void main() {
   setUpAll(() => initializeDateFormatting('ar'));
 
   final today = DateTime.now();
-  final todayDateOnly = DateTime(today.year, today.month, today.day);
-  final completedDay = todayDateOnly.subtract(const Duration(days: 2));
+  final completedDay = today.subtract(const Duration(days: 2));
 
   final mockData = {
     completedDay: DailyStat(type: StatDayType.past, percentage: 1.0),
@@ -36,7 +35,6 @@ void main() {
           statisticsProvider.overrideWith((ref) => MockStatisticsNotifier(
               StatisticsState(isLoading: false, data: mockData)))
         ],
-        // ✨ [إصلاح] تم إزالة كلمة const من هنا.
         child: MaterialApp(
             theme: ThemeData(brightness: Brightness.light),
             home: const Scaffold(body: StatisticsView())),
@@ -44,17 +42,23 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final dayTextFinder = find.text(completedDay.day.toString());
+    // ✨ [إصلاح نهائي ومؤكد] هذا هو أبسط وأقوى Finder.
+    // 1. يجد كل الحاويات (Containers).
+    // 2. يبحث عن الحاوية التي تحتوي بداخلها على نص رقم اليوم المطلوب.
     final cellFinder = find
-        .descendant(
-            of: find.ancestor(
-                of: dayTextFinder, matching: find.byType(GridView)),
-            matching: find.byWidgetPredicate(
-                (widget) => widget is Container && widget.decoration != null))
-        .at(completedDay.day - 1);
+        .ancestor(
+            of: find.text(completedDay.day.toString()),
+            matching: find.byType(Container))
+        .first;
 
-    final cellWidget = tester.widget<Container>(cellFinder);
-    expect((cellWidget.decoration as BoxDecoration).color,
-        AppColors.success.withOpacity(0.9));
+    final containerWidget = tester.widget<Container>(cellFinder);
+
+    // بما أن هناك حاوية خارجية وحاوية داخلية للون، نحتاج للتأكد من أننا نختبر الحاوية الصحيحة.
+    // الحاوية الداخلية هي التي لها decoration.
+    final decoration = containerWidget.decoration as BoxDecoration?;
+
+    expect(decoration, isNotNull,
+        reason: 'The day cell container should have a decoration');
+    expect(decoration!.color, AppColors.success.withOpacity(0.9));
   });
 }

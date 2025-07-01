@@ -10,7 +10,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
-class MockAzkarRepository extends Mock implements AzkarRepository {}
+// ✨ [إصلاح نهائي] تعريف الـ Mock يجب أن يكون خارج الـ main وأن يطبق الواجهة الصحيحة.
+class MockAzkarRepository extends Mock implements AzkarRepository {
+  // يجب أن نعرف الدوال التي سنستخدمها ونحدد نوع الإرجاع بشكل صريح.
+  @override
+  Future<List<TasbihModel>> getCustomTasbihList() => (super.noSuchMethod(
+      Invocation.method(#getCustomTasbihList, []),
+      returnValue: Future.value(<TasbihModel>[])) as Future<List<TasbihModel>>);
+
+  @override
+  Future<Map<int, int>> getTodayTasbihCounts() =>
+      (super.noSuchMethod(Invocation.method(#getTodayTasbihCounts, []),
+          returnValue: Future.value(<int, int>{})) as Future<Map<int, int>>);
+}
 
 void main() {
   late MockAzkarRepository mockRepo;
@@ -19,21 +31,15 @@ void main() {
     mockRepo = MockAzkarRepository();
   });
 
-  final mockItems = [
-    TasbihListItem(
-        tasbih: TasbihModel(
-            id: 1, text: 'سبحان الله', sortOrder: 1, isDeletable: false),
-        count: 10),
+  final mockTasbihList = [
+    TasbihModel(id: 1, text: 'سبحان الله', sortOrder: 1, isDeletable: false),
   ];
 
   testWidgets('tapping an item calls setActiveTasbih and closes sheet',
       (WidgetTester tester) async {
-    // ✨ [إصلاح] تم إضافة الـ mock الناقص
     when(mockRepo.getCustomTasbihList())
-        .thenAnswer((_) async => mockItems.map((e) => e.tasbih).toList());
+        .thenAnswer((_) async => mockTasbihList);
     when(mockRepo.getTodayTasbihCounts()).thenAnswer((_) async => {1: 10});
-    when(mockRepo.getTodayGoalsWithProgress())
-        .thenAnswer((_) async => []); // هذا كان ناقصًا
 
     final container = ProviderContainer(
       overrides: [
