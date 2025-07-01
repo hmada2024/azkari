@@ -13,8 +13,8 @@ void main() {
 
   late Database db;
   late GoalDao goalDao;
-  late TasbihDao tasbihDao; // Needed to add tasbihs to set goals for
-  late TasbihProgressDao progressDao; // Needed to add progress
+  late TasbihDao tasbihDao;
+  late TasbihProgressDao progressDao;
 
   setUp(() async {
     db = await setupTestDatabase();
@@ -46,10 +46,10 @@ void main() {
     test('setGoal with count <= 0 should remove the goal', () async {
       // Arrange
       final newTasbih = await tasbihDao.addTasbih('Test Tasbih');
-      await goalDao.setGoal(newTasbih.id, 100); // Set a goal first
+      await goalDao.setGoal(newTasbih.id, 100);
 
       // Act
-      await goalDao.setGoal(newTasbih.id, 0); // Now remove it
+      await goalDao.setGoal(newTasbih.id, 0);
 
       // Assert
       final result = await db.query('daily_goals',
@@ -71,16 +71,21 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test(
-        'getGoalsWithProgressForDate should return goals with correct progress',
+    // ✨ [إصلاح] الاختبار الآن يتوقع فقط الأهداف التي تم إنشاؤها في هذا الاختبار
+    test('getGoalsWithProgressForDate should return ONLY goals with progress',
         () async {
       // Arrange
+      // مسح الأهداف الافتراضية لضمان بيئة اختبار نظيفة ومعزولة
+      await db.delete('daily_goals');
+
       final tasbih1 = await tasbihDao.addTasbih('Tasbih 1');
       final tasbih2 = await tasbihDao.addTasbih('Tasbih 2');
-      await goalDao.setGoal(tasbih1.id, 100);
-      await goalDao.setGoal(tasbih2.id, 50);
+      final tasbih3 =
+          await tasbihDao.addTasbih('Tasbih 3 No Goal'); // ذكر بدون هدف
 
-      // Add some progress for today
+      await goalDao.setGoal(tasbih1.id, 100); // هدف 1
+      await goalDao.setGoal(tasbih2.id, 50); // هدف 2
+
       for (int i = 0; i < 10; i++) {
         await progressDao.incrementCount(tasbih1.id);
       }
@@ -93,7 +98,9 @@ void main() {
 
       // Assert
       expect(goalsWithProgress, isA<List<DailyGoalModel>>());
+      // يجب أن يعيد فقط الأذكار التي لها أهداف محددة
       expect(goalsWithProgress.length, 2);
+      expect(goalsWithProgress.any((g) => g.tasbihId == tasbih3.id), isFalse);
 
       final goal1 =
           goalsWithProgress.firstWhere((g) => g.tasbihId == tasbih1.id);
@@ -106,17 +113,22 @@ void main() {
       expect(goal2.currentProgress, 0);
     });
 
+    // ✨ [إصلاح] تم تعديل الاختبار ليعكس المنطق الجديد والأكثر صحة
     test(
         'getMonthlyProgressSummary should calculate daily completion percentage correctly',
         () async {
       // Arrange
+      // مسح الأهداف الافتراضية
+      await db.delete('daily_goals');
+
       final tasbih1 = await tasbihDao.addTasbih('Tasbih 1');
       final tasbih2 = await tasbihDao.addTasbih('Tasbih 2');
-      await goalDao.setGoal(tasbih1.id, 100); // Goal for tasbih 1
-      await goalDao.setGoal(tasbih2.id, 100); // Goal for tasbih 2
+      await goalDao.setGoal(tasbih1.id, 100);
+      await goalDao.setGoal(tasbih2.id, 100);
+      // الهدف الإجمالي الآن هو 200
 
-      // Add progress for today (50% complete)
-      for (int i = 0; i < 100; i++) {
+      // إضافة تقدم لليوم الحالي (تقدم 50 من أصل إجمالي 200)
+      for (int i = 0; i < 50; i++) {
         await progressDao.incrementCount(tasbih1.id);
       }
 
@@ -136,10 +148,8 @@ void main() {
       // Assert
       expect(summary, isNotNull);
       expect(summary.containsKey(todayStr), isTrue);
-      // Total target for today is 100 (tasbih1) + 100 (tasbih2) = 200
-      // Total progress is 100 (tasbih1) + 0 (tasbih2) = 100
-      // Percentage should be 100 / 200 = 0.5
-      expect(summary[todayStr], moreOrLessEquals(0.5));
+      // النسبة المتوقعة هي 50 (التقدم) / 200 (الهدف الإجمالي) = 0.25
+      expect(summary[todayStr], moreOrLessEquals(0.25));
     });
   });
 }
