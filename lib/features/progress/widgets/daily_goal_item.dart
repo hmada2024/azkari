@@ -1,23 +1,38 @@
 // lib/features/progress/widgets/daily_goal_item.dart
-
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
+import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// ويدجت يمثل عنصر هدف يومي واحد في قائمة الأهداف.
-/// مسؤول عن عرض نص الذكر، التقدم الحالي، وشريط التقدم.
-class DailyGoalItem extends StatelessWidget {
-  final DailyGoalModel goal;
+class DailyGoalItem extends ConsumerWidget {
+  final int tasbihId;
 
   const DailyGoalItem({
     super.key,
-    required this.goal,
+    required this.tasbihId,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+
+    // [الإصلاح] استخدام select مع طريقة آمنة للوصول إلى العنصر
+    final DailyGoalModel? goal = ref.watch(
+      dailyGoalsStateProvider.select((state) {
+        final goals = state.goals.valueOrNull;
+        if (goals == null) return null;
+
+        // البحث عن طريق index لتجنب مشاكل orElse في firstWhere
+        final index = goals.indexWhere((g) => g.tasbihId == tasbihId);
+        return index != -1 ? goals[index] : null;
+      }),
+    );
+
+    if (goal == null) {
+      return const SizedBox.shrink();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

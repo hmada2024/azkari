@@ -1,4 +1,6 @@
 // lib/features/tasbih/widgets/tasbih_selection_sheet.dart
+import 'package:azkari/data/models/daily_goal_model.dart';
+import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,9 +10,9 @@ class TasbihSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✨ [تعديل جذري] مراقبة Provider واحد مدمج بدلاً من اثنين.
-    // هذا يجعل الكود أبسط وأكثر كفاءة.
-    final listAsync = ref.watch(tasbihListWithCountsProvider);
+    // [الإصلاح] مراقبة المصادر الجديدة للبيانات
+    final listAsync = ref.watch(tasbihListProvider);
+    final goalsState = ref.watch(dailyGoalsStateProvider);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
@@ -36,7 +38,6 @@ class TasbihSelectionSheet extends ConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            // استخدام .when على الـ Provider المدمج مباشرة.
             child: listAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, s) => Center(child: Text('خطأ: $e')),
@@ -44,14 +45,24 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 if (items.isEmpty) {
                   return const Center(child: Text('لم يتم إضافة أي ذكر بعد.'));
                 }
+
+                // إنشاء خريطة للعدادات من حالة الأهداف
+                final List<DailyGoalModel> goals =
+                    goalsState.goals.valueOrNull ?? [];
+                final countsMap = {
+                  for (var g in goals) g.tasbihId: g.currentProgress
+                };
+
                 return ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
+                    final count = countsMap[item.id] ?? 0;
+
                     return ListTile(
-                      title: Text(item.tasbih.text),
+                      title: Text(item.text),
                       trailing: Text(
-                        item.count.toString(),
+                        count.toString(),
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -61,7 +72,7 @@ class TasbihSelectionSheet extends ConsumerWidget {
                       onTap: () {
                         ref
                             .read(tasbihStateProvider.notifier)
-                            .setActiveTasbih(item.tasbih.id);
+                            .setActiveTasbih(item.id);
                         Navigator.pop(context);
                       },
                     );

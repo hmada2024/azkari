@@ -1,11 +1,11 @@
 // lib/features/progress/providers/statistics_provider.dart
 import 'package:azkari/core/providers/data_providers.dart';
+import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
 
-// ... (DailyStat and StatisticsState classes remain the same)
 enum StatDayType { past, today, future }
 
 class DailyStat {
@@ -34,11 +34,13 @@ class StatisticsState {
 class StatisticsNotifier extends StateNotifier<StatisticsState> {
   final Ref _ref;
   bool _isFetching = false;
+  int _totalDailyTarget = 0; // [جديد] لتخزين الهدف اليومي الإجمالي
 
   StatisticsNotifier(this._ref) : super(const StatisticsState()) {
     fetchMonthlyStats();
   }
 
+  /// [مُعدَّل] دالة جلب البيانات الثقيلة (تُستدعى فقط عند الحاجة)
   Future<void> fetchMonthlyStats() async {
     if (_isFetching) return;
     if (!mounted) return;
@@ -58,6 +60,12 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
 
       final monthlyProgress = await repo.getMonthlyProgressSummary(
           formatter.format(startDate), formatter.format(endDate));
+
+      // [جديد] حساب الهدف اليومي الإجمالي وتخزينه
+      final dailyGoals =
+          _ref.read(dailyGoalsStateProvider).goals.valueOrNull ?? [];
+      _totalDailyTarget =
+          dailyGoals.fold(0, (sum, goal) => sum + goal.targetCount);
 
       if (!mounted) return;
 
@@ -81,7 +89,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
           percentage: percentage,
         );
       }
-
       state = state.copyWith(isLoading: false, data: dailyStatuses);
     } catch (e) {
       if (!mounted) return;
@@ -90,6 +97,26 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
       _isFetching = false;
     }
   }
+
+  /// [جديد] دالة خفيفة جدًا لتحديث تقدم اليوم في الذاكرة فقط
+  void updateTodayProgress(List<DailyGoalModel> currentGoals) {
+    if (state.isLoading || !mounted) return;
+
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+
+    final currentTotalProgress =
+        currentGoals.fold(0, (sum, goal) => sum + goal.currentProgress);
+    final newPercentage = (_totalDailyTarget > 0)
+        ? (currentTotalProgress / _totalDailyTarget).clamp(0.0, 1.0)
+        : 0.0;
+
+    final updatedData = Map<DateTime, DailyStat>.from(state.data);
+    updatedData[todayDateOnly] =
+        DailyStat(type: StatDayType.today, percentage: newPercentage);
+
+    state = state.copyWith(data: updatedData);
+  }
 }
 
 final statisticsProvider =
@@ -97,12 +124,17 @@ final statisticsProvider =
         (ref) {
   final notifier = StatisticsNotifier(ref);
 
+  // هذا الرابط سليم لأنه يستجيب لتغييرات الأهداف الكبيرة (إضافة/حذف هدف)
   ref.listen(goalManagementProvider, (_, __) {
     notifier.fetchMonthlyStats();
   });
 
-  ref.listen(dailyGoalsProvider, (_, __) {
-    notifier.fetchMonthlyStats();
+  // [الإصلاح الجذري] استبدال الاستدعاء الثقيل بالخفيف
+  ref.listen<DailyGoalsState>(dailyGoalsStateProvider, (_, next) {
+    // فقط إذا كان هناك بيانات جديدة، قم بتحديث تقدم اليوم في الذاكرة
+    if (next.goals.hasValue) {
+      notifier.updateTodayProgress(next.goals.value!);
+    }
   });
 
   return notifier;

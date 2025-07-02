@@ -2,7 +2,7 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
-import 'package:azkari/features/progress/widgets/daily_goal_item.dart'; // [جديد]
+import 'package:azkari/features/progress/widgets/daily_goal_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,10 +11,11 @@ class DailyGoalsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final goalsAsync = ref.watch(dailyGoalsProvider);
+    // مراقبة الحالة الكاملة من الـ Notifier الجديد
+    final goalsState = ref.watch(dailyGoalsStateProvider);
     final theme = Theme.of(context);
 
-    return goalsAsync.when(
+    return goalsState.goals.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
       error: (error, stack) => CustomErrorWidget(
         errorMessage: 'خطأ في تحميل الأهداف: $error',
@@ -54,8 +55,11 @@ class DailyGoalsView extends ConsumerWidget {
                 itemCount: goals.length,
                 itemBuilder: (context, index) {
                   final goal = goals[index];
-                  // [تعديل] استدعاء الويدجت الجديد لتصيير عنصر الهدف.
-                  return DailyGoalItem(goal: goal);
+                  // [التعديل] تمرير الـ ID فقط بدلاً من الكائن بأكمله
+                  return DailyGoalItem(
+                    key: ValueKey('goal_item_${goal.tasbihId}'),
+                    tasbihId: goal.tasbihId,
+                  );
                 },
                 separatorBuilder: (context, index) =>
                     Divider(height: context.responsiveSize(24)),
