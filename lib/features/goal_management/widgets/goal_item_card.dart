@@ -1,7 +1,7 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
 
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
-import 'package:azkari/features/goal_management/widgets/goal_management_dialogs.dart';
+import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
