@@ -34,13 +34,12 @@ class StatisticsState {
 class StatisticsNotifier extends StateNotifier<StatisticsState> {
   final Ref _ref;
   bool _isFetching = false;
-  int _totalDailyTarget = 0; // [جديد] لتخزين الهدف اليومي الإجمالي
+  int _totalDailyTarget = 0;
 
   StatisticsNotifier(this._ref) : super(const StatisticsState()) {
     fetchMonthlyStats();
   }
 
-  /// [مُعدَّل] دالة جلب البيانات الثقيلة (تُستدعى فقط عند الحاجة)
   Future<void> fetchMonthlyStats() async {
     if (_isFetching) return;
     if (!mounted) return;
@@ -61,7 +60,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
       final monthlyProgress = await repo.getMonthlyProgressSummary(
           formatter.format(startDate), formatter.format(endDate));
 
-      // [جديد] حساب الهدف اليومي الإجمالي وتخزينه
       final dailyGoals =
           _ref.read(dailyGoalsStateProvider).goals.valueOrNull ?? [];
       _totalDailyTarget =
@@ -98,7 +96,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     }
   }
 
-  /// [جديد] دالة خفيفة جدًا لتحديث تقدم اليوم في الذاكرة فقط
   void updateTodayProgress(List<DailyGoalModel> currentGoals) {
     if (state.isLoading || !mounted) return;
 
@@ -124,14 +121,17 @@ final statisticsProvider =
         (ref) {
   final notifier = StatisticsNotifier(ref);
 
-  // هذا الرابط سليم لأنه يستجيب لتغييرات الأهداف الكبيرة (إضافة/حذف هدف)
-  ref.listen(goalManagementProvider, (_, __) {
-    notifier.fetchMonthlyStats();
+  // [الإصلاح] الاستماع إلى الـ provider الصحيح (`goalManagementStateProvider`)
+  // هذا الرابط يستجيب لتغييرات الأهداف الكبيرة (إضافة/حذف/إعادة ترتيب هدف)
+  ref.listen<GoalManagementState>(goalManagementStateProvider,
+      (previous, next) {
+    // أعد الحساب فقط إذا تغيرت قائمة الأهداف بنجاح
+    if (previous?.items.value != next.items.value) {
+      notifier.fetchMonthlyStats();
+    }
   });
 
-  // [الإصلاح الجذري] استبدال الاستدعاء الثقيل بالخفيف
   ref.listen<DailyGoalsState>(dailyGoalsStateProvider, (_, next) {
-    // فقط إذا كان هناك بيانات جديدة، قم بتحديث تقدم اليوم في الذاكرة
     if (next.goals.hasValue) {
       notifier.updateTodayProgress(next.goals.value!);
     }

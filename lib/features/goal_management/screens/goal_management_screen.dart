@@ -1,6 +1,5 @@
 // lib/features/goal_management/screens/goal_management_screen.dart
-
-import 'package:azkari/core/error/failures.dart'; // [جديد]
+import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/goal_management/widgets/goal_item_card.dart';
 import 'package:azkari/features/goal_management/widgets/goal_management_dialogs.dart';
@@ -12,28 +11,49 @@ class GoalManagementScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final stateAsync = ref.watch(goalManagementProvider);
+    final state = ref.watch(goalManagementStateProvider);
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
-    // [مُعدَّل] الـ listener الآن يفهم كائن Failure
-    ref.listen<AsyncValue<void>>(goalManagementStateProvider, (_, state) {
-      if (state.hasError && state.error is Failure) {
+    // [الإصلاح] الاستماع إلى كائن الحالة مباشرة وفحص خاصية الخطأ
+    ref.listen<GoalManagementState>(goalManagementStateProvider,
+        (previous, next) {
+      // إظهار SnackBar فقط إذا ظهر خطأ جديد
+      if (next.error != null && previous?.error != next.error) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('فشلت العملية: ${(state.error as Failure).message}'),
-          backgroundColor: theme.colorScheme.error,
+          content: Text('فشلت العملية: ${next.error!.message}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ));
       }
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة أهدافي')),
-      // [مُعدَّل] عرض الخطأ يفهم الآن كائن Failure
-      body: stateAsync.when(
+      appBar: AppBar(
+        title: const Text('إدارة أهدافي'),
+        actions: [
+          if (state.isSaving)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2.5, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: state.items.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) =>
-            Center(child: Text('خطأ: ${(err as Failure).message}')),
+        error: (err, st) {
+          final message = (err is Failure) ? err.message : 'حدث خطأ غير متوقع.';
+          return Center(child: Text('خطأ: $message'));
+        },
         data: (items) {
+          if (items.isEmpty) {
+            return const Center(child: Text("لم تقم بإضافة أي أذكار بعد."));
+          }
           return ReorderableListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
                 .copyWith(bottom: 90),
@@ -53,9 +73,12 @@ class GoalManagementScreen extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showAddTasbihDialog(context, notifier),
+        onPressed: state.isSaving
+            ? null
+            : () => showAddTasbihDialog(context, notifier),
         icon: const Icon(Icons.add),
         label: const Text('إضافة ذكر جديد'),
+        backgroundColor: state.isSaving ? Colors.grey : null,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
