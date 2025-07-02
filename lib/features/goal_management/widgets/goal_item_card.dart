@@ -107,7 +107,7 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
               controller: _controller,
               focusNode: _focusNode,
               textAlign: TextAlign.center,
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               style: TextStyle(
                 fontWeight: FontWeight.bold,
