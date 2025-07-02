@@ -1,7 +1,6 @@
 // lib/features/azkar_list/widgets/completion_counter_chip.dart
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
-
 class CompletionCounterChip extends StatelessWidget {
   final int completed;
   final int total;

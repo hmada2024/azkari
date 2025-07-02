@@ -2,7 +2,6 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
-
 class CustomErrorWidget extends StatelessWidget {
   final String errorMessage;
   final VoidCallback? onRetry;

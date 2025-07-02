@@ -1,7 +1,6 @@
 // lib/data/dao/tasbih_progress_dao.dart
 import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
-
 class TasbihProgressDao {
   final Database _db;
   TasbihProgressDao(this._db);
@@ -22,7 +21,6 @@ class TasbihProgressDao {
       WHERE ${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?
     ''', [tasbihId, _today]);
   }
-
   Future<void> resetCountForTasbih(int tasbihId) async {
     await _db.update(
       DbConstants.tasbihDailyProgress.name,
@@ -32,7 +30,6 @@ class TasbihProgressDao {
       whereArgs: [tasbihId, _today],
     );
   }
-
   Future<Map<int, int>> getTodayCounts() async {
     final List<Map<String, dynamic>> result = await _db.query(
       DbConstants.tasbihDailyProgress.name,
@@ -50,7 +47,6 @@ class TasbihProgressDao {
             item[DbConstants.tasbihDailyProgress.colCount]
     };
   }
-
   Future<Map<String, List<Map<String, dynamic>>>> getProgressForDateRange(
       String startDate, String endDate) async {
     final query = '''

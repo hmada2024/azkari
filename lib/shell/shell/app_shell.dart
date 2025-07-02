@@ -3,13 +3,11 @@ import 'package:azkari/features/progress/screens/progress_screen.dart';
 import 'package:azkari/features/tasbih/screens/tasbih_screen.dart';
 import 'package:azkari/features/home/home_screen.dart';
 import 'package:flutter/material.dart';
-
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
   @override
   State<AppShell> createState() => _AppShellState();
 }
-
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   static const List<Widget> _widgetOptions = <Widget>[
@@ -22,7 +20,6 @@ class _AppShellState extends State<AppShell> {
       _selectedIndex = index;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

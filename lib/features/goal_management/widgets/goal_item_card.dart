@@ -4,7 +4,6 @@ import 'package:azkari/features/goal_management/widgets/management_dialogs.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class GoalItemCard extends ConsumerStatefulWidget {
   final GoalManagementItem item;
   const GoalItemCard({
@@ -14,7 +13,6 @@ class GoalItemCard extends ConsumerStatefulWidget {
   @override
   ConsumerState<GoalItemCard> createState() => _GoalItemCardState();
 }
-
 class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
@@ -25,7 +23,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
         TextEditingController(text: widget.item.targetCount.toString());
     _focusNode.addListener(_onFocusChange);
   }
-
   @override
   void didUpdateWidget(covariant GoalItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -33,7 +30,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
       _controller.text = widget.item.targetCount.toString();
     }
   }
-
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
@@ -41,13 +37,11 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
     _controller.dispose();
     super.dispose();
   }
-
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
       _saveValue();
     }
   }
-
   void _saveValue() {
     final newCount = int.tryParse(_controller.text) ?? 0;
     if (newCount == widget.item.targetCount) return;
@@ -62,7 +56,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

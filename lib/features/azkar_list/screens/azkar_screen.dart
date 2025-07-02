@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/azkar_list_providers.dart';
 import '../widgets/azkar_card.dart';
-
 class AzkarScreen extends ConsumerWidget {
   final String category;
   const AzkarScreen({super.key, required this.category});

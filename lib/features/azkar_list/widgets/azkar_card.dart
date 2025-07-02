@@ -6,7 +6,6 @@ import 'package:azkari/data/models/azkar_model.dart';
 import 'package:azkari/features/azkar_list/widgets/adhkar_counter_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class AzkarCard extends ConsumerWidget {
   final AzkarModel adhkar;
   const AzkarCard({super.key, required this.adhkar});

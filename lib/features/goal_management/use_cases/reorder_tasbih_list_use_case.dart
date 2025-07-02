@@ -3,7 +3,6 @@ import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/data/repositories/tasbih_repository.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:dartz/dartz.dart';
-
 class ReorderTasbihListUseCase {
   final TasbihRepository _repository;
   ReorderTasbihListUseCase(this._repository);

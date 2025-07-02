@@ -2,7 +2,6 @@
 import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/data/repositories/goals_repository.dart';
 import 'package:dartz/dartz.dart';
-
 class ResetDailyProgressUseCase {
   final GoalsRepository _repository;
   ResetDailyProgressUseCase(this._repository);

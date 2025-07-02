@@ -1,6 +1,5 @@
 // lib/core/models/settings_model.dart
 import 'package:flutter/material.dart';
-
 class SettingsModel {
   final ThemeMode themeMode;
   final double fontScale;

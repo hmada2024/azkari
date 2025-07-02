@@ -2,7 +2,6 @@
 import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/data/repositories/tasbih_repository.dart';
 import 'package:dartz/dartz.dart';
-
 class DeleteTasbihUseCase {
   final TasbihRepository _repository;
   DeleteTasbihUseCase(this._repository);

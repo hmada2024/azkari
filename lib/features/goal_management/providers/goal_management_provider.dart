@@ -12,14 +12,12 @@ import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
-
 @immutable
 class GoalManagementItem {
   final TasbihModel tasbih;
   final int targetCount;
   const GoalManagementItem({required this.tasbih, required this.targetCount});
 }
-
 @immutable
 class GoalManagementState {
   final AsyncValue<List<GoalManagementItem>> items;
@@ -38,7 +36,6 @@ class GoalManagementState {
     );
   }
 }
-
 final goalManagementListProvider =
     Provider.autoDispose<AsyncValue<List<GoalManagementItem>>>((ref) {
   final tasbihListAsync = ref.watch(tasbihListProvider);
@@ -86,7 +83,6 @@ final goalManagementStateProvider = StateNotifierProvider.autoDispose<
     GoalManagementNotifier, GoalManagementState>((ref) {
   return GoalManagementNotifier(ref);
 });
-
 class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
   final Ref _ref;
   GoalManagementNotifier(this._ref) : super(const GoalManagementState()) {
@@ -100,7 +96,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
       }
     }, fireImmediately: true);
   }
-
   Future<bool> _performAction(
     Future<Either<Failure, void>> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
@@ -130,7 +125,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
     }
     return wasSuccessful;
   }
-
   Future<bool> setGoal(int tasbihId, int count) async {
     if (count > 0 && count < 10) {
       _ref
@@ -146,7 +140,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
       providersToInvalidate: [dailyGoalsStateProvider],
     );
   }
-
   Future<bool> addTasbih(String text) async {
     return await _performAction(
       () async {
@@ -157,7 +150,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
       successMessage: 'تمت إضافة الذكر بنجاح',
     );
   }
-
   Future<void> deleteTasbih(int id) async {
     final originalItems = state.items.value;
     if (originalItems == null) return;
@@ -179,7 +171,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
       },
     );
   }
-
   Future<void> reorderTasbih(int oldIndex, int newIndex) async {
     final currentList = state.items.value;
     if (currentList == null) return;

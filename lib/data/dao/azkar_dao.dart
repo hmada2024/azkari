@@ -2,7 +2,6 @@
 import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/azkar_model.dart';
-
 class AzkarDao {
   final Database _db;
   AzkarDao(this._db);
@@ -16,7 +15,6 @@ class AzkarDao {
     );
     return List.generate(maps.length, (i) => AzkarModel.fromMap(maps[i]));
   }
-
   Future<List<String>> getCategories() async {
     final List<Map<String, dynamic>> maps = await _db.rawQuery(
         'SELECT DISTINCT ${DbConstants.adhkar.colCategory} FROM ${DbConstants.adhkar.name} ORDER BY ${DbConstants.adhkar.colCategory}');
@@ -24,7 +22,6 @@ class AzkarDao {
     return List.generate(
         maps.length, (i) => maps[i][DbConstants.adhkar.colCategory] as String);
   }
-
   Future<List<AzkarModel>> getAzkarByIds(List<int> ids) async {
     if (ids.isEmpty) {
       return [];

@@ -7,7 +7,6 @@ import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class TasbihScreen extends ConsumerWidget {
   const TasbihScreen({super.key});
   @override

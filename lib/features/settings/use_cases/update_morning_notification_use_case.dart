@@ -4,7 +4,6 @@ import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/core/services/notification_service.dart';
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 class UpdateMorningNotificationUseCase {
   final SharedPreferences _prefs;
   final NotificationService _notificationService;

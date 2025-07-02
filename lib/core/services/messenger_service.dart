@@ -1,7 +1,6 @@
 // lib/core/services/messenger_service.dart
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
-
 class MessengerService {
   final GlobalKey<ScaffoldMessengerState> _messengerKey;
   MessengerService(this._messengerKey);
@@ -41,7 +40,6 @@ class MessengerService {
     );
     _messengerKey.currentState!.showSnackBar(snackBar);
   }
-
   void showSuccessSnackBar(String message) {
     _showSnackBar(
       message: message,
@@ -49,7 +47,6 @@ class MessengerService {
       icon: Icons.check_circle_outline,
     );
   }
-
   void showErrorSnackBar(String message) {
     _showSnackBar(
       message: message,
@@ -57,7 +54,6 @@ class MessengerService {
       icon: Icons.error_outline,
     );
   }
-
   void showInfoSnackBar(String message) {
     _showSnackBar(
       message: message,

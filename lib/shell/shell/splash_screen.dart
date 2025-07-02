@@ -6,7 +6,6 @@ import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/shell/shell/app_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
   static const List<String> _inspirationalMessages = [
@@ -26,7 +25,6 @@ class SplashScreen extends ConsumerWidget {
       );
     }
   }
-
   Widget _buildLoadingUI(BuildContext context, String randomMessage) {
     return Scaffold(
       backgroundColor: AppColors.primary,
@@ -56,7 +54,6 @@ class SplashScreen extends ConsumerWidget {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final randomMessage =

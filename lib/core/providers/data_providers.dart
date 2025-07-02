@@ -9,7 +9,6 @@ import 'package:azkari/data/repositories/tasbih_repository.dart';
 import 'package:azkari/data/services/database_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
-
 final databaseProvider = FutureProvider<Database>((ref) {
   return DatabaseService.instance.database;
 });

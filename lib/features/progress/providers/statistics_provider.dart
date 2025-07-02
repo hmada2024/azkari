@@ -5,16 +5,13 @@ import 'package:azkari/features/goal_management/providers/goal_management_provid
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
-
 enum StatDayType { past, today, future }
-
 class DailyStat {
   final StatDayType type;
   final double percentage;
   DailyStat({required this.type, this.percentage = 0.0});
   bool get isCompleted => percentage >= 1.0;
 }
-
 class StatisticsState {
   final bool isLoading;
   final Map<DateTime, DailyStat> data;
@@ -30,7 +27,6 @@ class StatisticsState {
     );
   }
 }
-
 class StatisticsNotifier extends StateNotifier<StatisticsState> {
   final Ref _ref;
   bool _isFetching = false;
@@ -81,7 +77,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
       _isFetching = false;
     }
   }
-
   void updateTodayProgress(List<DailyGoalModel> currentGoals) {
     if (state.isLoading || !mounted) return;
     final today = DateTime.now();
@@ -97,7 +92,6 @@ class StatisticsNotifier extends StateNotifier<StatisticsState> {
     state = state.copyWith(data: updatedData);
   }
 }
-
 final statisticsProvider =
     StateNotifierProvider.autoDispose<StatisticsNotifier, StatisticsState>(
         (ref) {

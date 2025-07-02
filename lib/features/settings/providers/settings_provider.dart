@@ -8,7 +8,6 @@ import 'package:azkari/features/settings/use_cases/update_morning_notification_u
 import 'package:azkari/features/settings/use_cases/update_theme_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 final updateThemeUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateThemeUseCase(prefs);
@@ -33,7 +32,6 @@ final settingsProvider =
     StateNotifierProvider<SettingsNotifier, SettingsModel>((ref) {
   return SettingsNotifier(ref);
 });
-
 class SettingsNotifier extends StateNotifier<SettingsModel> {
   final Ref _ref;
   SettingsNotifier(this._ref) : super(SettingsModel()) {
@@ -58,11 +56,8 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
         eveningNotificationEnabled: eveningEnabled,
       );
     } catch (e) {
-      // For now, we rely on the default state if loading fails.
-      // A more robust solution could involve an error state.
     }
   }
-
   Future<void> updateTheme(ThemeMode newTheme) async {
     if (state.themeMode == newTheme) return;
     final useCase = await _ref.read(updateThemeUseCaseProvider.future);
@@ -72,7 +67,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       (success) => state = state.copyWith(themeMode: newTheme),
     );
   }
-
   Future<void> updateFontScale(double newScale) async {
     if (state.fontScale == newScale) return;
     final useCase = await _ref.read(updateFontScaleUseCaseProvider.future);
@@ -82,7 +76,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       (success) => state = state.copyWith(fontScale: newScale),
     );
   }
-
   Future<void> updateMorningNotification(bool isEnabled) async {
     if (state.morningNotificationEnabled == isEnabled) return;
     final useCase =
@@ -94,7 +87,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
           state = state.copyWith(morningNotificationEnabled: isEnabled),
     );
   }
-
   Future<void> updateEveningNotification(bool isEnabled) async {
     if (state.eveningNotificationEnabled == isEnabled) return;
     final useCase =

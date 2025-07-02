@@ -4,7 +4,6 @@ import 'package:azkari/core/services/notification_service.dart';
 import 'package:azkari/main.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });

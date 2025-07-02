@@ -1,6 +1,5 @@
 // lib/core/utils/size_config.dart
 import 'package:flutter/widgets.dart';
-
 extension ResponsiveSize on BuildContext {
   double get screenWidth => MediaQuery.of(this).size.width;
   double get screenHeight => MediaQuery.of(this).size.height;

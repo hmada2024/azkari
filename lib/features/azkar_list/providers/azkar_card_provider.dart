@@ -3,7 +3,6 @@ import 'package:azkari/data/models/azkar_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
-
 @immutable
 class AzkarCardState {
   final AzkarModel adhkar;
@@ -28,7 +27,6 @@ class AzkarCardState {
     );
   }
 }
-
 class AzkarCardNotifier extends StateNotifier<AzkarCardState> {
   AzkarCardNotifier(AzkarModel initialAzkar)
       : super(AzkarCardState(
@@ -42,13 +40,11 @@ class AzkarCardNotifier extends StateNotifier<AzkarCardState> {
       HapticFeedback.lightImpact();
     }
   }
-
   void resetCount() {
     state = state.copyWith(currentCount: state.initialCount);
     HapticFeedback.mediumImpact();
   }
 }
-
 final azkarCardProvider = StateNotifierProvider.family
     .autoDispose<AzkarCardNotifier, AzkarCardState, AzkarModel>(
   (ref, adhkar) => AzkarCardNotifier(adhkar),

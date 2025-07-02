@@ -2,7 +2,6 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:flutter/material.dart';
-
 class ActiveTasbihView extends StatelessWidget {
   final TasbihModel activeTasbih;
   const ActiveTasbihView({super.key, required this.activeTasbih});

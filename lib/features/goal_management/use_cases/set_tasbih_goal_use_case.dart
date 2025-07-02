@@ -2,7 +2,6 @@
 import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/data/repositories/goals_repository.dart';
 import 'package:dartz/dartz.dart';
-
 class SetTasbihGoalUseCase {
   final GoalsRepository _repository;
   SetTasbihGoalUseCase(this._repository);

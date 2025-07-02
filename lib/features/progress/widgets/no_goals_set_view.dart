@@ -3,7 +3,6 @@ import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/primary_button.dart';
 import 'package:azkari/features/goal_management/screens/goal_management_screen.dart';
 import 'package:flutter/material.dart';
-
 class NoGoalsSetView extends StatelessWidget {
   const NoGoalsSetView({super.key});
   @override
