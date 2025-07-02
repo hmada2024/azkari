@@ -1,4 +1,5 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -66,87 +67,96 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final isDeletable = widget.item.tasbih.isDeletable;
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.dividerColor.withOpacity(0.5)),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      height: 68,
+      decoration: BoxDecoration(
+        gradient: isDarkMode
+            ? AppColors.cardGradientDark
+            : AppColors.cardGradientLight,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.25)
+                : Colors.blueGrey.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          )
+        ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 5,
-              child: Text(
-                widget.item.tasbih.displayName,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(height: 1.4),
-              ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              widget.item.tasbih.displayName,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontSize: 16, height: 1.4),
             ),
-            Expanded(
-              flex: 3,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: TextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: theme.primaryColor,
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: theme.scaffoldBackgroundColor,
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          BorderSide(color: theme.primaryColor, width: 1.5),
-                    ),
-                  ),
-                  onSubmitted: (_) => _saveValue(),
+          ),
+          const SizedBox(width: 16),
+          SizedBox(
+            width: 70,
+            child: TextField(
+              controller: _controller,
+              focusNode: _focusNode,
+              textAlign: TextAlign.center,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: theme.colorScheme.secondary,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: isDarkMode
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.black.withOpacity(0.05),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide:
+                      BorderSide(color: theme.colorScheme.secondary, width: 2),
                 ),
               ),
+              onSubmitted: (_) => _saveValue(),
             ),
-            Expanded(
-              flex: 1,
-              child: Center(
-                child: isDeletable
-                    ? IconButton(
-                        icon: Icon(Icons.delete_outline_rounded,
-                            color: theme.colorScheme.error),
-                        onPressed: () {
-                          showDeleteConfirmationDialog(
-                            context: context,
-                            tasbihName: widget.item.tasbih.displayName,
-                            onConfirm: () {
-                              ref
-                                  .read(goalManagementStateProvider.notifier)
-                                  .deleteTasbih(widget.item.tasbih.id);
-                            },
-                          );
+          ),
+          SizedBox(
+            width: 48,
+            child: isDeletable
+                ? IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(Icons.delete_outline_rounded,
+                        color: theme.colorScheme.error.withOpacity(0.8)),
+                    onPressed: () {
+                      showDeleteConfirmationDialog(
+                        context: context,
+                        tasbihName: widget.item.tasbih.displayName,
+                        onConfirm: () {
+                          ref
+                              .read(goalManagementStateProvider.notifier)
+                              .deleteTasbih(widget.item.tasbih.id);
                         },
-                      )
-                    : Icon(Icons.lock_outline_rounded,
-                        color: theme.disabledColor),
-              ),
-            ),
-          ],
-        ),
+                      );
+                    },
+                  )
+                : Icon(Icons.lock_outline_rounded, color: theme.disabledColor),
+          ),
+        ],
       ),
     );
   }
