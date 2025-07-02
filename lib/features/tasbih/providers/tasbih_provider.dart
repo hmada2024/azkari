@@ -159,6 +159,8 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
             await _ref.read(incrementDailyCountUseCaseProvider.future);
         await useCase.execute(activeId!);
       } catch (e) {
+        // ✨ [الإصلاح] هذا الخطأ لا يهم المستخدم لأنه يحدث في الخلفية
+        // بعد أن تم تحديث الواجهة بالفعل (تحديث متفائل).
         debugPrint("Failed to persist increment: $e");
       }
     });
@@ -171,6 +173,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       final useCase = await _ref.read(resetDailyProgressUseCaseProvider.future);
       final result = await useCase.execute(activeId);
       result.fold(
+        // ✨ [الإصلاح] هذا الخطأ يهم المستخدم لأن طلبه فشل.
         (failure) => _ref
             .read(messengerServiceProvider)
             .showErrorSnackBar(failure.message),

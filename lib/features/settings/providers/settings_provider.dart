@@ -8,6 +8,7 @@ import 'package:azkari/features/settings/use_cases/update_morning_notification_u
 import 'package:azkari/features/settings/use_cases/update_theme_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 final updateThemeUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateThemeUseCase(prefs);
@@ -64,8 +65,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
         eveningNotificationEnabled: eveningEnabled,
       );
     } catch (e) {
-      // ✨ [الإصلاح] تسجيل الخطأ. في هذه الحالة،
-      // الاعتماد على الحالة الافتراضية هو سلوك آمن.
       debugPrint("Failed to load settings: $e");
     }
   }
