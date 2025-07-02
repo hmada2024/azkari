@@ -1,5 +1,6 @@
 // lib/features/goal_management/screens/goal_management_screen.dart
 
+import 'package:azkari/core/error/failures.dart'; // [جديد]
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/goal_management/widgets/goal_item_card.dart';
 import 'package:azkari/features/goal_management/widgets/goal_management_dialogs.dart';
@@ -15,10 +16,11 @@ class GoalManagementScreen extends ConsumerWidget {
     final stateAsync = ref.watch(goalManagementProvider);
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
+    // [مُعدَّل] الـ listener الآن يفهم كائن Failure
     ref.listen<AsyncValue<void>>(goalManagementStateProvider, (_, state) {
-      if (state is AsyncError) {
+      if (state.hasError && state.error is Failure) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('فشلت العملية: ${state.error}'),
+          content: Text('فشلت العملية: ${(state.error as Failure).message}'),
           backgroundColor: theme.colorScheme.error,
         ));
       }
@@ -26,9 +28,11 @@ class GoalManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة أهدافي')),
+      // [مُعدَّل] عرض الخطأ يفهم الآن كائن Failure
       body: stateAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) => Center(child: Text('خطأ: $err')),
+        error: (err, st) =>
+            Center(child: Text('خطأ: ${(err as Failure).message}')),
         data: (items) {
           return ReorderableListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)

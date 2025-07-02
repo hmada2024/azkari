@@ -1,31 +1,33 @@
 // lib/features/goal_management/use_cases/reorder_tasbih_list_use_case.dart
 
-import 'package:azkari/data/repositories/tasbih_repository.dart'; // [مُعدَّل]
+import 'package:azkari/core/error/failures.dart';
+import 'package:azkari/data/repositories/tasbih_repository.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
+import 'package:dartz/dartz.dart';
 
-/// حالة استخدام مسؤولة عن منطق إعادة ترتيب قائمة الأذكار.
 class ReorderTasbihListUseCase {
-  // [مُعدَّل] الاعتماد على TasbihRepository الجديد
   final TasbihRepository _repository;
-
   ReorderTasbihListUseCase(this._repository);
 
-  /// ينفذ عملية إعادة الترتيب ويحفظ الترتيب الجديد في قاعدة البيانات.
-  Future<void> execute(
+  Future<Either<Failure, void>> execute(
       List<GoalManagementItem> currentList, int oldIndex, int newIndex) async {
-    final reorderedList = List<GoalManagementItem>.from(currentList);
+    try {
+      final reorderedList = List<GoalManagementItem>.from(currentList);
+      if (oldIndex < newIndex) {
+        newIndex -= 1;
+      }
+      final item = reorderedList.removeAt(oldIndex);
+      reorderedList.insert(newIndex, item);
 
-    if (oldIndex < newIndex) {
-      newIndex -= 1;
+      final Map<int, int> newOrders = {
+        for (int i = 0; i < reorderedList.length; i++)
+          reorderedList[i].tasbih.id: i
+      };
+
+      await _repository.updateSortOrders(newOrders);
+      return const Right(null);
+    } catch (e) {
+      return const Left(DatabaseFailure("فشلت عملية إعادة ترتيب الأذكار."));
     }
-    final item = reorderedList.removeAt(oldIndex);
-    reorderedList.insert(newIndex, item);
-
-    final Map<int, int> newOrders = {
-      for (int i = 0; i < reorderedList.length; i++)
-        reorderedList[i].tasbih.id: i
-    };
-
-    await _repository.updateSortOrders(newOrders);
   }
 }

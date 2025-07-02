@@ -1,5 +1,6 @@
 // lib/features/goal_management/providers/goal_management_providers.dart
 
+import 'package:azkari/core/error/failures.dart'; // [جديد]
 import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
@@ -9,10 +10,10 @@ import 'package:azkari/features/goal_management/use_cases/reorder_tasbih_list_us
 import 'package:azkari/features/goal_management/use_cases/set_tasbih_goal_use_case.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
+import 'package:dartz/dartz.dart'; // [جديد]
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
 
-// -- Data Presentation Provider --
 @immutable
 class GoalManagementItem {
   final TasbihModel tasbih;
@@ -36,7 +37,7 @@ final goalManagementProvider =
   }).toList();
 });
 
-// -- Use Case Providers --
+// ... (Use Case providers remain the same)
 final addTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(tasbihRepositoryProvider.future);
   return AddTasbihUseCase(repo);
@@ -58,7 +59,7 @@ final setTasbihGoalUseCaseProvider = FutureProvider.autoDispose((ref) async {
   return SetTasbihGoalUseCase(repo);
 });
 
-// -- State Notifier (The Coordinator) --
+// [مُعدَّل] الـ Notifier الآن يتعامل مع Either
 final goalManagementStateProvider =
     StateNotifierProvider.autoDispose<GoalManagementNotifier, AsyncValue<void>>(
         (ref) {
@@ -69,28 +70,34 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   final Ref _ref;
   GoalManagementNotifier(this._ref) : super(const AsyncData(null));
 
+  // [مُعدَّل] دالة مساعدة للتعامل مع نتيجة Either
   Future<void> _performAction(
-    Future<void> Function() action, {
+    Future<Either<Failure, void>> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
   }) async {
     state = const AsyncValue.loading();
-    try {
-      await action();
+    final result = await action();
 
-      for (var provider in providersToInvalidate) {
-        _ref.invalidate(provider);
-      }
-      state = const AsyncValue.data(null);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    result.fold(
+      (failure) {
+        // في حالة الفشل، نمرر كائن الفشل للواجهة
+        state = AsyncValue.error(failure, StackTrace.current);
+      },
+      (success) {
+        // في حالة النجاح، نبطل الـ providers ونعيد الحالة للنجاح
+        for (var provider in providersToInvalidate) {
+          _ref.invalidate(provider);
+        }
+        state = const AsyncValue.data(null);
+      },
+    );
   }
 
   Future<void> setGoal(int tasbihId, int count) async {
     await _performAction(
       () async {
         final useCase = await _ref.read(setTasbihGoalUseCaseProvider.future);
-        await useCase.execute(tasbihId, count);
+        return useCase.execute(tasbihId, count);
       },
       providersToInvalidate: [dailyGoalsProvider, goalManagementProvider],
     );
@@ -100,7 +107,7 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     await _performAction(
       () async {
         final useCase = await _ref.read(addTasbihUseCaseProvider.future);
-        await useCase.execute(text);
+        return useCase.execute(text);
       },
       providersToInvalidate: [tasbihListProvider, goalManagementProvider],
     );
@@ -110,7 +117,7 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
     await _performAction(
       () async {
         final useCase = await _ref.read(deleteTasbihUseCaseProvider.future);
-        await useCase.execute(id);
+        return useCase.execute(id);
       },
       providersToInvalidate: [
         tasbihListProvider,
@@ -121,18 +128,14 @@ class GoalManagementNotifier extends StateNotifier<AsyncValue<void>> {
   }
 
   Future<void> reorderTasbih(int oldIndex, int newIndex) async {
-    state = const AsyncValue.loading();
-    try {
-      final list = _ref.read(goalManagementProvider).asData!.value;
-      final useCase = await _ref.read(reorderTasbihListUseCaseProvider.future);
-
-      await useCase.execute(list, oldIndex, newIndex);
-
-      _ref.invalidate(tasbihListProvider);
-      _ref.invalidate(goalManagementProvider);
-      state = const AsyncValue.data(null);
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    await _performAction(
+      () async {
+        final list = await _ref.read(goalManagementProvider.future);
+        final useCase =
+            await _ref.read(reorderTasbihListUseCaseProvider.future);
+        return useCase.execute(list, oldIndex, newIndex);
+      },
+      providersToInvalidate: [tasbihListProvider, goalManagementProvider],
+    );
   }
 }

@@ -1,6 +1,5 @@
 // lib/features/settings/providers/settings_providers.dart
 
-import 'dart:async';
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/core/models/settings_model.dart';
 import 'package:azkari/core/providers/core_providers.dart';
@@ -11,7 +10,6 @@ import 'package:azkari/features/settings/use_cases/update_theme_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// -- Use Case Providers --
 final updateThemeUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateThemeUseCase(prefs);
@@ -36,7 +34,6 @@ final updateEveningNotificationUseCaseProvider =
   return UpdateEveningNotificationUseCase(prefs, notifService);
 });
 
-// -- State Notifier Provider --
 final settingsProvider =
     StateNotifierProvider<SettingsNotifier, SettingsModel>((ref) {
   return SettingsNotifier(ref);
@@ -61,6 +58,7 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       final eveningEnabled =
           prefs.getBool(AppConstants.eveningNotifKey) ?? false;
 
+      if (!mounted) return;
       state = state.copyWith(
         themeMode: themeMode,
         fontScale: fontScale,
@@ -68,37 +66,56 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
         eveningNotificationEnabled: eveningEnabled,
       );
     } catch (e) {
-      // Handle loading error
+      // For now, we rely on the default state if loading fails.
+      // A more robust solution could involve an error state.
     }
   }
 
   Future<void> updateTheme(ThemeMode newTheme) async {
     if (state.themeMode == newTheme) return;
     final useCase = await _ref.read(updateThemeUseCaseProvider.future);
-    await useCase.execute(newTheme);
-    state = state.copyWith(themeMode: newTheme);
+    final result = await useCase.execute(newTheme);
+    result.fold(
+      (failure) {
+      },
+      (success) => state = state.copyWith(themeMode: newTheme),
+    );
   }
 
   Future<void> updateFontScale(double newScale) async {
     if (state.fontScale == newScale) return;
     final useCase = await _ref.read(updateFontScaleUseCaseProvider.future);
-    await useCase.execute(newScale);
-    state = state.copyWith(fontScale: newScale);
+    final result = await useCase.execute(newScale);
+    result.fold(
+      (failure) {
+      },
+      (success) => state = state.copyWith(fontScale: newScale),
+    );
   }
 
   Future<void> updateMorningNotification(bool isEnabled) async {
     if (state.morningNotificationEnabled == isEnabled) return;
     final useCase =
         await _ref.read(updateMorningNotificationUseCaseProvider.future);
-    await useCase.execute(isEnabled);
-    state = state.copyWith(morningNotificationEnabled: isEnabled);
+    final result = await useCase.execute(isEnabled);
+    result.fold(
+      (failure) {
+      },
+      (success) =>
+          state = state.copyWith(morningNotificationEnabled: isEnabled),
+    );
   }
 
   Future<void> updateEveningNotification(bool isEnabled) async {
     if (state.eveningNotificationEnabled == isEnabled) return;
     final useCase =
         await _ref.read(updateEveningNotificationUseCaseProvider.future);
-    await useCase.execute(isEnabled);
-    state = state.copyWith(eveningNotificationEnabled: isEnabled);
+    final result = await useCase.execute(isEnabled);
+    result.fold(
+      (failure) {
+      },
+      (success) =>
+          state = state.copyWith(eveningNotificationEnabled: isEnabled),
+    );
   }
 }
