@@ -4,8 +4,9 @@ import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
 
+/// ✨ [مُعاد تصميمه بالكامل]
 /// ويدجت يمثل بطاقة عرض عنصر واحد في شاشة إدارة الأهداف.
-/// يدعم السحب للحذف والسحب لإعادة الترتيب.
+/// يدعم السحب للحذف (للأذكار المخصصة) والسحب لإعادة الترتيب.
 class GoalItemCard extends StatelessWidget {
   final GoalManagementItem item;
   final int index;
@@ -23,6 +24,8 @@ class GoalItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // محتوى البطاقة الداخلي الذي سيكون مشتركاً
     final cardContent = Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
@@ -32,13 +35,15 @@ class GoalItemCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
           child: Row(
             children: [
+              // مقبض السحب لإعادة الترتيب
               ReorderableDragStartListener(
                 index: index,
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.drag_handle),
+                  child: Icon(Icons.drag_handle_rounded),
                 ),
               ),
+              // نص الذكر
               Expanded(
                 child: Text(
                   item.tasbih.displayName,
@@ -49,6 +54,7 @@ class GoalItemCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
+              // عدد الهدف
               Text(
                 item.targetCount > 0 ? '${item.targetCount} مرة' : 'غير محدد',
                 style: TextStyle(
@@ -66,9 +72,11 @@ class GoalItemCard extends StatelessWidget {
       ),
     );
 
+    // ✨ [جديد] تطبيق ويدجت الحذف فقط إذا كان الذكر قابلاً للحذف
     if (item.tasbih.isDeletable) {
       return Dismissible(
         key: ValueKey('dismissible_${item.tasbih.id}'),
+        // الخلفية التي تظهر عند السحب
         background: Container(
           decoration: BoxDecoration(
             color: theme.colorScheme.error.withOpacity(0.9),
@@ -77,14 +85,17 @@ class GoalItemCard extends StatelessWidget {
           margin: const EdgeInsets.symmetric(vertical: 6),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 20),
-          child: const Icon(Icons.delete, color: Colors.white),
+          child: const Icon(Icons.delete_sweep_rounded, color: Colors.white),
         ),
+        // اتجاه السحب (من البداية للنهاية، أي من اليسار لليمين في العربية)
         direction: DismissDirection.startToEnd,
+        // الإجراء الذي يتم عند اكتمال السحب
         onDismissed: (_) => notifier.deleteTasbih(item.tasbih.id),
         child: cardContent,
       );
     }
 
+    // إذا لم يكن قابلاً للحذف، يتم عرض البطاقة العادية فقط
     return cardContent;
   }
 }

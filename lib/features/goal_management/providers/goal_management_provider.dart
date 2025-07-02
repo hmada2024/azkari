@@ -112,8 +112,8 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
     }, fireImmediately: true);
   }
 
-  // ✨ [الإصلاح] لم تعد الدالة بحاجة لإعادة قيمة.
-  Future<void> _performAction(
+  // ✨ [الإصلاح] الدالة تعيد Future<bool> الآن
+  Future<bool> _performAction(
     Future<Either<Failure, void>> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
     String? successMessage,
@@ -121,10 +121,12 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
     state = state.copyWith(isSaving: true);
     final result = await action();
     final messenger = _ref.read(messengerServiceProvider);
+    bool wasSuccessful = false;
 
     result.fold(
       (failure) {
         messenger.showErrorSnackBar(failure.message);
+        wasSuccessful = false;
       },
       (_) {
         for (var provider in providersToInvalidate) {
@@ -133,16 +135,17 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         if (successMessage != null) {
           messenger.showSuccessSnackBar(successMessage);
         }
+        wasSuccessful = true;
       },
     );
-    // تأكد من تحديث الحالة في كل الأحوال
     if (mounted) {
       state = state.copyWith(isSaving: false);
     }
+    return wasSuccessful;
   }
 
-  Future<void> setGoal(int tasbihId, int count) async {
-    await _performAction(
+  Future<bool> setGoal(int tasbihId, int count) async {
+    return await _performAction(
       () async {
         final useCase = await _ref.read(setTasbihGoalUseCaseProvider.future);
         return useCase.execute(tasbihId, count);
@@ -152,8 +155,8 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
     );
   }
 
-  Future<void> addTasbih(String text) async {
-    await _performAction(
+  Future<bool> addTasbih(String text) async {
+    return await _performAction(
       () async {
         final useCase = await _ref.read(addTasbihUseCaseProvider.future);
         return useCase.execute(text);
@@ -164,13 +167,27 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
   }
 
   Future<void> deleteTasbih(int id) async {
-    await _performAction(
-      () async {
-        final useCase = await _ref.read(deleteTasbihUseCaseProvider.future);
-        return useCase.execute(id);
+    final originalItems = state.items.value;
+    if (originalItems == null) return;
+
+    final optimisticItems = List<GoalManagementItem>.from(originalItems)
+      ..removeWhere((item) => item.tasbih.id == id);
+    state = state.copyWith(items: AsyncValue.data(optimisticItems));
+
+    final useCase = await _ref.read(deleteTasbihUseCaseProvider.future);
+    final result = await useCase.execute(id);
+    final messenger = _ref.read(messengerServiceProvider);
+
+    result.fold(
+      (failure) {
+        messenger.showErrorSnackBar("فشل الحذف: ${failure.message}");
+        state = state.copyWith(items: AsyncValue.data(originalItems));
       },
-      providersToInvalidate: [tasbihListProvider, dailyGoalsStateProvider],
-      successMessage: 'تم حذف الذكر بنجاح',
+      (success) {
+        messenger.showSuccessSnackBar('تم حذف الذكر بنجاح');
+        _ref.invalidate(tasbihListProvider);
+        _ref.invalidate(dailyGoalsStateProvider);
+      },
     );
   }
 
@@ -178,6 +195,8 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
     final currentList = state.items.value;
     if (currentList == null) return;
 
+    // This action doesn't return bool as reordering is an optimistic UI update
+    // handled by the ReorderableListView itself.
     await _performAction(
       () async {
         final useCase =

@@ -1,5 +1,6 @@
 // lib/features/goal_management/widgets/goal_management_dialogs.dart
 
+import 'package:azkari/core/providers/core_providers.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,18 +25,35 @@ Future<void> showEditGoalDialog(BuildContext context,
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+        // ✨ [الإصلاح] استخدام Consumer للوصول إلى ref
         Consumer(
           builder: (context, ref, child) {
             return FilledButton(
-              onPressed: () {
-                final count = int.tryParse(controller.text) ?? 0;
+              onPressed: () async {
+                final text = controller.text;
+                final count = int.tryParse(text);
+
+                // ✨ [جديد] التحقق من صحة الرقم المدخل
+                // إذا كان النص غير فارغ ولكنه ليس رقمًا صحيحًا أو أنه رقم سالب.
+                if (text.isNotEmpty && (count == null || count < 0)) {
+                  ref
+                      .read(messengerServiceProvider)
+                      .showErrorSnackBar("الرجاء إدخال رقم صحيح.");
+                  return; // إيقاف التنفيذ وعدم إغلاق النافذة
+                }
+
+                // إذا كان النص فارغًا أو 0، سيعتبر الهدف 0
+                final finalCount = count ?? 0;
                 final notifier = ref.read(goalManagementStateProvider.notifier);
 
-                // ✨ [الإصلاح] أغلق مربع الحوار أولاً
-                Navigator.pop(ctx);
+                // استدعاء الدالة وانتظار النتيجة
+                final success =
+                    await notifier.setGoal(item.tasbih.id, finalCount);
 
-                // ثم قم بتنفيذ الإجراء. سيقوم الـ Notifier بإظهار SnackBar.
-                notifier.setGoal(item.tasbih.id, count);
+                // إغلاق النافذة فقط في حالة النجاح
+                if (success && ctx.mounted) {
+                  Navigator.pop(ctx);
+                }
               },
               child: const Text('حفظ'),
             );
@@ -65,15 +83,17 @@ Future<void> showAddTasbihDialog(
         Consumer(
           builder: (context, ref, child) {
             return FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final text = controller.text.trim();
                 final notifier = ref.read(goalManagementStateProvider.notifier);
 
-                // ✨ [الإصلاح] أغلق مربع الحوار أولاً
-                Navigator.pop(ctx);
+                // ✨ [الإصلاح] استدعاء الدالة وانتظار النتيجة (true أو false)
+                final success = await notifier.addTasbih(text);
 
-                // ثم قم بتنفيذ الإجراء. سيقوم الـ Notifier بإظهار SnackBar المناسب.
-                notifier.addTasbih(text);
+                // إغلاق النافذة فقط في حالة النج-اح
+                if (success && ctx.mounted) {
+                  Navigator.pop(ctx);
+                }
               },
               child: const Text('إضافة'),
             );

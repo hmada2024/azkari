@@ -68,53 +68,26 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
-    final batch = db.batch();
-
-    // ✨ [الإصلاح] الخطوة 0: إنشاء الجداول الأساسية إذا لم تكن موجودة.
-    // هذا يضمن أن بيئة الاختبار (التي تبدأ من الصفر) سيكون لديها الجداول اللازمة.
-    // استخدام `IF NOT EXISTS` آمن تمامًا ولن يؤثر على قواعد البيانات الموجودة.
-    if (oldVersion < 1) {
-      batch.execute('''
-        CREATE TABLE IF NOT EXISTS adhkar (
-            id INTEGER PRIMARY KEY,
-            category TEXT NOT NULL,
-            text TEXT NOT NULL,
-            count INTEGER NOT NULL,
-            virtue TEXT,
-            note TEXT,
-            sort_order INTEGER
-        )
-      ''');
-      batch.execute('''
-        CREATE TABLE IF NOT EXISTS custom_tasbih (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT NOT NULL,
-            sort_order INTEGER,
-            is_deletable INTEGER DEFAULT 1 NOT NULL
-        )
-      ''');
-    }
-
-    // الترقيات المتسلسلة
     if (oldVersion < 2) {
       debugPrint("Applying V2 migration: Creating goal tables...");
-      _createGoalTablesV2(batch);
+      await _upgradeToV2(db);
     }
     if (oldVersion < 3) {
       debugPrint(
-          "Applying V3 migration: Creating tasbih_daily_progress table...");
-      await _upgradeToV3(batch, db); // Needs db for inserts
+          "Applying V3 migration: Creating tasbih_daily_progress table and migrating data...");
+      await _upgradeToV3(db);
     }
     if (oldVersion < 4) {
-      debugPrint("Applying V4 migration: Adding alias column and new data...");
-      await _upgradeToV4(batch, db); // Needs db for PRAGMA check
+      debugPrint(
+          "Applying V4 migration: Adding alias column and updating data...");
+      await _upgradeToV4(db);
     }
-
-    await batch.commit();
   }
 
-  // تم تحويلها لتستخدم Batch لتكون جزء من معاملة واحدة
-  void _createGoalTablesV2(Batch batch) {
+  // Migrations are now separate methods for clarity.
+
+  Future<void> _upgradeToV2(Database db) async {
+    final batch = db.batch();
     batch.execute('''
         CREATE TABLE IF NOT EXISTS daily_goals (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -133,9 +106,11 @@ class DatabaseService {
           UNIQUE(goal_id, date)
         )
       ''');
+    await batch.commit();
   }
 
-  Future<void> _upgradeToV3(Batch batch, Database db) async {
+  Future<void> _upgradeToV3(Database db) async {
+    final batch = db.batch();
     batch.execute('''
       CREATE TABLE IF NOT EXISTS tasbih_daily_progress (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,28 +121,22 @@ class DatabaseService {
         UNIQUE(tasbih_id, date)
       )
     ''');
-    // Note: Data insertion should ideally be separate, but let's keep it for now
-    // We will commit the batch before this to ensure tables exist
+    // Set default goals
+    batch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
+    batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.ignore);
     await batch.commit(noResult: true);
-    // New batch for data
-    final dataBatch = db.batch();
-    dataBatch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    await dataBatch.commit(noResult: true);
   }
 
-  Future<void> _upgradeToV4(Batch batch, Database db) async {
-    // Commit previous changes to ensure table exists before altering it
-    await batch.commit(noResult: true);
-
+  Future<void> _upgradeToV4(Database db) async {
+    // Check if the alias column exists before trying to add it
     var tableInfo = await db.rawQuery('PRAGMA table_info(custom_tasbih)');
     bool aliasExists = tableInfo.any((column) => column['name'] == 'alias');
 
@@ -176,6 +145,7 @@ class DatabaseService {
     }
 
     final dataBatch = db.batch();
+    // Update existing records with their aliases
     dataBatch.update('custom_tasbih', {'alias': 'الاستغفار'},
         where: 'id = ?', whereArgs: [2]);
     dataBatch.update('custom_tasbih', {'alias': 'الحوقلة'},
@@ -187,43 +157,6 @@ class DatabaseService {
     dataBatch.update('custom_tasbih', {'alias': 'الصلاة على النبي'},
         where: 'id = ?', whereArgs: [6]);
     dataBatch.delete('custom_tasbih', where: 'id = ?', whereArgs: [1]);
-    dataBatch.insert(
-        'custom_tasbih',
-        {
-          'text': 'سُبْحَانَ اللَّهِ',
-          'sort_order': 6,
-          'is_deletable': 0,
-          'alias': null
-        },
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert(
-        'custom_tasbih',
-        {
-          'text': 'الْحَمْدُ لِلَّهِ',
-          'sort_order': 7,
-          'is_deletable': 0,
-          'alias': null
-        },
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert(
-        'custom_tasbih',
-        {
-          'text': 'لَا إِلَهَ إِلَّا اللَّهُ',
-          'sort_order': 8,
-          'is_deletable': 0,
-          'alias': null
-        },
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    dataBatch.insert(
-        'custom_tasbih',
-        {
-          'text': 'اللَّهُ أَكْبَرُ',
-          'sort_order': 9,
-          'is_deletable': 0,
-          'alias': null
-        },
-        conflictAlgorithm: ConflictAlgorithm.ignore);
-    // This last commit belongs to the new batch
     await dataBatch.commit(noResult: true);
   }
 }
