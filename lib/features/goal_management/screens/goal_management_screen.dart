@@ -32,35 +32,49 @@ class GoalManagementScreen extends ConsumerWidget {
               ),
           ],
         ),
-        body: state.items.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, st) {
-            final message =
-                (err is Failure) ? err.message : 'حدث خطأ غير متوقع.';
-            return Center(child: Text('خطأ: $message'));
-          },
-          data: (items) {
-            if (items.isEmpty) {
-              return const Center(child: Text("لم تقم بإضافة أي أذكار بعد."));
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-                  .copyWith(bottom: 90),
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return GoalItemCard(
-                  key: ValueKey('goal_item_${item.tasbih.id}'),
-                  item: item,
+        body: Stack(
+          children: [
+            state.items.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, st) {
+                final message =
+                    (err is Failure) ? err.message : 'حدث خطأ غير متوقع.';
+                return Center(child: Text('خطأ: $message'));
+              },
+              data: (items) {
+                if (items.isEmpty) {
+                  return const Center(
+                      child: Text("لم تقم بإضافة أي أذكار بعد."));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(
+                      12, 8, 12, 90), // Pushes list up
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return GoalItemCard(
+                      key: ValueKey('goal_item_${item.tasbih.id}'),
+                      item: item,
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: state.isSaving ? null : () => showAddTasbihDialog(context),
-          tooltip: 'إضافة ذكر جديد',
-          child: const Icon(Icons.add),
+            ),
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: FloatingActionButton(
+                  onPressed: state.isSaving
+                      ? null
+                      : () => showAddTasbihDialog(context),
+                  tooltip: 'إضافة ذكر جديد',
+                  child: const Icon(Icons.add),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
