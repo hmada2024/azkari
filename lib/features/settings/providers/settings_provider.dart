@@ -1,5 +1,4 @@
 // lib/features/settings/providers/settings_providers.dart
-
 import 'package:azkari/core/constants/app_constants.dart';
 import 'package:azkari/core/models/settings_model.dart';
 import 'package:azkari/core/providers/core_providers.dart';
@@ -9,43 +8,35 @@ import 'package:azkari/features/settings/use_cases/update_morning_notification_u
 import 'package:azkari/features/settings/use_cases/update_theme_use_case.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 final updateThemeUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateThemeUseCase(prefs);
 });
-
 final updateFontScaleUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return UpdateFontScaleUseCase(prefs);
 });
-
 final updateMorningNotificationUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   final notifService = ref.read(notificationServiceProvider);
   return UpdateMorningNotificationUseCase(prefs, notifService);
 });
-
 final updateEveningNotificationUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   final notifService = ref.read(notificationServiceProvider);
   return UpdateEveningNotificationUseCase(prefs, notifService);
 });
-
 final settingsProvider =
     StateNotifierProvider<SettingsNotifier, SettingsModel>((ref) {
   return SettingsNotifier(ref);
 });
-
 class SettingsNotifier extends StateNotifier<SettingsModel> {
   final Ref _ref;
-
   SettingsNotifier(this._ref) : super(SettingsModel()) {
     _loadSettings();
   }
-
   Future<void> _loadSettings() async {
     try {
       final prefs = await _ref.read(sharedPreferencesProvider.future);
@@ -57,7 +48,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
           prefs.getBool(AppConstants.morningNotifKey) ?? false;
       final eveningEnabled =
           prefs.getBool(AppConstants.eveningNotifKey) ?? false;
-
       if (!mounted) return;
       state = state.copyWith(
         themeMode: themeMode,
@@ -70,7 +60,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       // A more robust solution could involve an error state.
     }
   }
-
   Future<void> updateTheme(ThemeMode newTheme) async {
     if (state.themeMode == newTheme) return;
     final useCase = await _ref.read(updateThemeUseCaseProvider.future);
@@ -81,7 +70,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       (success) => state = state.copyWith(themeMode: newTheme),
     );
   }
-
   Future<void> updateFontScale(double newScale) async {
     if (state.fontScale == newScale) return;
     final useCase = await _ref.read(updateFontScaleUseCaseProvider.future);
@@ -92,7 +80,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
       (success) => state = state.copyWith(fontScale: newScale),
     );
   }
-
   Future<void> updateMorningNotification(bool isEnabled) async {
     if (state.morningNotificationEnabled == isEnabled) return;
     final useCase =
@@ -105,7 +92,6 @@ class SettingsNotifier extends StateNotifier<SettingsModel> {
           state = state.copyWith(morningNotificationEnabled: isEnabled),
     );
   }
-
   Future<void> updateEveningNotification(bool isEnabled) async {
     if (state.eveningNotificationEnabled == isEnabled) return;
     final useCase =

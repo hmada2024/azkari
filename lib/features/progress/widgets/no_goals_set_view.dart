@@ -1,15 +1,10 @@
 // lib/features/progress/widgets/no_goals_set_view.dart
-
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/primary_button.dart';
 import 'package:azkari/features/goal_management/screens/goal_management_screen.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت لعرض رسالة للمستخدم عندما لا يكون قد حدد أي أهداف بعد.
-/// يوفر زرًا للانتقال إلى شاشة إدارة الأهداف.
 class NoGoalsSetView extends StatelessWidget {
   const NoGoalsSetView({super.key});
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

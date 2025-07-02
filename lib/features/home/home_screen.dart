@@ -2,18 +2,15 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
-import 'package:azkari/features/home/widgets/home_category_card.dart'; // [جديد]
+import 'package:azkari/features/home/widgets/home_category_card.dart'; 
 import 'package:azkari/features/settings/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsyncValue = ref.watch(categoriesProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -46,7 +43,6 @@ class HomeScreen extends ConsumerWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              // [تعديل] استبدال المنطق المعقد باستدعاء ويدجت واحد نظيف.
               return HomeCategoryCard(category: category);
             },
           );

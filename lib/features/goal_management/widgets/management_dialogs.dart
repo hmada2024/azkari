@@ -1,10 +1,7 @@
 // lib/features/goal_management/widgets/management_dialogs.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/goal_management_provider.dart';
-
-/// يعرض نافذة منبثقة بسيطة لتأكيد الحذف.
 Future<void> showDeleteConfirmationDialog({
   required BuildContext context,
   required String tasbihName,
@@ -34,11 +31,8 @@ Future<void> showDeleteConfirmationDialog({
     ),
   );
 }
-
-/// يعرض نافذة منبثقة لإضافة ذكر (تسبيح) جديد.
 Future<void> showAddTasbihDialog(BuildContext context) async {
   final controller = TextEditingController();
-
   return showDialog(
     context: context,
     builder: (ctx) => AlertDialog(

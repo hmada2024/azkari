@@ -1,13 +1,8 @@
 // lib/features/progress/widgets/initial_progress_view.dart
-
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت لعرض الحالة الأولية في شاشة التقدم
-/// عندما تكون هناك أهداف محددة ولكن لم يبدأ المستخدم التسبيح بعد.
 class InitialProgressView extends StatelessWidget {
   const InitialProgressView({super.key});
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

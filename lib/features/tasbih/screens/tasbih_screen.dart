@@ -7,21 +7,17 @@ import 'package:azkari/features/tasbih/widgets/tasbih_counter_button.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class TasbihScreen extends ConsumerWidget {
   const TasbihScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasbihListAsync = ref.watch(tasbihListProvider);
-
     return Scaffold(
       body: tasbihListAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('خطأ: $err')),
         data: (tasbihList) {
           final activeTasbihAsync = ref.watch(activeTasbihProvider);
-
           return SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -47,8 +43,6 @@ class TasbihScreen extends ConsumerWidget {
                     SizedBox(height: context.screenHeight * 0.04),
                     TasbihCounterButton(tasbihList: tasbihList),
                     SizedBox(height: context.screenHeight * 0.03),
-
-                    // [التعديل] استبدال القائمة المزدحمة بمنطقة الإنجازات النظيفة
                     const CompletedGoalsView(),
                   ],
                 ),

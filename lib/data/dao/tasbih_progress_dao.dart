@@ -1,13 +1,10 @@
 // lib/data/dao/tasbih_progress_dao.dart
 import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
-
 class TasbihProgressDao {
   final Database _db;
   TasbihProgressDao(this._db);
-
   final String _today = DateTime.now().toIso8601String().substring(0, 10);
-
   Future<void> incrementCount(int tasbihId) async {
     await _db.insert(
       DbConstants.tasbihDailyProgress.name,
@@ -18,15 +15,12 @@ class TasbihProgressDao {
       },
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
-
     await _db.rawUpdate('''
       UPDATE ${DbConstants.tasbihDailyProgress.name} 
       SET ${DbConstants.tasbihDailyProgress.colCount} = ${DbConstants.tasbihDailyProgress.colCount} + 1 
       WHERE ${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?
     ''', [tasbihId, _today]);
   }
-
-  // [جديد] دالة لتصفير عداد ذكر معين لهذا اليوم
   Future<void> resetCountForTasbih(int tasbihId) async {
     await _db.update(
       DbConstants.tasbihDailyProgress.name,
@@ -36,7 +30,6 @@ class TasbihProgressDao {
       whereArgs: [tasbihId, _today],
     );
   }
-
   Future<Map<int, int>> getTodayCounts() async {
     final List<Map<String, dynamic>> result = await _db.query(
       DbConstants.tasbihDailyProgress.name,
@@ -47,7 +40,6 @@ class TasbihProgressDao {
       where: '${DbConstants.tasbihDailyProgress.colDate} = ?',
       whereArgs: [_today],
     );
-
     if (result.isEmpty) return {};
     return {
       for (var item in result)
@@ -55,7 +47,6 @@ class TasbihProgressDao {
             item[DbConstants.tasbihDailyProgress.colCount]
     };
   }
-
   Future<Map<String, List<Map<String, dynamic>>>> getProgressForDateRange(
       String startDate, String endDate) async {
     final query = '''
@@ -69,7 +60,6 @@ class TasbihProgressDao {
     ''';
     final List<Map<String, dynamic>> result =
         await _db.rawQuery(query, [startDate, endDate]);
-
     Map<String, List<Map<String, dynamic>>> groupedByDate = {};
     for (var row in result) {
       String date = row[DbConstants.tasbihDailyProgress.colDate];

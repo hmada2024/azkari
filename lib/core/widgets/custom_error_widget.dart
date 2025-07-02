@@ -2,23 +2,17 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت موحد لعرض رسائل الخطأ في التطبيق.
-/// يوفر مظهرًا متسقًا ويسمح بإضافة وظيفة "إعادة المحاولة".
 class CustomErrorWidget extends StatelessWidget {
   final String errorMessage;
   final VoidCallback? onRetry;
-
   const CustomErrorWidget({
     super.key,
     required this.errorMessage,
     this.onRetry,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),

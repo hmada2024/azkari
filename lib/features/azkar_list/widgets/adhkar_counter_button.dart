@@ -1,31 +1,23 @@
 // lib/features/azkar_list/widgets/adhkar_counter_button.dart
-
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/azkar_model.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_card_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-/// ويدجت تفاعلي مسؤول عن عرض وإدارة عداد الذكر.
-/// يحتوي على كل منطق الأنيميشن والتفاعل الخاص بالعداد.
 class AdhkarCounterButton extends ConsumerWidget {
   final AzkarModel adhkar;
-
   const AdhkarCounterButton({
     super.key,
     required this.adhkar,
   });
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cardState = ref.watch(azkarCardProvider(adhkar));
     final cardNotifier = ref.read(azkarCardProvider(adhkar).notifier);
-
     final bool isFinished = cardState.isFinished;
     final double progress = cardState.progress;
     final theme = Theme.of(context);
-
     return Padding(
       padding: EdgeInsets.all(context.responsiveSize(16.0)),
       child: GestureDetector(

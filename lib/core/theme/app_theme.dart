@@ -2,12 +2,8 @@
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
-
-/// هذا الكلاس هو المركز الوحيد لتعريف وتخصيص ثيمات التطبيق.
-/// ✨ [مُعدَّل] تم تطبيق هوية الألوان الجديدة بالكامل وتصحيح الأخطاء.
 class AppTheme {
   AppTheme._();
-
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: AppColors.primary,
@@ -45,7 +41,6 @@ class AppTheme {
     ),
     iconTheme: const IconThemeData(color: AppColors.primary),
     dividerColor: Colors.grey.shade200,
-    // ✨ [الإصلاح] تم حذف الكلمة المفتاحية 'const' من هنا
     textTheme: TextTheme(
       titleMedium: const TextStyle(
           color: AppColors.textLight, fontWeight: FontWeight.w600),
@@ -65,7 +60,6 @@ class AppTheme {
       foregroundColor: Colors.white,
     ),
   );
-
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: AppColors.accent,
@@ -102,7 +96,6 @@ class AppTheme {
     ),
     iconTheme: const IconThemeData(color: AppColors.accent),
     dividerColor: Colors.grey.shade800,
-    // ✨ [الإصلاح] تم حذف الكلمة المفتاحية 'const' من هنا
     textTheme: TextTheme(
       titleMedium: const TextStyle(
           color: AppColors.textDark, fontWeight: FontWeight.w600),

@@ -7,21 +7,17 @@ import 'package:azkari/features/progress/widgets/initial_progress_view.dart';
 import 'package:azkari/features/progress/widgets/no_goals_set_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dailyGoalsState = ref.watch(dailyGoalsStateProvider);
     final appBarTextStyle =
         Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('تقدمي'),
         actions: [
-          // ✨ [التحسين] استبدال الأيقونة بزر نصي واضح ومفهوم
           Padding(
             padding: const EdgeInsets.only(left: 8.0, right: 8.0),
             child: TextButton(
@@ -48,10 +44,8 @@ class ProgressScreen extends ConsumerWidget {
               child: NoGoalsSetView(),
             );
           }
-
           final totalTodayProgress =
               goals.fold<int>(0, (sum, goal) => sum + goal.currentProgress);
-
           if (totalTodayProgress > 0) {
             return ListView(
               padding:

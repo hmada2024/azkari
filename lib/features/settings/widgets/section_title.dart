@@ -1,12 +1,9 @@
 // lib/features/settings/widgets/section_title.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت لعرض عنوان قسم في صفحة الإعدادات أو أي صفحة مشابهة.
 class SectionTitle extends StatelessWidget {
   final String title;
   const SectionTitle({super.key, required this.title});
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

@@ -1,21 +1,14 @@
 // lib/features/home/widgets/home_category_card.dart
-
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/azkar_list/screens/azkar_screen.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت يمثل بطاقة تصنيف واحدة في الشاشة الرئيسية.
-/// مسؤول عن عرض الأيقونة والنص والتفاعل (الانتقال إلى شاشة الأذكار).
 class HomeCategoryCard extends StatelessWidget {
   final String category;
-
   const HomeCategoryCard({
     super.key,
     required this.category,
   });
-
-  // تم نقل هذا المنطق إلى هنا لأنه خاص بعرض هذه البطاقة.
   static const Map<String, IconData> _categoryIcons = {
     "أذكار الصباح": Icons.wb_sunny_outlined,
     "أذكار المساء": Icons.nightlight_round,
@@ -25,11 +18,9 @@ class HomeCategoryCard extends StatelessWidget {
     "أدعية قرآنية": Icons.menu_book_outlined,
     "أدعية نبوية": Icons.mosque,
   };
-
   @override
   Widget build(BuildContext context) {
     final icon = _categoryIcons[category] ?? Icons.list_alt_rounded;
-
     return Card(
       margin: EdgeInsets.symmetric(
         vertical: context.responsiveSize(5),

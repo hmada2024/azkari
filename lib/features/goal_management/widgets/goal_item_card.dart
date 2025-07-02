@@ -1,30 +1,21 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
-
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-/// ✨ [مُعاد تصميمه بالكامل]
-/// ويدجت يمثل بطاقة عرض وتعديل عنصر واحد في شاشة إدارة الأهداف.
-/// يستخدم نظام Flexbox (Expanded) لتحقيق تصميم متجاوب وأنيق.
 class GoalItemCard extends ConsumerStatefulWidget {
   final GoalManagementItem item;
-
   const GoalItemCard({
     super.key,
     required this.item,
   });
-
   @override
   ConsumerState<GoalItemCard> createState() => _GoalItemCardState();
 }
-
 class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -32,8 +23,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
         TextEditingController(text: widget.item.targetCount.toString());
     _focusNode.addListener(_onFocusChange);
   }
-
-  // تحديث المتحكم إذا تغير العنصر من الخارج
   @override
   void didUpdateWidget(covariant GoalItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -41,7 +30,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
       _controller.text = widget.item.targetCount.toString();
     }
   }
-
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
@@ -49,17 +37,14 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
     _controller.dispose();
     super.dispose();
   }
-
   void _onFocusChange() {
     if (!_focusNode.hasFocus) {
       _saveValue();
     }
   }
-
   void _saveValue() {
     final newCount = int.tryParse(_controller.text) ?? 0;
     if (newCount == widget.item.targetCount) return;
-
     ref
         .read(goalManagementStateProvider.notifier)
         .setGoal(widget.item.tasbih.id, newCount)
@@ -71,12 +56,10 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
       }
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDeletable = widget.item.tasbih.isDeletable;
-
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       elevation: 2,
@@ -88,9 +71,8 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
         child: Row(
           children: [
-            // --- العمود الأول: نص الذكر ---
             Expanded(
-              flex: 5, // يأخذ 5 أجزاء من المساحة
+              flex: 5, 
               child: Text(
                 widget.item.tasbih.displayName,
                 maxLines: 3,
@@ -98,10 +80,8 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                 style: theme.textTheme.titleMedium?.copyWith(height: 1.4),
               ),
             ),
-
-            // --- العمود الثاني: حقل العدد ---
             Expanded(
-              flex: 3, // يأخذ 3 أجزاء من المساحة
+              flex: 3, 
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextField(
@@ -135,10 +115,8 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                 ),
               ),
             ),
-
-            // --- العمود الثالث: أيقونة الإجراء ---
             Expanded(
-              flex: 1, // يأخذ جزء واحد من المساحة
+              flex: 1, 
               child: Center(
                 child: isDeletable
                     ? IconButton(

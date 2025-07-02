@@ -1,20 +1,13 @@
 // lib/core/constants/app_constants.dart
 class AppConstants {
-  // مفاتيح SharedPreferences للسبحة - القديمة (يمكن إزالتها لاحقاً)
   static const String tasbihCounterKey = 'tasbih_counter';
   static const String usedTasbihIdsKey = 'used_tasbih_ids_today';
-
-  // مفاتيح SharedPreferences للسبحة - الجديدة
   static const String activeTasbihIdKey = 'active_tasbih_id_v2';
   static const String lastResetDateKey = 'last_reset_date_v2';
-
-  // مفاتيح SharedPreferences للإعدادات
   static const String themeKey = 'theme_mode';
   static const String fontScaleKey = 'font_scale';
   static const String morningNotifKey = 'morning_notif_enabled';
   static const String eveningNotifKey = 'evening_notif_enabled';
-
-  // ثوابت الإشعارات
   static const int morningNotificationId = 0;
   static const int eveningNotificationId = 1;
   static const String notificationChannelId = 'azkari_daily_channel';

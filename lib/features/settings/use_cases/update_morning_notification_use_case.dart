@@ -4,12 +4,10 @@ import 'package:azkari/core/error/failures.dart';
 import 'package:azkari/core/services/notification_service.dart';
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 class UpdateMorningNotificationUseCase {
   final SharedPreferences _prefs;
   final NotificationService _notificationService;
   UpdateMorningNotificationUseCase(this._prefs, this._notificationService);
-
   Future<Either<Failure, void>> execute(bool isEnabled) async {
     try {
       await _prefs.setBool(AppConstants.morningNotifKey, isEnabled);

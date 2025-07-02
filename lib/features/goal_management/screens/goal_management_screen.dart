@@ -5,14 +5,11 @@ import 'package:azkari/features/goal_management/widgets/goal_item_card.dart';
 import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class GoalManagementScreen extends ConsumerWidget {
   const GoalManagementScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(goalManagementStateProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة أهدافي'),
@@ -31,7 +28,6 @@ class GoalManagementScreen extends ConsumerWidget {
             ),
         ],
       ),
-      // ✨ [الحل النهائي] استخدام Stack لوضع الزر فوق القائمة مع ضمان عدم التداخل
       body: Stack(
         children: [
           state.items.when(
@@ -47,7 +43,7 @@ class GoalManagementScreen extends ConsumerWidget {
               }
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
-                    .copyWith(bottom: 90), // مساحة سفلية لعدم التداخل
+                    .copyWith(bottom: 90), 
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];
@@ -59,7 +55,6 @@ class GoalManagementScreen extends ConsumerWidget {
               );
             },
           ),
-          // الزر العائم داخل Stack
           Positioned(
             bottom: 20,
             left: 0,

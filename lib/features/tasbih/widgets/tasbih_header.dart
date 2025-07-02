@@ -5,20 +5,14 @@ import 'package:azkari/features/tasbih/widgets/tasbih_control_button.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class TasbihHeader extends ConsumerWidget {
   const TasbihHeader({super.key});
-
-  /// [مُعدَّل بالكامل] دالة لإظهار مربع الحوار وتأكيد التصفير
   Future<void> _showResetConfirmationDialog(
       BuildContext context, WidgetRef ref) async {
     final activeTasbih = await ref.read(activeTasbihProvider.future);
-
-    // لا تظهر المربع إذا لم يكن هناك ذكر نشط
     if (activeTasbih.id == -1 || !context.mounted) {
       return;
     }
-
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -46,7 +40,6 @@ class TasbihHeader extends ConsumerWidget {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -76,7 +69,6 @@ class TasbihHeader extends ConsumerWidget {
         TasbihControlButton(
           icon: Icons.refresh,
           tooltip: 'تصفير العداد',
-          // [مُعدَّل] استدعاء الدالة الجديدة التي تظهر مربع الحوار
           onPressed: () => _showResetConfirmationDialog(context, ref),
         ),
       ],

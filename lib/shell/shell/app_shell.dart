@@ -1,33 +1,25 @@
 // lib/presentation/shell/app_shell.dart
-import 'package:azkari/features/progress/screens/progress_screen.dart'; // ✨ 1. استيراد الشاشة الجديدة
+import 'package:azkari/features/progress/screens/progress_screen.dart'; 
 import 'package:azkari/features/tasbih/screens/tasbih_screen.dart';
-// import 'package:azkari/features/favorites/favorites_screen.dart'; // ✨ 2. حذف استيراد المفضلة
 import 'package:azkari/features/home/home_screen.dart';
 import 'package:flutter/material.dart';
-
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
-
   @override
   State<AppShell> createState() => _AppShellState();
 }
-
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
-
-  // ✨ 3. تحديث قائمة الواجهات
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TasbihScreen(),
-    ProgressScreen(), // استبدال FavoritesScreen بـ ProgressScreen
+    ProgressScreen(), 
   ];
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,12 +41,11 @@ class _AppShellState extends State<AppShell> {
             activeIcon: Icon(Icons.fingerprint),
             label: 'السبحة',
           ),
-          // ✨ 4. تحديث العنصر الثالث بالكامل
           BottomNavigationBarItem(
             key: Key('bottom_nav_progress'),
-            icon: Icon(Icons.assessment_outlined), // أيقونة جديدة ومناسبة
+            icon: Icon(Icons.assessment_outlined), 
             activeIcon: Icon(Icons.assessment),
-            label: 'تقدمي', // تسمية جديدة
+            label: 'تقدمي', 
           ),
         ],
         currentIndex: _selectedIndex,

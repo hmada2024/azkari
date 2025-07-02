@@ -2,11 +2,9 @@
 import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/daily_goal_model.dart';
-
 class GoalDao {
   final Database _db;
   GoalDao(this._db);
-
   Future<void> setGoal(int tasbihId, int targetCount) async {
     if (targetCount <= 0) {
       await removeGoal(tasbihId);
@@ -21,13 +19,11 @@ class GoalDao {
       );
     }
   }
-
   Future<void> removeGoal(int tasbihId) async {
     await _db.delete(DbConstants.dailyGoals.name,
         where: '${DbConstants.dailyGoals.colTasbihId} = ?',
         whereArgs: [tasbihId]);
   }
-
   Future<List<DailyGoalModel>> getGoalsWithProgressForDate(String date) async {
     final query = '''
       SELECT 
@@ -41,10 +37,8 @@ class GoalDao {
       ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC, t.${DbConstants.customTasbih.colId} ASC
     ''';
     final List<Map<String, dynamic>> maps = await _db.rawQuery(query, [date]);
-
     return List.generate(maps.length, (i) => DailyGoalModel.fromMap(maps[i]));
   }
-
   Future<Map<String, double>> getMonthlyProgressSummary(
       String startDate, String endDate) async {
     final progressQuery = '''
@@ -57,16 +51,13 @@ class GoalDao {
     ''';
     final List<Map<String, dynamic>> progressResult =
         await _db.rawQuery(progressQuery, [startDate, endDate]);
-
     final totalTargetQuery =
         'SELECT SUM(${DbConstants.dailyGoals.colTargetCount}) as totalTarget FROM ${DbConstants.dailyGoals.name}';
     final totalTargetResult = await _db.rawQuery(totalTargetQuery);
     final int totalTarget =
         (totalTargetResult.first['totalTarget'] as int?) ?? 0;
-
     final Map<String, double> progressMap = {};
     if (totalTarget == 0) return progressMap;
-
     for (var row in progressResult) {
       final date = row[DbConstants.tasbihDailyProgress.colDate] as String;
       final totalProgress = (row['totalProgress'] as int?) ?? 0;

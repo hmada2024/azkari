@@ -5,16 +5,12 @@ import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/progress/widgets/daily_goal_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class DailyGoalsView extends ConsumerWidget {
   const DailyGoalsView({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // مراقبة الحالة الكاملة من الـ Notifier الجديد
     final goalsState = ref.watch(dailyGoalsStateProvider);
     final theme = Theme.of(context);
-
     return goalsState.goals.when(
       loading: () => const Center(child: CircularProgressIndicator.adaptive()),
       error: (error, stack) => CustomErrorWidget(
@@ -24,7 +20,6 @@ class DailyGoalsView extends ConsumerWidget {
         if (goals.isEmpty) {
           return const SizedBox.shrink();
         }
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -55,7 +50,6 @@ class DailyGoalsView extends ConsumerWidget {
                 itemCount: goals.length,
                 itemBuilder: (context, index) {
                   final goal = goals[index];
-                  // [التعديل] تمرير الـ ID فقط بدلاً من الكائن بأكمله
                   return DailyGoalItem(
                     key: ValueKey('goal_item_${goal.tasbihId}'),
                     tasbihId: goal.tasbihId,

@@ -1,7 +1,6 @@
 // lib/data/constants/database_constants.dart
 class DbConstants {
-  DbConstants._(); // Private constructor to prevent instantiation.
-
+  DbConstants._(); 
   static const adhkar = _AdhkarTable();
   static const customTasbih = _CustomTasbihTable();
   static const dailyGoals = _DailyGoalsTable();
@@ -18,7 +17,6 @@ class _AdhkarTable {
   final String colNote = 'note';
   final String colSortOrder = 'sort_order';
 }
-
 class _CustomTasbihTable {
   const _CustomTasbihTable();
   final String name = 'custom_tasbih';

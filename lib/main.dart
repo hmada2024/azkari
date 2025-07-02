@@ -10,15 +10,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
-
 final messengerKey = GlobalKey<ScaffoldMessengerState>();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   final container = ProviderContainer();
   await container.read(notificationServiceProvider).init();
-
   if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
     await windowManager.ensureInitialized();
     WindowOptions windowOptions = const WindowOptions(
@@ -43,14 +39,11 @@ void main() async {
     ),
   );
 }
-
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
-
     return MaterialApp(
       title: 'أذكاري',
       scaffoldMessengerKey: messengerKey,

@@ -6,19 +6,15 @@ import 'package:azkari/features/settings/widgets/section_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final settingsNotifier = ref.read(settingsProvider.notifier);
     final theme = Theme.of(context);
-
     final bool notificationsSupported =
         !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('الإعدادات'),

@@ -5,18 +5,15 @@ import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class TasbihCounterButton extends ConsumerWidget {
   final List<TasbihModel> tasbihList;
   const TasbihCounterButton({super.key, required this.tasbihList});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     final count = ref.watch(tasbihStateProvider.select((s) => s.count));
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
-
     return Center(
       child: GestureDetector(
         onTap: () {

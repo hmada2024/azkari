@@ -3,21 +3,17 @@ import 'package:azkari/core/constants/app_text_styles.dart';
 import 'package:azkari/features/settings/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/azkar_model.dart';
-import 'package:azkari/features/azkar_list/widgets/adhkar_counter_button.dart'; // [جديد]
+import 'package:azkari/features/azkar_list/widgets/adhkar_counter_button.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class AzkarCard extends ConsumerWidget {
   final AzkarModel adhkar;
-
   const AzkarCard({super.key, required this.adhkar});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
-
     return Card(
       key: Key('adhkar_card_${adhkar.id}'),
       margin: EdgeInsets.symmetric(

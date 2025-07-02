@@ -5,16 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/azkar_list_providers.dart';
 import '../widgets/azkar_card.dart';
-
 class AzkarScreen extends ConsumerWidget {
   final String category;
-
   const AzkarScreen({super.key, required this.category});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final adhkarAsyncValue = ref.watch(azkarByCategoryProvider(category));
-
     return Scaffold(
       appBar: AppBar(
         title: Text(category),
@@ -22,7 +18,6 @@ class AzkarScreen extends ConsumerWidget {
           adhkarAsyncValue.maybeWhen(
             data: (adhkarList) {
               if (adhkarList.isEmpty) return const SizedBox.shrink();
-
               int completedCount = 0;
               for (var adhkar in adhkarList) {
                 final cardState = ref.watch(azkarCardProvider(adhkar));
@@ -30,7 +25,6 @@ class AzkarScreen extends ConsumerWidget {
                   completedCount++;
                 }
               }
-
               return Padding(
                 padding: const EdgeInsets.only(right: 8.0, left: 8.0),
                 child: Center(
@@ -58,7 +52,6 @@ class AzkarScreen extends ConsumerWidget {
             return const Center(
                 child: Text("لا توجد أذكار في هذا التصنيف حالياً"));
           }
-
           return ListView.builder(
             padding: const EdgeInsets.only(top: 8, bottom: 80),
             itemCount: adhkarList.length,

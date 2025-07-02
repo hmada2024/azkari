@@ -6,24 +6,20 @@ import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/use_cases/increment_daily_count_use_case.dart';
-import 'package:azkari/features/tasbih/use_cases/reset_daily_progress_use_case.dart'; // [جديد]
+import 'package:azkari/features/tasbih/use_cases/reset_daily_progress_use_case.dart'; 
 import 'package:azkari/features/tasbih/use_cases/set_active_tasbih_use_case.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// -- Data Presentation Providers --
 final tasbihListProvider =
     FutureProvider.autoDispose<List<TasbihModel>>((ref) async {
   final repository = await ref.watch(tasbihRepositoryProvider.future);
   return repository.getCustomTasbihList();
 });
-
 final activeTasbihProvider =
     FutureProvider.autoDispose<TasbihModel>((ref) async {
   final tasbihList = await ref.watch(tasbihListProvider.future);
   final activeId =
       ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
-
   if (tasbihList.isEmpty) {
     return TasbihModel(
         id: -1, text: 'أضف ذكرًا للبدء', sortOrder: 0, isDeletable: false);
@@ -31,27 +27,20 @@ final activeTasbihProvider =
   return tasbihList.firstWhere((t) => t.id == activeId,
       orElse: () => tasbihList.first);
 });
-
-// -- Use Case Providers --
 final incrementDailyCountUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(goalsRepositoryProvider.future);
   return IncrementDailyCountUseCase(repo);
 });
-
-// [جديد] Provider لحالة استخدام التصفير
 final resetDailyProgressUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(goalsRepositoryProvider.future);
   return ResetDailyProgressUseCase(repo);
 });
-
 final setActiveTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return SetActiveTasbihUseCase(prefs);
 });
-
-// -- State Model and Notifier --
 class TasbihState {
   final int count;
   final int? activeTasbihId;
@@ -63,29 +52,23 @@ class TasbihState {
     );
   }
 }
-
 final tasbihStateProvider =
     StateNotifierProvider.autoDispose<TasbihStateNotifier, TasbihState>((ref) {
   return TasbihStateNotifier(ref);
 });
-
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   final Ref _ref;
   ProviderSubscription? _subscription;
   Timer? _debounceTimer;
-
   TasbihStateNotifier(this._ref) : super(TasbihState()) {
     _init();
   }
-
   Future<void> _init() async {
     try {
       final prefs = await _ref.read(sharedPreferencesProvider.future);
       await _resetIfNewDay(prefs);
       final activeId = prefs.getInt(AppConstants.activeTasbihIdKey);
-
       _listenToGoalChanges();
-
       if (mounted) {
         state = state.copyWith(activeTasbihId: activeId);
         _updateCountForActiveId(activeId);
@@ -94,7 +77,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       // Handle init error
     }
   }
-
   void _listenToGoalChanges() {
     _subscription?.close();
     _subscription =
@@ -104,7 +86,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     });
   }
-
   void _updateCountForActiveId(int? activeId) {
     if (activeId == null) {
       if (mounted) state = state.copyWith(count: 0);
@@ -112,7 +93,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     }
     final goals = _ref.read(dailyGoalsStateProvider).goals.valueOrNull ?? [];
     final goalIndex = goals.indexWhere((g) => g.tasbihId == activeId);
-
     if (mounted) {
       final newCount = goalIndex != -1 ? goals[goalIndex].currentProgress : 0;
       if (state.count != newCount) {
@@ -120,14 +100,12 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     }
   }
-
   @override
   void dispose() {
     _subscription?.close();
     _debounceTimer?.cancel();
     super.dispose();
   }
-
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
     final lastOpenDate = prefs.getString(AppConstants.lastResetDateKey);
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -135,7 +113,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       await prefs.setString(AppConstants.lastResetDateKey, today);
     }
   }
-
   Future<void> increment() async {
     int? activeId = state.activeTasbihId;
     if (activeId == null) {
@@ -147,13 +124,10 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
         return;
       }
     }
-
     if (mounted) {
       state = state.copyWith(count: state.count + 1);
     }
-
     _ref.read(dailyGoalsStateProvider.notifier).incrementProgress(activeId);
-
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
       try {
@@ -165,33 +139,25 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     });
   }
-
-  /// [مُعدَّل بالكامل] لتنفيذ منطق التصفير الفعلي والآمن
   Future<void> resetActiveTasbihProgress() async {
     final activeId = state.activeTasbihId;
     if (activeId == null) return;
-
     try {
       final useCase = await _ref.read(resetDailyProgressUseCaseProvider.future);
       final result = await useCase.execute(activeId);
-
       result.fold((failure) {
-        // يمكن إظهار رسالة خطأ هنا
       }, (success) {
-        // عند النجاح، أعد تحميل قائمة الأهداف بالكامل لضمان تحديث كل شيء
         _ref.invalidate(dailyGoalsStateProvider);
       });
     } catch (e) {
       // Handle error
     }
   }
-
   Future<void> setActiveTasbih(int id) async {
     if (mounted) {
       state = state.copyWith(activeTasbihId: id);
       _updateCountForActiveId(id);
     }
-
     try {
       final useCase = await _ref.read(setActiveTasbihUseCaseProvider.future);
       await useCase.execute(id);

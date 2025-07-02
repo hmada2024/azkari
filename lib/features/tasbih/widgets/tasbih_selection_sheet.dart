@@ -4,16 +4,12 @@ import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 class TasbihSelectionSheet extends ConsumerWidget {
   const TasbihSelectionSheet({super.key});
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // [الإصلاح] مراقبة المصادر الجديدة للبيانات
     final listAsync = ref.watch(tasbihListProvider);
     final goalsState = ref.watch(dailyGoalsStateProvider);
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
@@ -45,20 +41,16 @@ class TasbihSelectionSheet extends ConsumerWidget {
                 if (items.isEmpty) {
                   return const Center(child: Text('لم يتم إضافة أي ذكر بعد.'));
                 }
-
-                // إنشاء خريطة للعدادات من حالة الأهداف
                 final List<DailyGoalModel> goals =
                     goalsState.goals.valueOrNull ?? [];
                 final countsMap = {
                   for (var g in goals) g.tasbihId: g.currentProgress
                 };
-
                 return ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
                     final count = countsMap[item.id] ?? 0;
-
                     return ListTile(
                       title: Text(item.text),
                       trailing: Text(

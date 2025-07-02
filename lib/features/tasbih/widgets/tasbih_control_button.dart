@@ -1,21 +1,16 @@
 // lib/features/tasbih/widgets/tasbih_control_button.dart
-
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
-
-/// ويدجت يمثل زر تحكم دائري في هيدر شاشة السبحة (مثل زر القائمة أو التصفير).
 class TasbihControlButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
-
   const TasbihControlButton({
     super.key,
     required this.icon,
     required this.tooltip,
     required this.onPressed,
   });
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
