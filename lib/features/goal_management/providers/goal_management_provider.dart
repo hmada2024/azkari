@@ -109,36 +109,36 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
       if (mounted) {
         state = state.copyWith(items: next);
       }
-    });
+    }, fireImmediately: true);
   }
 
+  // ✨ [الإصلاح] لم تعد الدالة بحاجة لإعادة قيمة.
   Future<void> _performAction(
     Future<Either<Failure, void>> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
-    String? successMessage, // ✨ [جديد] إضافة رسالة نجاح اختيارية
+    String? successMessage,
   }) async {
     state = state.copyWith(isSaving: true);
     final result = await action();
-    // ✨ 3. الوصول إلى خدمة الرسائل.
     final messenger = _ref.read(messengerServiceProvider);
 
     result.fold(
       (failure) {
-        // ✨ 4. عرض رسالة الخطأ مباشرة من الـ Notifier.
         messenger.showErrorSnackBar(failure.message);
-        state = state.copyWith(isSaving: false);
       },
-      (success) {
+      (_) {
         for (var provider in providersToInvalidate) {
           _ref.invalidate(provider);
         }
-        // ✨ 5. عرض رسالة النجاح إذا تم توفيرها.
         if (successMessage != null) {
           messenger.showSuccessSnackBar(successMessage);
         }
-        state = state.copyWith(isSaving: false);
       },
     );
+    // تأكد من تحديث الحالة في كل الأحوال
+    if (mounted) {
+      state = state.copyWith(isSaving: false);
+    }
   }
 
   Future<void> setGoal(int tasbihId, int count) async {
@@ -185,7 +185,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         return useCase.execute(currentList, oldIndex, newIndex);
       },
       providersToInvalidate: [tasbihListProvider, dailyGoalsStateProvider],
-      // لا نحتاج لرسالة نجاح هنا لأن التأثير مرئي فوراً للمستخدم.
     );
   }
 }

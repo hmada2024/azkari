@@ -13,25 +13,31 @@ class ProgressScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // [الإصلاح] مراقبة الـ provider الجديد
     final dailyGoalsState = ref.watch(dailyGoalsStateProvider);
+    final appBarTextStyle =
+        Theme.of(context).appBarTheme.titleTextStyle ?? const TextStyle();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('تقدمي'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'إدارة الأهداف',
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => const GoalManagementScreen(),
-              ));
-            },
+          // ✨ [التحسين] استبدال الأيقونة بزر نصي واضح ومفهوم
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+            child: TextButton(
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const GoalManagementScreen(),
+                ));
+              },
+              child: Text(
+                'إدارة أهدافي',
+                style: appBarTextStyle.copyWith(fontSize: 16),
+              ),
+            ),
           )
         ],
       ),
-      // [الإصلاح] استخدام .when على خاصية goals داخل الحالة
       body: dailyGoalsState.goals.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('خطأ: $error')),

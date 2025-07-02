@@ -2,6 +2,7 @@
 
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// يعرض نافذة منبثقة لتعديل الهدف اليومي لذكر معين.
 Future<void> showEditGoalDialog(BuildContext context,
@@ -23,13 +24,22 @@ Future<void> showEditGoalDialog(BuildContext context,
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-        FilledButton(
-          onPressed: () async {
-            final count = int.tryParse(controller.text) ?? 0;
-            await notifier.setGoal(item.tasbih.id, count);
-            if (ctx.mounted) Navigator.pop(ctx);
+        Consumer(
+          builder: (context, ref, child) {
+            return FilledButton(
+              onPressed: () {
+                final count = int.tryParse(controller.text) ?? 0;
+                final notifier = ref.read(goalManagementStateProvider.notifier);
+
+                // ✨ [الإصلاح] أغلق مربع الحوار أولاً
+                Navigator.pop(ctx);
+
+                // ثم قم بتنفيذ الإجراء. سيقوم الـ Notifier بإظهار SnackBar.
+                notifier.setGoal(item.tasbih.id, count);
+              },
+              child: const Text('حفظ'),
+            );
           },
-          child: const Text('حفظ'),
         ),
       ],
     ),
@@ -52,14 +62,22 @@ Future<void> showAddTasbihDialog(
       actions: [
         TextButton(
             onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-        FilledButton(
-          onPressed: () async {
-            if (controller.text.trim().isNotEmpty) {
-              await notifier.addTasbih(controller.text.trim());
-              if (ctx.mounted) Navigator.pop(ctx);
-            }
+        Consumer(
+          builder: (context, ref, child) {
+            return FilledButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                final notifier = ref.read(goalManagementStateProvider.notifier);
+
+                // ✨ [الإصلاح] أغلق مربع الحوار أولاً
+                Navigator.pop(ctx);
+
+                // ثم قم بتنفيذ الإجراء. سيقوم الـ Notifier بإظهار SnackBar المناسب.
+                notifier.addTasbih(text);
+              },
+              child: const Text('إضافة'),
+            );
           },
-          child: const Text('إضافة'),
         ),
       ],
     ),
