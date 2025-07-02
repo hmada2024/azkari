@@ -31,6 +31,10 @@ class GoalsRepository {
   Future<void> incrementTasbihDailyCount(int tasbihId) =>
       _tasbihProgressDao.incrementCount(tasbihId);
 
+  // [جديد] تمرير دالة التصفير من الـ DAO
+  Future<void> resetDailyCountForTasbih(int tasbihId) =>
+      _tasbihProgressDao.resetCountForTasbih(tasbihId);
+
   Future<Map<int, int>> getTodayTasbihCounts() =>
       _tasbihProgressDao.getTodayCounts();
 }

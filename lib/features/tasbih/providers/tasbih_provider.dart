@@ -6,6 +6,7 @@ import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/use_cases/increment_daily_count_use_case.dart';
+import 'package:azkari/features/tasbih/use_cases/reset_daily_progress_use_case.dart'; // [جديد]
 import 'package:azkari/features/tasbih/use_cases/set_active_tasbih_use_case.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,13 @@ final incrementDailyCountUseCaseProvider =
     FutureProvider.autoDispose((ref) async {
   final repo = await ref.watch(goalsRepositoryProvider.future);
   return IncrementDailyCountUseCase(repo);
+});
+
+// [جديد] Provider لحالة استخدام التصفير
+final resetDailyProgressUseCaseProvider =
+    FutureProvider.autoDispose((ref) async {
+  final repo = await ref.watch(goalsRepositoryProvider.future);
+  return ResetDailyProgressUseCase(repo);
 });
 
 final setActiveTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
@@ -107,7 +115,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
 
     if (mounted) {
       final newCount = goalIndex != -1 ? goals[goalIndex].currentProgress : 0;
-      // تحديث العداد فقط إذا كانت القيمة مختلفة
       if (state.count != newCount) {
         state = state.copyWith(count: newCount);
       }
@@ -129,9 +136,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     }
   }
 
-  /// [مُعاد هيكلته] لإصلاح مشكلة عدم زيادة العداد
   Future<void> increment() async {
-    // 1. التأكد من وجود ذكر نشط، وتفعيله إذا لم يكن موجودًا
     int? activeId = state.activeTasbihId;
     if (activeId == null) {
       final tasbihList = await _ref.read(tasbihListProvider.future);
@@ -139,33 +144,46 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
         activeId = tasbihList.first.id;
         await setActiveTasbih(activeId);
       } else {
-        return; // لا يوجد أذكار، لا تفعل شيئًا
+        return;
       }
     }
 
-    // [الإصلاح الجذري] تحديث الواجهة بشكل فوري وتفاؤلي
     if (mounted) {
       state = state.copyWith(count: state.count + 1);
     }
 
-    // 2. تحديث مصدر الحقيقة الوحيد (DailyGoalsNotifier) في الذاكرة
     _ref.read(dailyGoalsStateProvider.notifier).incrementProgress(activeId);
 
-    // 3. تأجيل الكتابة في قاعدة البيانات (Debouncing)
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
       try {
         final useCase =
             await _ref.read(incrementDailyCountUseCaseProvider.future);
-        await useCase.execute(activeId!); // activeId مضمون أنه ليس null هنا
+        await useCase.execute(activeId!);
       } catch (e) {
-        // يمكن تسجيل الخطأ هنا إذا لزم الأمر
+        // Handle error
       }
     });
   }
 
-  Future<void> resetCount() {
-    return Future.value();
+  /// [مُعدَّل بالكامل] لتنفيذ منطق التصفير الفعلي والآمن
+  Future<void> resetActiveTasbihProgress() async {
+    final activeId = state.activeTasbihId;
+    if (activeId == null) return;
+
+    try {
+      final useCase = await _ref.read(resetDailyProgressUseCaseProvider.future);
+      final result = await useCase.execute(activeId);
+
+      result.fold((failure) {
+        // يمكن إظهار رسالة خطأ هنا
+      }, (success) {
+        // عند النجاح، أعد تحميل قائمة الأهداف بالكامل لضمان تحديث كل شيء
+        _ref.invalidate(dailyGoalsStateProvider);
+      });
+    } catch (e) {
+      // Handle error
+    }
   }
 
   Future<void> setActiveTasbih(int id) async {

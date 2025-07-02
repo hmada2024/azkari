@@ -26,6 +26,17 @@ class TasbihProgressDao {
     ''', [tasbihId, _today]);
   }
 
+  // [جديد] دالة لتصفير عداد ذكر معين لهذا اليوم
+  Future<void> resetCountForTasbih(int tasbihId) async {
+    await _db.update(
+      DbConstants.tasbihDailyProgress.name,
+      {DbConstants.tasbihDailyProgress.colCount: 0},
+      where:
+          '${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?',
+      whereArgs: [tasbihId, _today],
+    );
+  }
+
   Future<Map<int, int>> getTodayCounts() async {
     final List<Map<String, dynamic>> result = await _db.query(
       DbConstants.tasbihDailyProgress.name,
