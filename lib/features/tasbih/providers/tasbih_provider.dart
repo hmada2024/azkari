@@ -64,7 +64,7 @@ final tasbihStateProvider =
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   final Ref _ref;
   ProviderSubscription? _subscription;
-  Timer? _debounceTimer; // [جديد] مؤقت لتأجيل الكتابة في قاعدة البيانات
+  Timer? _debounceTimer;
 
   TasbihStateNotifier(this._ref) : super(TasbihState()) {
     _init();
@@ -107,14 +107,17 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
 
     if (mounted) {
       final newCount = goalIndex != -1 ? goals[goalIndex].currentProgress : 0;
-      state = state.copyWith(count: newCount);
+      // تحديث العداد فقط إذا كانت القيمة مختلفة
+      if (state.count != newCount) {
+        state = state.copyWith(count: newCount);
+      }
     }
   }
 
   @override
   void dispose() {
     _subscription?.close();
-    _debounceTimer?.cancel(); // [جديد] التأكد من إلغاء المؤقت عند الخروج
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -126,25 +129,35 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
     }
   }
 
-  /// [مُعاد هيكلته بالكامل] لتحقيق الأداء الأمثل
-  void increment() {
-    // 1. التأكد من وجود ذكر نشط. إذا لم يوجد، لا تفعل شيئًا.
-    final activeId = state.activeTasbihId;
+  /// [مُعاد هيكلته] لإصلاح مشكلة عدم زيادة العداد
+  Future<void> increment() async {
+    // 1. التأكد من وجود ذكر نشط، وتفعيله إذا لم يكن موجودًا
+    int? activeId = state.activeTasbihId;
     if (activeId == null) {
-      return;
+      final tasbihList = await _ref.read(tasbihListProvider.future);
+      if (tasbihList.isNotEmpty) {
+        activeId = tasbihList.first.id;
+        await setActiveTasbih(activeId);
+      } else {
+        return; // لا يوجد أذكار، لا تفعل شيئًا
+      }
     }
 
-    // 2. تحديث فوري للحالة في الذاكرة (سريع جدًا ولا يسبب أي تهنيج)
+    // [الإصلاح الجذري] تحديث الواجهة بشكل فوري وتفاؤلي
+    if (mounted) {
+      state = state.copyWith(count: state.count + 1);
+    }
+
+    // 2. تحديث مصدر الحقيقة الوحيد (DailyGoalsNotifier) في الذاكرة
     _ref.read(dailyGoalsStateProvider.notifier).incrementProgress(activeId);
 
     // 3. تأجيل الكتابة في قاعدة البيانات (Debouncing)
-    _debounceTimer?.cancel(); // إلغاء أي عملية كتابة مؤجلة سابقة
+    _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      // هذه الكتلة لن تنفذ إلا بعد 500 ميللي ثانية من آخر ضغطة
       try {
         final useCase =
             await _ref.read(incrementDailyCountUseCaseProvider.future);
-        await useCase.execute(activeId);
+        await useCase.execute(activeId!); // activeId مضمون أنه ليس null هنا
       } catch (e) {
         // يمكن تسجيل الخطأ هنا إذا لزم الأمر
       }
@@ -152,9 +165,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
   }
 
   Future<void> resetCount() {
-    // هذه عملية معقدة يجب أن تعيد تعيين التقدم في قاعدة البيانات.
-    // في الوقت الحالي، سنتجنب تنفيذها لمنع فقدان البيانات العرضي.
-    // ستحتاج إلى مربع حوار للتأكيد.
     return Future.value();
   }
 
