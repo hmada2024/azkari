@@ -5,12 +5,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
+
     final DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -18,21 +21,26 @@ class NotificationService {
       requestSoundPermission: true,
       onDidReceiveLocalNotification: (id, title, body, payload) async {},
     );
+
     final InitializationSettings initializationSettings =
         InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsDarwin,
     );
+
     tz.initializeTimeZones();
     try {
       tz.setLocalLocation(tz.getLocation('Asia/Riyadh'));
     } catch (e) {
+      debugPrint('Failed to set timezone: $e');
     }
+
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (details) {},
     );
   }
+
   Future<void> _scheduleDailyNotification({
     required int id,
     required String title,
@@ -43,10 +51,12 @@ class NotificationService {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return;
     }
+
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
+
     tz.TZDateTime nextInstanceOf(int hour, int minute) {
       final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
       tz.TZDateTime scheduledDate =
@@ -56,6 +66,7 @@ class NotificationService {
       }
       return scheduledDate;
     }
+
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -83,6 +94,7 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
+
   Future<void> scheduleMorningReminder() async {
     await _scheduleDailyNotification(
       id: AppConstants.morningNotificationId,
@@ -92,6 +104,7 @@ class NotificationService {
       minute: 0,
     );
   }
+
   Future<void> scheduleEveningReminder() async {
     await _scheduleDailyNotification(
       id: AppConstants.eveningNotificationId,
@@ -101,12 +114,14 @@ class NotificationService {
       minute: 30,
     );
   }
+
   Future<void> cancelMorningReminder() async {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return;
     }
     await _notificationsPlugin.cancel(AppConstants.morningNotificationId);
   }
+
   Future<void> cancelEveningReminder() async {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return;
