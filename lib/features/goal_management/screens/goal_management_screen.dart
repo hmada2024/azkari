@@ -5,6 +5,7 @@ import 'package:azkari/features/goal_management/widgets/goal_item_card.dart';
 import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class GoalManagementScreen extends ConsumerWidget {
   const GoalManagementScreen({super.key});
   @override
@@ -43,7 +44,7 @@ class GoalManagementScreen extends ConsumerWidget {
               }
               return ListView.builder(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)
-                    .copyWith(bottom: 90), 
+                    .copyWith(bottom: 90),
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index];

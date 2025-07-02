@@ -3,6 +3,7 @@ import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/azkar_list/screens/azkar_screen.dart';
 import 'package:flutter/material.dart';
+
 class HomeCategoryCard extends StatelessWidget {
   final String category;
   const HomeCategoryCard({

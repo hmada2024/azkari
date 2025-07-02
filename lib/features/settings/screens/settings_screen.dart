@@ -6,6 +6,7 @@ import 'package:azkari/features/settings/widgets/section_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
   @override

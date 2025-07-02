@@ -1,6 +1,7 @@
 // lib/data/repositories/azkar_repository.dart
 import '../dao/azkar_dao.dart';
 import '../models/azkar_model.dart';
+
 class AzkarRepository {
   final AzkarDao _azkarDao;
   AzkarRepository(this._azkarDao);

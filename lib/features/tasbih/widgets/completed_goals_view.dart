@@ -4,6 +4,7 @@ import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/widgets/achievement_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class CompletedGoalsView extends ConsumerWidget {
   const CompletedGoalsView({super.key});
   @override

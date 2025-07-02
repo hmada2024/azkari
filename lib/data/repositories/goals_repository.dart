@@ -2,6 +2,7 @@
 import '../dao/goal_dao.dart';
 import '../dao/tasbih_progress_dao.dart';
 import '../models/daily_goal_model.dart';
+
 class GoalsRepository {
   final GoalDao _goalDao;
   final TasbihProgressDao _tasbihProgressDao;
@@ -14,6 +15,7 @@ class GoalsRepository {
     final today = DateTime.now().toIso8601String().substring(0, 10);
     return getGoalsWithProgressForDate(today);
   }
+
   Future<Map<String, double>> getMonthlyProgressSummary(
           String startDate, String endDate) =>
       _goalDao.getMonthlyProgressSummary(startDate, endDate);

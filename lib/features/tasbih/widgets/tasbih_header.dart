@@ -5,6 +5,7 @@ import 'package:azkari/features/tasbih/widgets/tasbih_control_button.dart';
 import 'package:azkari/features/tasbih/widgets/tasbih_selection_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class TasbihHeader extends ConsumerWidget {
   const TasbihHeader({super.key});
   Future<void> _showResetConfirmationDialog(
@@ -40,6 +41,7 @@ class TasbihHeader extends ConsumerWidget {
       ),
     );
   }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);

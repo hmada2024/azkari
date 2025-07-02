@@ -1,11 +1,12 @@
 // lib/data/constants/database_constants.dart
 class DbConstants {
-  DbConstants._(); 
+  DbConstants._();
   static const adhkar = _AdhkarTable();
   static const customTasbih = _CustomTasbihTable();
   static const dailyGoals = _DailyGoalsTable();
   static const tasbihDailyProgress = _TasbihDailyProgressTable();
 }
+
 class _AdhkarTable {
   const _AdhkarTable();
   final String name = 'adhkar';
@@ -17,6 +18,7 @@ class _AdhkarTable {
   final String colNote = 'note';
   final String colSortOrder = 'sort_order';
 }
+
 class _CustomTasbihTable {
   const _CustomTasbihTable();
   final String name = 'custom_tasbih';
@@ -26,6 +28,7 @@ class _CustomTasbihTable {
   final String colSortOrder = 'sort_order';
   final String colIsDeletable = 'is_deletable';
 }
+
 class _DailyGoalsTable {
   const _DailyGoalsTable();
   final String name = 'daily_goals';
@@ -33,6 +36,7 @@ class _DailyGoalsTable {
   final String colTasbihId = 'tasbih_id';
   final String colTargetCount = 'target_count';
 }
+
 class _TasbihDailyProgressTable {
   const _TasbihDailyProgressTable();
   final String name = 'tasbih_daily_progress';

@@ -4,9 +4,9 @@ class AzkarModel {
   final String category;
   final String text;
   final int count;
-  final String? virtue; 
-  final String? note;   
-  final int? sortOrder; 
+  final String? virtue;
+  final String? note;
+  final int? sortOrder;
   AzkarModel({
     required this.id,
     required this.category,

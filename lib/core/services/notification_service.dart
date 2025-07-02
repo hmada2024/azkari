@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 class NotificationService {
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -35,6 +36,7 @@ class NotificationService {
       onDidReceiveNotificationResponse: (details) {},
     );
   }
+
   Future<void> _scheduleDailyNotification({
     required int id,
     required String title,
@@ -43,7 +45,7 @@ class NotificationService {
     required int minute,
   }) async {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
-      return; 
+      return;
     }
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -58,6 +60,7 @@ class NotificationService {
       }
       return scheduledDate;
     }
+
     await _notificationsPlugin.zonedSchedule(
       id,
       title,
@@ -85,6 +88,7 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time,
     );
   }
+
   Future<void> scheduleMorningReminder() async {
     await _scheduleDailyNotification(
       id: AppConstants.morningNotificationId,
@@ -94,6 +98,7 @@ class NotificationService {
       minute: 0,
     );
   }
+
   Future<void> scheduleEveningReminder() async {
     await _scheduleDailyNotification(
       id: AppConstants.eveningNotificationId,
@@ -103,12 +108,14 @@ class NotificationService {
       minute: 30,
     );
   }
+
   Future<void> cancelMorningReminder() async {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return;
     }
     await _notificationsPlugin.cancel(AppConstants.morningNotificationId);
   }
+
   Future<void> cancelEveningReminder() async {
     if (kIsWeb || !(Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       return;

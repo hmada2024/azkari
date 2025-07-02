@@ -1,9 +1,10 @@
 // lib/features/progress/widgets/statistics_view.dart
 import 'package:azkari/features/progress/providers/statistics_provider.dart';
-import 'package:azkari/features/progress/widgets/stat_day_cell.dart'; 
+import 'package:azkari/features/progress/widgets/stat_day_cell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' as intl;
+
 class StatisticsView extends ConsumerWidget {
   const StatisticsView({super.key});
   @override
@@ -28,6 +29,7 @@ class StatisticsView extends ConsumerWidget {
       ),
     );
   }
+
   Widget _buildMonthlyView(
       BuildContext context, Map<DateTime, DailyStat> data, ThemeData theme) {
     final now = DateTime.now();

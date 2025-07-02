@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/goal_management_provider.dart';
+
 Future<void> showDeleteConfirmationDialog({
   required BuildContext context,
   required String tasbihName,
@@ -31,6 +32,7 @@ Future<void> showDeleteConfirmationDialog({
     ),
   );
 }
+
 Future<void> showAddTasbihDialog(BuildContext context) async {
   final controller = TextEditingController();
   return showDialog(

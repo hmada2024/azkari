@@ -6,10 +6,11 @@ import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/progress/providers/daily_goals_provider.dart';
 import 'package:azkari/features/tasbih/use_cases/increment_daily_count_use_case.dart';
-import 'package:azkari/features/tasbih/use_cases/reset_daily_progress_use_case.dart'; 
+import 'package:azkari/features/tasbih/use_cases/reset_daily_progress_use_case.dart';
 import 'package:azkari/features/tasbih/use_cases/set_active_tasbih_use_case.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 final tasbihListProvider =
     FutureProvider.autoDispose<List<TasbihModel>>((ref) async {
   final repository = await ref.watch(tasbihRepositoryProvider.future);
@@ -41,6 +42,7 @@ final setActiveTasbihUseCaseProvider = FutureProvider.autoDispose((ref) async {
   final prefs = await ref.watch(sharedPreferencesProvider.future);
   return SetActiveTasbihUseCase(prefs);
 });
+
 class TasbihState {
   final int count;
   final int? activeTasbihId;
@@ -52,10 +54,12 @@ class TasbihState {
     );
   }
 }
+
 final tasbihStateProvider =
     StateNotifierProvider.autoDispose<TasbihStateNotifier, TasbihState>((ref) {
   return TasbihStateNotifier(ref);
 });
+
 class TasbihStateNotifier extends StateNotifier<TasbihState> {
   final Ref _ref;
   ProviderSubscription? _subscription;
@@ -77,6 +81,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       // Handle init error
     }
   }
+
   void _listenToGoalChanges() {
     _subscription?.close();
     _subscription =
@@ -86,6 +91,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     });
   }
+
   void _updateCountForActiveId(int? activeId) {
     if (activeId == null) {
       if (mounted) state = state.copyWith(count: 0);
@@ -100,12 +106,14 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     }
   }
+
   @override
   void dispose() {
     _subscription?.close();
     _debounceTimer?.cancel();
     super.dispose();
   }
+
   Future<void> _resetIfNewDay(SharedPreferences prefs) async {
     final lastOpenDate = prefs.getString(AppConstants.lastResetDateKey);
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -113,6 +121,7 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       await prefs.setString(AppConstants.lastResetDateKey, today);
     }
   }
+
   Future<void> increment() async {
     int? activeId = state.activeTasbihId;
     if (activeId == null) {
@@ -139,20 +148,21 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       }
     });
   }
+
   Future<void> resetActiveTasbihProgress() async {
     final activeId = state.activeTasbihId;
     if (activeId == null) return;
     try {
       final useCase = await _ref.read(resetDailyProgressUseCaseProvider.future);
       final result = await useCase.execute(activeId);
-      result.fold((failure) {
-      }, (success) {
+      result.fold((failure) {}, (success) {
         _ref.invalidate(dailyGoalsStateProvider);
       });
     } catch (e) {
       // Handle error
     }
   }
+
   Future<void> setActiveTasbih(int id) async {
     if (mounted) {
       state = state.copyWith(activeTasbihId: id);

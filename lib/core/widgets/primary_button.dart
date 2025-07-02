@@ -1,6 +1,7 @@
 // lib/core/widgets/primary_button.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
+
 class PrimaryButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String text;

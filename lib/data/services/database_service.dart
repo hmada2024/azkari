@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+
 class DatabaseService {
   DatabaseService._privateConstructor();
   static final DatabaseService instance = DatabaseService._privateConstructor();
@@ -18,15 +19,18 @@ class DatabaseService {
       _database = null;
     }
   }
+
   @visibleForTesting
   Future<void> testOnUpgrade(Database db, int oldV, int newV) async {
     await _onUpgrade(db, oldV, newV);
   }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
   }
+
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _dbName);
@@ -51,11 +55,13 @@ class DatabaseService {
       onUpgrade: _onUpgrade,
     );
   }
+
   Future<void> _onCreate(Database db, int version) async {
     debugPrint(
         "Creating database for the first time, applying all migrations from scratch...");
     await _onUpgrade(db, 0, version);
   }
+
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
     if (oldVersion < 2) {
@@ -73,6 +79,7 @@ class DatabaseService {
       await _upgradeToV4(db);
     }
   }
+
   Future<void> _upgradeToV2(Database db) async {
     final batch = db.batch();
     batch.execute('''
@@ -95,6 +102,7 @@ class DatabaseService {
       ''');
     await batch.commit();
   }
+
   Future<void> _upgradeToV3(Database db) async {
     final batch = db.batch();
     batch.execute('''
@@ -114,18 +122,18 @@ class DatabaseService {
     batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
         conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.replace); 
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.replace); 
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 7, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.replace); 
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 8, 'target_count': 10},
-        conflictAlgorithm:
-            ConflictAlgorithm.replace); 
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 9, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.replace); 
+        conflictAlgorithm: ConflictAlgorithm.replace);
     await batch.commit(noResult: true);
   }
+
   Future<void> _upgradeToV4(Database db) async {
     var tableInfo = await db.rawQuery('PRAGMA table_info(custom_tasbih)');
     bool aliasExists = tableInfo.any((column) => column['name'] == 'alias');

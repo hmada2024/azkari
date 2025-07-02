@@ -3,6 +3,7 @@ import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:flutter/material.dart';
+
 class AchievementChip extends StatelessWidget {
   final DailyGoalModel goal;
   const AchievementChip({

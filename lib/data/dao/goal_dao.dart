@@ -2,6 +2,7 @@
 import 'package:azkari/core/constants/database_constants.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/daily_goal_model.dart';
+
 class GoalDao {
   final Database _db;
   GoalDao(this._db);
@@ -19,11 +20,13 @@ class GoalDao {
       );
     }
   }
+
   Future<void> removeGoal(int tasbihId) async {
     await _db.delete(DbConstants.dailyGoals.name,
         where: '${DbConstants.dailyGoals.colTasbihId} = ?',
         whereArgs: [tasbihId]);
   }
+
   Future<List<DailyGoalModel>> getGoalsWithProgressForDate(String date) async {
     final query = '''
       SELECT 
@@ -39,6 +42,7 @@ class GoalDao {
     final List<Map<String, dynamic>> maps = await _db.rawQuery(query, [date]);
     return List.generate(maps.length, (i) => DailyGoalModel.fromMap(maps[i]));
   }
+
   Future<Map<String, double>> getMonthlyProgressSummary(
       String startDate, String endDate) async {
     final progressQuery = '''

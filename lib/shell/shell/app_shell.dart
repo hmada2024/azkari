@@ -1,25 +1,28 @@
 // lib/presentation/shell/app_shell.dart
-import 'package:azkari/features/progress/screens/progress_screen.dart'; 
+import 'package:azkari/features/progress/screens/progress_screen.dart';
 import 'package:azkari/features/tasbih/screens/tasbih_screen.dart';
 import 'package:azkari/features/home/home_screen.dart';
 import 'package:flutter/material.dart';
+
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
   @override
   State<AppShell> createState() => _AppShellState();
 }
+
 class _AppShellState extends State<AppShell> {
   int _selectedIndex = 0;
   static const List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TasbihScreen(),
-    ProgressScreen(), 
+    ProgressScreen(),
   ];
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,9 +46,9 @@ class _AppShellState extends State<AppShell> {
           ),
           BottomNavigationBarItem(
             key: Key('bottom_nav_progress'),
-            icon: Icon(Icons.assessment_outlined), 
+            icon: Icon(Icons.assessment_outlined),
             activeIcon: Icon(Icons.assessment),
-            label: 'تقدمي', 
+            label: 'تقدمي',
           ),
         ],
         currentIndex: _selectedIndex,
