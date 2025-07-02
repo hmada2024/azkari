@@ -68,13 +68,14 @@ class DatabaseService {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     debugPrint("Upgrading database from version $oldVersion to $newVersion...");
+
     if (oldVersion < 2) {
       debugPrint("Applying V2 migration: Creating goal tables...");
       await _upgradeToV2(db);
     }
     if (oldVersion < 3) {
       debugPrint(
-          "Applying V3 migration: Creating tasbih_daily_progress table and migrating data...");
+          "Applying V3 migration: Creating tasbih_daily_progress table and setting default goals...");
       await _upgradeToV3(db);
     }
     if (oldVersion < 4) {
@@ -83,8 +84,6 @@ class DatabaseService {
       await _upgradeToV4(db);
     }
   }
-
-  // Migrations are now separate methods for clarity.
 
   Future<void> _upgradeToV2(Database db) async {
     final batch = db.batch();
@@ -123,20 +122,28 @@ class DatabaseService {
     ''');
     // Set default goals
     batch.insert('daily_goals', {'tasbih_id': 1, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 2, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace);
     batch.insert('daily_goals', {'tasbih_id': 3, 'target_count': 100},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace);
+    // ✨ [التعديل] ضبط الأهداف الافتراضية الجديدة
     batch.insert('daily_goals', {'tasbih_id': 4, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace); // التسبيح
     batch.insert('daily_goals', {'tasbih_id': 5, 'target_count': 10},
-        conflictAlgorithm: ConflictAlgorithm.ignore);
+        conflictAlgorithm: ConflictAlgorithm.replace); // التوحيد
+    batch.insert('daily_goals', {'tasbih_id': 7, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.replace); // الحمد لله
+    batch.insert('daily_goals', {'tasbih_id': 8, 'target_count': 10},
+        conflictAlgorithm:
+            ConflictAlgorithm.replace); // لا إله إلا الله (نفس ID التوحيد)
+    batch.insert('daily_goals', {'tasbih_id': 9, 'target_count': 10},
+        conflictAlgorithm: ConflictAlgorithm.replace); // الله أكبر
+
     await batch.commit(noResult: true);
   }
 
   Future<void> _upgradeToV4(Database db) async {
-    // Check if the alias column exists before trying to add it
     var tableInfo = await db.rawQuery('PRAGMA table_info(custom_tasbih)');
     bool aliasExists = tableInfo.any((column) => column['name'] == 'alias');
 
@@ -145,7 +152,6 @@ class DatabaseService {
     }
 
     final dataBatch = db.batch();
-    // Update existing records with their aliases
     dataBatch.update('custom_tasbih', {'alias': 'الاستغفار'},
         where: 'id = ?', whereArgs: [2]);
     dataBatch.update('custom_tasbih', {'alias': 'الحوقلة'},
@@ -157,6 +163,7 @@ class DatabaseService {
     dataBatch.update('custom_tasbih', {'alias': 'الصلاة على النبي'},
         where: 'id = ?', whereArgs: [6]);
     dataBatch.delete('custom_tasbih', where: 'id = ?', whereArgs: [1]);
+
     await dataBatch.commit(noResult: true);
   }
 }

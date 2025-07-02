@@ -12,7 +12,6 @@ class GoalManagementScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(goalManagementStateProvider);
-    final notifier = ref.read(goalManagementStateProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,38 +31,40 @@ class GoalManagementScreen extends ConsumerWidget {
             ),
         ],
       ),
-      body: state.items.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, st) {
-          final message = (err is Failure) ? err.message : 'حدث خطأ غير متوقع.';
-          return Center(child: Text('خطأ: $message'));
-        },
-        data: (items) {
-          if (items.isEmpty) {
-            return const Center(child: Text("لم تقم بإضافة أي أذكار بعد."));
-          }
-          return ReorderableListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-                .copyWith(bottom: 90),
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return GoalItemCard(
-                key: ValueKey('goal_item_${item.tasbih.id}'),
-                item: item,
-                index: index,
-                notifier: notifier,
-                onTap: () => showEditGoalDialog(context, notifier, item),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return state.items.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, st) {
+              final message =
+                  (err is Failure) ? err.message : 'حدث خطأ غير متوقع.';
+              return Center(child: Text('خطأ: $message'));
+            },
+            data: (items) {
+              if (items.isEmpty) {
+                return const Center(child: Text("لم تقم بإضافة أي أذكار بعد."));
+              }
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(
+                  horizontal: constraints.maxWidth * 0.01,
+                  vertical: 8,
+                ).copyWith(bottom: 90),
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  final item = items[index];
+                  return GoalItemCard(
+                    key: ValueKey('goal_item_${item.tasbih.id}'),
+                    item: item,
+                    constraints: constraints,
+                  );
+                },
               );
             },
-            onReorder: (oldI, newI) => notifier.reorderTasbih(oldI, newI),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: state.isSaving
-            ? null
-            : () => showAddTasbihDialog(context, notifier),
+        onPressed: state.isSaving ? null : () => showAddTasbihDialog(context),
         icon: const Icon(Icons.add),
         label: const Text('إضافة ذكر جديد'),
         backgroundColor: state.isSaving ? Colors.grey : null,

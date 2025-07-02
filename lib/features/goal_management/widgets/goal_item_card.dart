@@ -1,101 +1,155 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
 
-import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
+import 'package:azkari/features/goal_management/widgets/goal_management_dialogs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// ✨ [مُعاد تصميمه بالكامل]
-/// ويدجت يمثل بطاقة عرض عنصر واحد في شاشة إدارة الأهداف.
-/// يدعم السحب للحذف (للأذكار المخصصة) والسحب لإعادة الترتيب.
-class GoalItemCard extends StatelessWidget {
+/// ويدجت يمثل بطاقة عرض وتعديل عنصر واحد في شاشة إدارة الأهداف.
+/// يدعم التعديل المباشر للأرقام والحذف للأذكار المخصصة.
+class GoalItemCard extends ConsumerStatefulWidget {
   final GoalManagementItem item;
-  final int index;
-  final GoalManagementNotifier notifier;
-  final VoidCallback onTap;
+  final BoxConstraints constraints;
 
   const GoalItemCard({
     super.key,
     required this.item,
-    required this.index,
-    required this.notifier,
-    required this.onTap,
+    required this.constraints,
   });
+
+  @override
+  ConsumerState<GoalItemCard> createState() => _GoalItemCardState();
+}
+
+class _GoalItemCardState extends ConsumerState<GoalItemCard> {
+  late final TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        TextEditingController(text: widget.item.targetCount.toString());
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    // إذا فقد الحقل التركيز، قم بحفظ القيمة
+    if (!_focusNode.hasFocus) {
+      _saveValue();
+    }
+  }
+
+  void _saveValue() {
+    final newCount = int.tryParse(_controller.text) ?? 0;
+    // لا تفعل شيئًا إذا لم تتغير القيمة
+    if (newCount == widget.item.targetCount) return;
+
+    ref
+        .read(goalManagementStateProvider.notifier)
+        .setGoal(widget.item.tasbih.id, newCount)
+        .then((success) {
+      // إذا فشل الحفظ (لأن الرقم < 10)، أعد القيمة القديمة
+      if (!success && mounted) {
+        setState(() {
+          _controller.text = widget.item.targetCount.toString();
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = widget.constraints.maxWidth;
 
-    // محتوى البطاقة الداخلي الذي سيكون مشتركاً
-    final cardContent = Card(
+    return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 16.0),
-          child: Row(
-            children: [
-              // مقبض السحب لإعادة الترتيب
-              ReorderableDragStartListener(
-                index: index,
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Icon(Icons.drag_handle_rounded),
-                ),
-              ),
-              // نص الذكر
-              Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+        child: Row(
+          children: [
+            // --- العمود الأول: نص الذكر (60%) ---
+            SizedBox(
+              width: screenWidth * 0.60,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
-                  item.tasbih.displayName,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontSize: context.responsiveSize(16)),
-                  maxLines: 2,
+                  widget.item.tasbih.displayName,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium,
                 ),
               ),
-              const SizedBox(width: 16),
-              // عدد الهدف
-              Text(
-                item.targetCount > 0 ? '${item.targetCount} مرة' : 'غير محدد',
+            ),
+            // --- فاصل (2%) ---
+            SizedBox(width: screenWidth * 0.02),
+            // --- العمود الثاني: حقل العدد (25%) ---
+            SizedBox(
+              width: screenWidth * 0.25,
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 style: TextStyle(
-                  color: item.targetCount > 0
-                      ? theme.primaryColor
-                      : theme.disabledColor,
                   fontWeight: FontWeight.bold,
-                  fontSize: context.responsiveSize(14),
+                  fontSize: 18,
+                  color: theme.primaryColor,
                 ),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: theme.dividerColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: theme.primaryColor, width: 2),
+                  ),
+                ),
+                onSubmitted: (_) => _saveValue(),
               ),
-              const SizedBox(width: 16),
-            ],
-          ),
+            ),
+            // --- فاصل (1%) ---
+            SizedBox(width: screenWidth * 0.01),
+            // --- العمود الثالث: أيقونة الإجراء (10%) ---
+            Expanded(
+              child: Center(
+                child: widget.item.tasbih.isDeletable
+                    ? IconButton(
+                        icon: Icon(Icons.delete_forever_rounded,
+                            color: theme.colorScheme.error),
+                        onPressed: () {
+                          showDeleteConfirmationDialog(
+                            context: context,
+                            tasbihName: widget.item.tasbih.displayName,
+                            onConfirm: () {
+                              ref
+                                  .read(goalManagementStateProvider.notifier)
+                                  .deleteTasbih(widget.item.tasbih.id);
+                            },
+                          );
+                        },
+                      )
+                    : Icon(Icons.lock_rounded, color: theme.disabledColor),
+              ),
+            ),
+          ],
         ),
       ),
     );
-
-    // ✨ [جديد] تطبيق ويدجت الحذف فقط إذا كان الذكر قابلاً للحذف
-    if (item.tasbih.isDeletable) {
-      return Dismissible(
-        key: ValueKey('dismissible_${item.tasbih.id}'),
-        // الخلفية التي تظهر عند السحب
-        background: Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.error.withOpacity(0.9),
-            borderRadius: BorderRadius.circular(15),
-          ),
-          margin: const EdgeInsets.symmetric(vertical: 6),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 20),
-          child: const Icon(Icons.delete_sweep_rounded, color: Colors.white),
-        ),
-        // اتجاه السحب (من البداية للنهاية، أي من اليسار لليمين في العربية)
-        direction: DismissDirection.startToEnd,
-        // الإجراء الذي يتم عند اكتمال السحب
-        onDismissed: (_) => notifier.deleteTasbih(item.tasbih.id),
-        child: cardContent,
-      );
-    }
-
-    // إذا لم يكن قابلاً للحذف، يتم عرض البطاقة العادية فقط
-    return cardContent;
   }
 }
