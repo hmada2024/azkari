@@ -14,18 +14,6 @@ class GoalManagementScreen extends ConsumerWidget {
     final state = ref.watch(goalManagementStateProvider);
     final notifier = ref.read(goalManagementStateProvider.notifier);
 
-    // [الإصلاح] الاستماع إلى كائن الحالة مباشرة وفحص خاصية الخطأ
-    ref.listen<GoalManagementState>(goalManagementStateProvider,
-        (previous, next) {
-      // إظهار SnackBar فقط إذا ظهر خطأ جديد
-      if (next.error != null && previous?.error != next.error) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('فشلت العملية: ${next.error!.message}'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ));
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة أهدافي'),

@@ -1,5 +1,6 @@
 // lib/features/goal_management/providers/goal_management_provider.dart
 import 'package:azkari/core/error/failures.dart';
+import 'package:azkari/core/providers/core_providers.dart';
 import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/goal_management/use_cases/add_tasbih_use_case.dart';
@@ -23,24 +24,19 @@ class GoalManagementItem {
 class GoalManagementState {
   final AsyncValue<List<GoalManagementItem>> items;
   final bool isSaving;
-  final Failure? error; // [جديد] لتضمين حالة الخطأ مباشرة
 
   const GoalManagementState({
     this.items = const AsyncValue.loading(),
     this.isSaving = false,
-    this.error,
   });
 
   GoalManagementState copyWith({
     AsyncValue<List<GoalManagementItem>>? items,
     bool? isSaving,
-    Failure? error,
-    bool clearError = false, // للسماح بتصفير الخطأ
   }) {
     return GoalManagementState(
       items: items ?? this.items,
       isSaving: isSaving ?? this.isSaving,
-      error: clearError ? null : error ?? this.error,
     );
   }
 }
@@ -108,7 +104,6 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
   }
 
   void _fetchItems() {
-    // الاستماع إلى provider البيانات وتحديث حالة items
     _ref.listen<AsyncValue<List<GoalManagementItem>>>(
         goalManagementListProvider, (previous, next) {
       if (mounted) {
@@ -120,18 +115,26 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
   Future<void> _performAction(
     Future<Either<Failure, void>> Function() action, {
     required List<ProviderOrFamily> providersToInvalidate,
+    String? successMessage, // ✨ [جديد] إضافة رسالة نجاح اختيارية
   }) async {
-    state = state.copyWith(isSaving: true, clearError: true);
+    state = state.copyWith(isSaving: true);
     final result = await action();
+    // ✨ 3. الوصول إلى خدمة الرسائل.
+    final messenger = _ref.read(messengerServiceProvider);
 
     result.fold(
       (failure) {
-        // [الإصلاح] تحديث حالة الخطأ مباشرة في كائن الحالة
-        state = state.copyWith(isSaving: false, error: failure);
+        // ✨ 4. عرض رسالة الخطأ مباشرة من الـ Notifier.
+        messenger.showErrorSnackBar(failure.message);
+        state = state.copyWith(isSaving: false);
       },
       (success) {
         for (var provider in providersToInvalidate) {
           _ref.invalidate(provider);
+        }
+        // ✨ 5. عرض رسالة النجاح إذا تم توفيرها.
+        if (successMessage != null) {
+          messenger.showSuccessSnackBar(successMessage);
         }
         state = state.copyWith(isSaving: false);
       },
@@ -145,6 +148,7 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         return useCase.execute(tasbihId, count);
       },
       providersToInvalidate: [dailyGoalsStateProvider],
+      successMessage: 'تم حفظ الهدف بنجاح',
     );
   }
 
@@ -155,6 +159,7 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         return useCase.execute(text);
       },
       providersToInvalidate: [tasbihListProvider, dailyGoalsStateProvider],
+      successMessage: 'تمت إضافة الذكر بنجاح',
     );
   }
 
@@ -165,6 +170,7 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         return useCase.execute(id);
       },
       providersToInvalidate: [tasbihListProvider, dailyGoalsStateProvider],
+      successMessage: 'تم حذف الذكر بنجاح',
     );
   }
 
@@ -179,6 +185,7 @@ class GoalManagementNotifier extends StateNotifier<GoalManagementState> {
         return useCase.execute(currentList, oldIndex, newIndex);
       },
       providersToInvalidate: [tasbihListProvider, dailyGoalsStateProvider],
+      // لا نحتاج لرسالة نجاح هنا لأن التأثير مرئي فوراً للمستخدم.
     );
   }
 }
