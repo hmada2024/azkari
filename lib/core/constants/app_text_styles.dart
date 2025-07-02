@@ -1,5 +1,6 @@
 // lib/core/constants/app_text_styles.dart
 import 'package:flutter/material.dart';
+
 class AppTextStyles {
   static const TextStyle amiri = TextStyle(
     fontFamily: 'Amiri',

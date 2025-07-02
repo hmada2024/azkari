@@ -2,6 +2,7 @@
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/constants/app_text_styles.dart';
 import 'package:flutter/material.dart';
+
 class AppTheme {
   AppTheme._();
   static final ThemeData lightTheme = ThemeData(

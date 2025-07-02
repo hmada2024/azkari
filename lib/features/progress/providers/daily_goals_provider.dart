@@ -3,6 +3,7 @@ import 'package:azkari/core/providers/data_providers.dart';
 import 'package:azkari/data/models/daily_goal_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meta/meta.dart';
+
 @immutable
 class DailyGoalsState {
   final AsyncValue<List<DailyGoalModel>> goals;
@@ -17,6 +18,7 @@ class DailyGoalsState {
     );
   }
 }
+
 class DailyGoalsNotifier extends StateNotifier<DailyGoalsState> {
   final Ref _ref;
   DailyGoalsNotifier(this._ref) : super(const DailyGoalsState()) {
@@ -34,6 +36,7 @@ class DailyGoalsNotifier extends StateNotifier<DailyGoalsState> {
       state = state.copyWith(goals: AsyncValue.error(e, st));
     }
   }
+
   void incrementProgress(int tasbihId) {
     final currentGoals = state.goals.valueOrNull;
     if (currentGoals == null) return;
@@ -52,6 +55,7 @@ class DailyGoalsNotifier extends StateNotifier<DailyGoalsState> {
     state = state.copyWith(goals: AsyncValue.data(newGoalsList));
   }
 }
+
 final dailyGoalsStateProvider =
     StateNotifierProvider<DailyGoalsNotifier, DailyGoalsState>(
   (ref) => DailyGoalsNotifier(ref),

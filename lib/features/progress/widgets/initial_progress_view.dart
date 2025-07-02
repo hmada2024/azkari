@@ -1,6 +1,7 @@
 // lib/features/progress/widgets/initial_progress_view.dart
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:flutter/material.dart';
+
 class InitialProgressView extends StatelessWidget {
   const InitialProgressView({super.key});
   @override

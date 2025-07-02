@@ -4,6 +4,7 @@ import 'package:azkari/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 class UpdateThemeUseCase {
   final SharedPreferences _prefs;
   UpdateThemeUseCase(this._prefs);

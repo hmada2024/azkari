@@ -2,6 +2,7 @@
 import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/features/progress/providers/statistics_provider.dart';
 import 'package:flutter/material.dart';
+
 class StatDayCell extends StatelessWidget {
   final DailyStat? stat;
   final int dayNumber;

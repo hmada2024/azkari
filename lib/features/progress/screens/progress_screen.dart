@@ -7,6 +7,7 @@ import 'package:azkari/features/progress/widgets/initial_progress_view.dart';
 import 'package:azkari/features/progress/widgets/no_goals_set_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
   @override
