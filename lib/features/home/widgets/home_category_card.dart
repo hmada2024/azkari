@@ -21,47 +21,77 @@ class HomeCategoryCard extends StatelessWidget {
   };
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final icon = _categoryIcons[category] ?? Icons.list_alt_rounded;
-    return Card(
+    return Container(
       margin: EdgeInsets.symmetric(
-        vertical: context.responsiveSize(5),
+        vertical: context.responsiveSize(6),
       ),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        gradient: isDarkMode
+            ? AppColors.cardGradientDark
+            : AppColors.cardGradientLight,
         borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.2)
+                : Colors.blueGrey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => AzkarScreen(category: category),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AzkarScreen(category: category),
+              ),
+            );
+          },
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: context.responsiveSize(16),
+              vertical: context.responsiveSize(12),
             ),
-          );
-        },
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: context.responsiveSize(12),
-          vertical: context.responsiveSize(4),
-        ),
-        leading: CircleAvatar(
-          radius: context.responsiveSize(20),
-          backgroundColor: AppColors.primary.withOpacity(0.1),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: context.responsiveSize(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(context.responsiveSize(12)),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: theme.colorScheme.primary,
+                    size: context.responsiveSize(22),
+                  ),
+                ),
+                SizedBox(width: context.responsiveSize(16)),
+                Expanded(
+                  child: Text(
+                    category,
+                    style: TextStyle(
+                      fontSize: context.responsiveSize(16),
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: context.responsiveSize(15),
+                  color: Colors.grey.shade400,
+                ),
+              ],
+            ),
           ),
-        ),
-        title: Text(
-          category,
-          style: TextStyle(
-            fontSize: context.responsiveSize(15),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: context.responsiveSize(15),
-          color: Colors.grey.shade400,
         ),
       ),
     );

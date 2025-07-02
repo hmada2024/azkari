@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   AppTheme._();
+
   static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     primaryColor: AppColors.primary,
@@ -21,30 +22,29 @@ class AppTheme {
       onError: Colors.white,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.primary,
-      elevation: 1.0,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       centerTitle: true,
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: AppColors.primary),
       titleTextStyle: TextStyle(
         fontFamily: AppTextStyles.cairo.fontFamily,
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Colors.white,
+        color: AppColors.primary,
       ),
     ),
     cardTheme: CardTheme(
-      elevation: 1,
-      color: AppColors.cardLight,
+      elevation: 0, // We will use custom decoration with shadows
+      color: Colors.transparent, // Cards will have gradient backgrounds
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200, width: 1),
+        borderRadius: BorderRadius.circular(15),
       ),
     ),
     iconTheme: const IconThemeData(color: AppColors.primary),
-    dividerColor: Colors.grey.shade200,
+    dividerColor: Colors.grey.shade300,
     textTheme: TextTheme(
       titleMedium: const TextStyle(
-          color: AppColors.textLight, fontWeight: FontWeight.w600),
+          color: AppColors.textLight, fontWeight: FontWeight.bold),
       bodyLarge: const TextStyle(color: AppColors.textLight),
       bodyMedium: TextStyle(color: AppColors.textLight.withOpacity(0.7)),
     ),
@@ -60,7 +60,14 @@ class AppTheme {
       backgroundColor: AppColors.accent,
       foregroundColor: Colors.white,
     ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: Colors.grey,
+      elevation: 5,
+    ),
   );
+
   static final ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     primaryColor: AppColors.accent,
@@ -77,7 +84,7 @@ class AppTheme {
       onError: Colors.white,
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.cardDark,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
       iconTheme: const IconThemeData(color: AppColors.accent),
@@ -90,16 +97,16 @@ class AppTheme {
     ),
     cardTheme: CardTheme(
       elevation: 0,
-      color: AppColors.cardDark,
+      color: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(15),
       ),
     ),
     iconTheme: const IconThemeData(color: AppColors.accent),
     dividerColor: Colors.grey.shade800,
     textTheme: TextTheme(
       titleMedium: const TextStyle(
-          color: AppColors.textDark, fontWeight: FontWeight.w600),
+          color: AppColors.textDark, fontWeight: FontWeight.bold),
       bodyLarge: const TextStyle(color: AppColors.textDark),
       bodyMedium: TextStyle(color: AppColors.textDark.withOpacity(0.7)),
     ),
@@ -114,6 +121,12 @@ class AppTheme {
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: AppColors.accent,
       foregroundColor: Colors.black,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: AppColors.cardDark,
+      selectedItemColor: AppColors.accent,
+      unselectedItemColor: Colors.grey,
+      elevation: 5,
     ),
   );
 }

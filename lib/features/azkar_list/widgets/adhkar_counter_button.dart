@@ -43,9 +43,19 @@ class AdhkarCounterButton extends ConsumerWidget {
                     duration: const Duration(milliseconds: 300),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(30),
-                      color: isFinished
-                          ? AppColors.success.withOpacity(0.7)
-                          : theme.primaryColor.withOpacity(0.4),
+                      gradient: LinearGradient(
+                        colors: isFinished
+                            ? [
+                                AppColors.success.withOpacity(0.6),
+                                AppColors.success
+                              ]
+                            : [
+                                theme.colorScheme.primary.withOpacity(0.3),
+                                theme.colorScheme.primary.withOpacity(0.6)
+                              ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
                     ),
                   ),
                 ),

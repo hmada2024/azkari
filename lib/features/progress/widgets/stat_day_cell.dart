@@ -14,6 +14,8 @@ class StatDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     if (stat == null || stat!.type == StatDayType.future) {
       return Container(
         alignment: Alignment.center,
@@ -21,25 +23,40 @@ class StatDayCell extends StatelessWidget {
             style: TextStyle(color: theme.disabledColor)),
       );
     }
-    Color cellColor = Colors.transparent;
+
     Color borderColor = Colors.transparent;
     FontWeight fontWeight = FontWeight.normal;
+    Gradient? gradient;
+
     if (stat!.isCompleted) {
-      cellColor = AppColors.success.withOpacity(0.9);
+      gradient = LinearGradient(
+        colors: [AppColors.success.withOpacity(0.7), AppColors.success],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
     } else if (stat!.percentage > 0) {
-      cellColor = AppColors.primary.withOpacity((stat!.percentage * 0.7) + 0.2);
-    } else {
-      cellColor = AppColors.error.withOpacity(0.15);
+      gradient = LinearGradient(
+        colors: [
+          theme.colorScheme.primary.withOpacity(0.1),
+          theme.colorScheme.primary.withOpacity((stat!.percentage * 0.5) + 0.2),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
     }
+
     if (stat!.type == StatDayType.today) {
-      borderColor = AppColors.primary;
+      borderColor = theme.colorScheme.secondary;
       fontWeight = FontWeight.bold;
     }
+
     return Container(
       key: ValueKey('stat_cell_$dayNumber'),
-      margin: const EdgeInsets.all(1.0),
       decoration: BoxDecoration(
-        color: cellColor,
+        gradient: gradient,
+        color: gradient == null
+            ? theme.scaffoldBackgroundColor
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: borderColor, width: 2),
       ),
@@ -47,7 +64,9 @@ class StatDayCell extends StatelessWidget {
       child: Text(
         dayNumber.toString(),
         style: TextStyle(
-          color: theme.textTheme.bodyLarge?.color,
+          color: (stat!.isCompleted && !isDarkMode)
+              ? Colors.white
+              : theme.textTheme.bodyLarge?.color,
           fontWeight: fontWeight,
         ),
       ),

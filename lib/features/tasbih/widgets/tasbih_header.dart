@@ -63,9 +63,9 @@ class TasbihHeader extends ConsumerWidget {
         Text(
           'السبحة',
           style: TextStyle(
-            fontSize: context.responsiveSize(22),
+            fontSize: context.responsiveSize(24),
             fontWeight: FontWeight.bold,
-            color: theme.primaryColor,
+            color: theme.colorScheme.primary,
           ),
         ),
         TasbihControlButton(

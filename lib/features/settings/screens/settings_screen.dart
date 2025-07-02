@@ -1,6 +1,7 @@
 // lib/features/settings/screens/settings_screen.dart
 import 'dart:io';
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/widgets/app_background.dart';
 import 'package:azkari/features/settings/providers/settings_provider.dart';
 import 'package:azkari/features/settings/widgets/section_title.dart';
 import 'package:flutter/foundation.dart';
@@ -16,99 +17,110 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final bool notificationsSupported =
         !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('الإعدادات'),
-      ),
-      body: ListView(
-        padding: EdgeInsets.all(context.responsiveSize(16.0)),
-        children: [
-          const SectionTitle(title: 'المظهر'),
-          Card(
-            child: Column(
-              children: [
-                RadioListTile<ThemeMode>(
-                  title: const Text('فاتح'),
-                  value: ThemeMode.light,
-                  groupValue: settings.themeMode,
-                  onChanged: (value) => settingsNotifier.updateTheme(value!),
-                ),
-                RadioListTile<ThemeMode>(
-                  title: const Text('داكن'),
-                  value: ThemeMode.dark,
-                  groupValue: settings.themeMode,
-                  onChanged: (value) => settingsNotifier.updateTheme(value!),
-                ),
-                RadioListTile<ThemeMode>(
-                  title: const Text('حسب النظام'),
-                  value: ThemeMode.system,
-                  groupValue: settings.themeMode,
-                  onChanged: (value) => settingsNotifier.updateTheme(value!),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: context.responsiveSize(24)),
-          const SectionTitle(title: 'حجم الخط'),
-          Card(
-            child: Padding(
-              padding: EdgeInsets.all(context.responsiveSize(16.0)),
+    return AppBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          title: const Text('الإعدادات'),
+        ),
+        body: ListView(
+          padding: EdgeInsets.all(context.responsiveSize(16.0)),
+          children: [
+            const SectionTitle(title: 'المظهر'),
+            Card(
               child: Column(
                 children: [
-                  Text('سبحان الله وبحمده، سبحان الله العظيم',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontFamily: 'Amiri',
-                          fontSize:
-                              context.responsiveSize(20) * settings.fontScale)),
-                  SizedBox(height: context.responsiveSize(16)),
-                  Slider(
-                    value: settings.fontScale,
-                    min: 0.8,
-                    max: 1.5,
-                    divisions: 7,
-                    label: '${(settings.fontScale * 100).toStringAsFixed(0)}%',
-                    onChanged: (value) =>
-                        settingsNotifier.updateFontScale(value),
-                    activeColor: theme.primaryColor,
+                  RadioListTile<ThemeMode>(
+                    title: const Text('فاتح'),
+                    value: ThemeMode.light,
+                    groupValue: settings.themeMode,
+                    onChanged: (value) => settingsNotifier.updateTheme(value!),
+                    activeColor: theme.colorScheme.secondary,
+                  ),
+                  RadioListTile<ThemeMode>(
+                    title: const Text('داكن'),
+                    value: ThemeMode.dark,
+                    groupValue: settings.themeMode,
+                    onChanged: (value) => settingsNotifier.updateTheme(value!),
+                    activeColor: theme.colorScheme.secondary,
+                  ),
+                  RadioListTile<ThemeMode>(
+                    title: const Text('حسب النظام'),
+                    value: ThemeMode.system,
+                    groupValue: settings.themeMode,
+                    onChanged: (value) => settingsNotifier.updateTheme(value!),
+                    activeColor: theme.colorScheme.secondary,
                   ),
                 ],
               ),
             ),
-          ),
-          SizedBox(height: context.responsiveSize(24)),
-          const SectionTitle(title: 'التنبيهات'),
-          Card(
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: const Text('تذكير أذكار الصباح'),
-                  subtitle: Text(notificationsSupported
-                      ? 'يومياً الساعة 8:00 صباحاً'
-                      : 'غير مدعوم على هذه المنصة'),
-                  value: settings.morningNotificationEnabled,
-                  onChanged: notificationsSupported
-                      ? (bool value) {
-                          settingsNotifier.updateMorningNotification(value);
-                        }
-                      : null,
+            SizedBox(height: context.responsiveSize(24)),
+            const SectionTitle(title: 'حجم الخط'),
+            Card(
+              child: Padding(
+                padding: EdgeInsets.all(context.responsiveSize(16.0)),
+                child: Column(
+                  children: [
+                    Text('سبحان الله وبحمده، سبحان الله العظيم',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontFamily: 'Amiri',
+                            fontSize: context.responsiveSize(20) *
+                                settings.fontScale)),
+                    SizedBox(height: context.responsiveSize(16)),
+                    Slider(
+                      value: settings.fontScale,
+                      min: 0.8,
+                      max: 1.5,
+                      divisions: 7,
+                      label:
+                          '${(settings.fontScale * 100).toStringAsFixed(0)}%',
+                      onChanged: (value) =>
+                          settingsNotifier.updateFontScale(value),
+                      activeColor: theme.colorScheme.secondary,
+                      inactiveColor:
+                          theme.colorScheme.secondary.withOpacity(0.3),
+                    ),
+                  ],
                 ),
-                SwitchListTile(
-                  title: const Text('تذكير أذكار المساء'),
-                  subtitle: Text(notificationsSupported
-                      ? 'يومياً الساعة 5:30 مساءً'
-                      : 'غير مدعوم على هذه المنصة'),
-                  value: settings.eveningNotificationEnabled,
-                  onChanged: notificationsSupported
-                      ? (bool value) {
-                          settingsNotifier.updateEveningNotification(value);
-                        }
-                      : null,
-                ),
-              ],
+              ),
             ),
-          )
-        ],
+            SizedBox(height: context.responsiveSize(24)),
+            const SectionTitle(title: 'التنبيهات'),
+            Card(
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('تذكير أذكار الصباح'),
+                    subtitle: Text(notificationsSupported
+                        ? 'يومياً الساعة 8:00 صباحاً'
+                        : 'غير مدعوم على هذه المنصة'),
+                    value: settings.morningNotificationEnabled,
+                    onChanged: notificationsSupported
+                        ? (bool value) {
+                            settingsNotifier.updateMorningNotification(value);
+                          }
+                        : null,
+                    activeColor: theme.colorScheme.secondary,
+                  ),
+                  SwitchListTile(
+                    title: const Text('تذكير أذكار المساء'),
+                    subtitle: Text(notificationsSupported
+                        ? 'يومياً الساعة 5:30 مساءً'
+                        : 'غير مدعوم على هذه المنصة'),
+                    value: settings.eveningNotificationEnabled,
+                    onChanged: notificationsSupported
+                        ? (bool value) {
+                            settingsNotifier.updateEveningNotification(value);
+                          }
+                        : null,
+                    activeColor: theme.colorScheme.secondary,
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

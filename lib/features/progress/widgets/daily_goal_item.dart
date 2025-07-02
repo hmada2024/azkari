@@ -35,7 +35,9 @@ class DailyGoalItem extends ConsumerWidget {
             Expanded(
               child: Text(
                 goal.tasbihText,
-                style: TextStyle(fontSize: context.responsiveSize(15)),
+                style: TextStyle(
+                    fontSize: context.responsiveSize(15),
+                    fontWeight: FontWeight.w600),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -57,15 +59,31 @@ class DailyGoalItem extends ConsumerWidget {
               ),
           ],
         ),
-        SizedBox(height: context.responsiveSize(6)),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: goal.progressFraction,
-            minHeight: 6,
-            backgroundColor: theme.scaffoldBackgroundColor,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              goal.isCompleted ? AppColors.success : theme.primaryColor,
+        SizedBox(height: context.responsiveSize(8)),
+        Container(
+          height: 8,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: theme.scaffoldBackgroundColor,
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerRight,
+            widthFactor: goal.progressFraction,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: LinearGradient(
+                  colors: goal.isCompleted
+                      ? [AppColors.success.withOpacity(0.7), AppColors.success]
+                      : [
+                          theme.colorScheme.secondary.withOpacity(0.7),
+                          theme.colorScheme.secondary
+                        ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
             ),
           ),
         ),

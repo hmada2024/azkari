@@ -1,4 +1,5 @@
 // lib/features/tasbih/widgets/tasbih_counter_button.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/tasbih_model.dart';
 import 'package:azkari/features/tasbih/providers/tasbih_provider.dart';
@@ -30,14 +31,24 @@ class TasbihCounterButton extends ConsumerWidget {
           width: context.screenWidth * 0.5,
           height: context.screenWidth * 0.5,
           decoration: BoxDecoration(
-            color: theme.scaffoldBackgroundColor,
             shape: BoxShape.circle,
-            border: Border.all(
-                color: theme.primaryColor.withOpacity(0.5), width: 4),
+            gradient: RadialGradient(
+              colors: isDarkMode
+                  ? [AppColors.accent.withOpacity(0.8), AppColors.primary]
+                  : [AppColors.accent, AppColors.primary.withOpacity(0.8)],
+              center: Alignment.center,
+            ),
             boxShadow: [
               BoxShadow(
-                color: theme.primaryColor.withOpacity(0.2),
-                spreadRadius: 5,
+                color: theme.colorScheme.primary.withOpacity(0.4),
+                spreadRadius: 8,
+                blurRadius: 25,
+              ),
+              BoxShadow(
+                color: isDarkMode
+                    ? AppColors.backgroundDark
+                    : AppColors.backgroundLight,
+                spreadRadius: 6,
                 blurRadius: 15,
               ),
             ],
@@ -46,9 +57,16 @@ class TasbihCounterButton extends ConsumerWidget {
             child: Text(
               count.toString(),
               style: TextStyle(
-                fontSize: context.responsiveSize(65),
+                fontSize: context.responsiveSize(70),
                 fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : theme.primaryColor,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    blurRadius: 10.0,
+                    color: Colors.black.withOpacity(0.3),
+                    offset: const Offset(2.0, 2.0),
+                  ),
+                ],
               ),
             ),
           ),

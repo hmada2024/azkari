@@ -1,4 +1,5 @@
 // lib/features/azkar_list/widgets/azkar_card.dart
+import 'package:azkari/core/constants/app_colors.dart';
 import 'package:azkari/core/constants/app_text_styles.dart';
 import 'package:azkari/features/settings/providers/settings_provider.dart';
 import 'package:azkari/core/utils/size_config.dart';
@@ -13,16 +14,31 @@ class AzkarCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
-    return Card(
+    return Container(
       key: Key('adhkar_card_${adhkar.id}'),
       margin: EdgeInsets.symmetric(
           horizontal: context.responsiveSize(12),
           vertical: context.responsiveSize(8)),
-      elevation: 2,
+      decoration: BoxDecoration(
+        gradient: isDarkMode
+            ? AppColors.cardGradientDark
+            : AppColors.cardGradientLight,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: isDarkMode
+                ? Colors.black.withOpacity(0.2)
+                : Colors.grey.withOpacity(0.15),
+            blurRadius: 10,
+            spreadRadius: 1,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -51,7 +67,7 @@ class AzkarCard extends ConsumerWidget {
                 title: Text(
                   "فضل الذكر",
                   style: TextStyle(
-                      color: theme.primaryColor,
+                      color: theme.colorScheme.secondary,
                       fontSize: context.responsiveSize(14)),
                 ),
                 children: [

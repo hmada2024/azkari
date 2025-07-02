@@ -10,17 +10,17 @@ class ActiveTasbihView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: EdgeInsets.all(context.responsiveSize(16)),
+      padding: EdgeInsets.all(context.responsiveSize(20)),
       decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(context.responsiveSize(12)),
-          border: Border.all(color: theme.dividerColor)),
+          color: theme.cardColor.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(context.responsiveSize(15)),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.5))),
       child: Text(
         activeTasbih.text,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontFamily: 'Amiri',
-          fontSize: context.responsiveSize(20),
+          fontSize: context.responsiveSize(22),
           color: theme.textTheme.bodyLarge?.color,
           height: 1.7,
         ),
