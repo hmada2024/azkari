@@ -1,5 +1,6 @@
-// lib/features/home/home_screen.dart
+// lib/features/home/screens/home_screen.dart
 import 'package:azkari/core/utils/size_config.dart';
+import 'package:azkari/core/widgets/app_logo.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/features/home/providers/home_providers.dart';
@@ -17,9 +18,16 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'أذكاري',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppLogo(size: 32),
+            const SizedBox(width: 12),
+            Text(
+              'أذكاري',
+              style: Theme.of(context).appBarTheme.titleTextStyle,
+            ),
+          ],
         ),
         actions: [
           IconButton(

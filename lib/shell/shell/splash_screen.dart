@@ -1,6 +1,6 @@
-// lib/presentation/shell/splash_screen.dart
+// lib/shell/shell/splash_screen.dart
 import 'dart:math';
-import 'package:azkari/core/constants/app_colors.dart';
+import 'package:azkari/core/widgets/app_logo.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
 import 'package:azkari/shell/shell/app_shell.dart';
@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
+
   static const List<String> _inspirationalMessages = [
     "ألا بذكر الله تطمئن القلوب.",
     "اذكارك حياتك وقد تكون سبب نجاتك فلا تتركها.",
@@ -19,23 +20,39 @@ class SplashScreen extends ConsumerWidget {
     "اجعل لسانك رطباً بذكر الله.",
     "أذكارك حصنك المنيع، فلا تهجره.",
   ];
+
   void _navigateToHome(BuildContext context) {
     if (context.mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const AppShell()),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const AppShell(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: const Duration(milliseconds: 500),
+        ),
       );
     }
   }
 
   Widget _buildLoadingUI(BuildContext context, String randomMessage) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor =
+        isDarkMode ? const Color(0xFF121212) : const Color(0xFFF5F5F5);
+
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: backgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            const AppLogo(size: 120),
+            const SizedBox(height: 40),
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 3),
             ),
             const SizedBox(height: 25),
             Padding(
@@ -44,7 +61,6 @@ class SplashScreen extends ConsumerWidget {
                 randomMessage,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Colors.white,
                   fontSize: 19,
                   fontFamily: 'Amiri',
                   height: 1.5,
@@ -59,9 +75,18 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<AsyncValue>(categoriesProvider, (previous, next) {
+      if (next is AsyncData) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          _navigateToHome(context);
+        });
+      }
+    });
+
     final randomMessage =
         _inspirationalMessages[Random().nextInt(_inspirationalMessages.length)];
     final categoriesAsync = ref.watch(categoriesProvider);
+
     return categoriesAsync.when(
       loading: () => _buildLoadingUI(context, randomMessage),
       error: (error, stack) {
@@ -74,7 +99,6 @@ class SplashScreen extends ConsumerWidget {
         );
       },
       data: (_) {
-        Future.microtask(() => _navigateToHome(context));
         return _buildLoadingUI(context, randomMessage);
       },
     );
