@@ -19,9 +19,9 @@ class TasbihCounterButton extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
 
-    final tasbihState = ref.watch(tasbihStateProvider);
-    final count = tasbihState.count;
-    final activeId = tasbihState.activeTasbihId;
+    final count = ref.watch(tasbihStateProvider.select((s) => s.count));
+    final activeId =
+        ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
     final tasbihNotifier = ref.read(tasbihStateProvider.notifier);
 
     final goals = ref.watch(dailyGoalsStateProvider).goals.valueOrNull ?? [];
@@ -44,7 +44,6 @@ class TasbihCounterButton extends ConsumerWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Layer 1: The progress ring painter
           Positioned.fill(
             child: CustomPaint(
               painter: ProgressRingPainter(
@@ -57,7 +56,6 @@ class TasbihCounterButton extends ConsumerWidget {
               ),
             ),
           ),
-          // Layer 2: The actual button
           GestureDetector(
             onTap: () {
               if (activeId == null && tasbihList.isNotEmpty) {
@@ -67,7 +65,6 @@ class TasbihCounterButton extends ConsumerWidget {
               HapticFeedback.lightImpact();
             },
             child: Container(
-              // The button container is slightly smaller to not cover the ring
               width: buttonSize - (strokeWidth * 2),
               height: buttonSize - (strokeWidth * 2),
               decoration: BoxDecoration(
