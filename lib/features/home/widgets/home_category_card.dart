@@ -6,10 +6,14 @@ import 'package:flutter/material.dart';
 
 class HomeCategoryCard extends StatelessWidget {
   final String category;
+  final bool isHighlighted;
+
   const HomeCategoryCard({
     super.key,
     required this.category,
+    this.isHighlighted = false,
   });
+
   static const Map<String, IconData> _categoryIcons = {
     "أذكار الصباح": Icons.wb_sunny_outlined,
     "أذكار المساء": Icons.nightlight_round,
@@ -19,12 +23,15 @@ class HomeCategoryCard extends StatelessWidget {
     "أدعية قرآنية": Icons.menu_book_outlined,
     "أدعية نبوية": Icons.mosque,
   };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     final icon = _categoryIcons[category] ?? Icons.list_alt_rounded;
-    return Container(
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
       margin: EdgeInsets.symmetric(
         vertical: context.responsiveSize(6),
       ),
@@ -33,12 +40,18 @@ class HomeCategoryCard extends StatelessWidget {
             ? AppColors.cardGradientDark
             : AppColors.cardGradientLight,
         borderRadius: BorderRadius.circular(15),
+        border: isHighlighted
+            ? Border.all(
+                color: theme.colorScheme.secondary.withOpacity(0.7), width: 1.5)
+            : null,
         boxShadow: [
           BoxShadow(
-            color: isDarkMode
-                ? Colors.black.withOpacity(0.2)
-                : Colors.blueGrey.withOpacity(0.1),
-            blurRadius: 8,
+            color: isHighlighted
+                ? theme.colorScheme.secondary.withOpacity(0.25)
+                : (isDarkMode
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.blueGrey.withOpacity(0.1)),
+            blurRadius: isHighlighted ? 12 : 8,
             offset: const Offset(0, 4),
           )
         ],

@@ -2,6 +2,7 @@
 import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/core/widgets/custom_error_widget.dart';
 import 'package:azkari/features/azkar_list/providers/azkar_list_providers.dart';
+import 'package:azkari/features/home/providers/home_providers.dart';
 import 'package:azkari/features/home/widgets/home_category_card.dart';
 import 'package:azkari/features/settings/screens/settings_screen.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsyncValue = ref.watch(categoriesProvider);
+    final currentTimePeriod = ref.watch(timeOfDayProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -44,7 +47,15 @@ class HomeScreen extends ConsumerWidget {
             itemCount: categories.length,
             itemBuilder: (context, index) {
               final category = categories[index];
-              return HomeCategoryCard(category: category);
+              final bool isHighlighted = (category == "أذكار الصباح" &&
+                      currentTimePeriod == TimeOfDayPeriod.morning) ||
+                  (category == "أذكار المساء" &&
+                      currentTimePeriod == TimeOfDayPeriod.evening);
+
+              return HomeCategoryCard(
+                category: category,
+                isHighlighted: isHighlighted,
+              );
             },
           );
         },

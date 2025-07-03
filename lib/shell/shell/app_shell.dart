@@ -2,7 +2,7 @@
 import 'package:azkari/core/widgets/app_background.dart';
 import 'package:azkari/features/progress/screens/progress_screen.dart';
 import 'package:azkari/features/tasbih/screens/tasbih_screen.dart';
-import 'package:azkari/features/home/home_screen.dart';
+import 'package:azkari/features/home/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppShell extends StatefulWidget {
