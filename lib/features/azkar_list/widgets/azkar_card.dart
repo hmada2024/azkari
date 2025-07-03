@@ -10,7 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AzkarCard extends ConsumerWidget {
   final AzkarModel adhkar;
-  const AzkarCard({super.key, required this.adhkar});
+  final VoidCallback onFinished;
+
+  const AzkarCard({
+    super.key,
+    required this.adhkar,
+    required this.onFinished,
+  });
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -18,7 +25,6 @@ class AzkarCard extends ConsumerWidget {
     final double fontScale =
         ref.watch(settingsProvider.select((s) => s.fontScale));
     return Container(
-      key: Key('adhkar_card_${adhkar.id}'),
       margin: EdgeInsets.symmetric(
           horizontal: context.responsiveSize(12),
           vertical: context.responsiveSize(8)),
@@ -102,7 +108,7 @@ class AzkarCard extends ConsumerWidget {
               ),
             ),
           SizedBox(height: context.responsiveSize(8)),
-          AdhkarCounterButton(adhkar: adhkar),
+          AdhkarCounterButton(adhkar: adhkar, onFinished: onFinished),
         ],
       ),
     );

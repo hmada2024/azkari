@@ -8,9 +8,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class AdhkarCounterButton extends ConsumerWidget {
   final AzkarModel adhkar;
+  final VoidCallback onFinished;
   const AdhkarCounterButton({
     super.key,
     required this.adhkar,
+    required this.onFinished,
   });
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,8 +24,13 @@ class AdhkarCounterButton extends ConsumerWidget {
     return Padding(
       padding: EdgeInsets.all(context.responsiveSize(16.0)),
       child: GestureDetector(
-        onTap:
-            isFinished ? cardNotifier.resetCount : cardNotifier.decrementCount,
+        onTap: () {
+          if (isFinished) {
+            onFinished();
+          } else {
+            cardNotifier.decrementCount();
+          }
+        },
         child: Container(
           height: context.responsiveSize(55),
           clipBehavior: Clip.antiAlias,
@@ -67,14 +74,14 @@ class AdhkarCounterButton extends ConsumerWidget {
                 },
                 child: isFinished
                     ? Icon(
-                        Icons.replay,
-                        key: const ValueKey('replay_icon'),
+                        Icons.check,
+                        key: const ValueKey('check_icon'),
                         color: Colors.white,
                         size: context.responsiveSize(30),
                       )
                     : Text(
                         cardState.currentCount.toString(),
-                        key: ValueKey('count_text_${cardState.currentCount}'),
+                        key: ValueKey('count_text_${cardState.currentCount} أيقونة "إعادة" بـ"علامة صح" لتعكس حالة الإكتمال بشكل أفضل.'),
                         style: TextStyle(
                           color: theme.textTheme.bodyLarge?.color,
                           fontSize: context.responsiveSize(22),
