@@ -14,8 +14,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final tasbihListProvider =
     FutureProvider.autoDispose<List<TasbihModel>>((ref) async {
+  // Now gets only ACTIVATED tasbih
   final repository = await ref.watch(tasbihRepositoryProvider.future);
-  return repository.getCustomTasbihList();
+  return repository.getActiveTasbihList();
 });
 
 final activeTasbihProvider =
@@ -25,8 +26,12 @@ final activeTasbihProvider =
       ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
 
   if (tasbihList.isEmpty) {
+    // تم إصلاح الخطأ هنا
     return TasbihModel(
-        id: -1, text: 'أضف ذكرًا للبدء', sortOrder: 0, isDeletable: false);
+        id: -1,
+        text: 'قم بتفعيل أهدافك للبدء',
+        sortOrder: 0,
+        isDefault: false); // استخدام isDefault بدلاً من isDeletable
   }
   return tasbihList.firstWhere((t) => t.id == activeId,
       orElse: () => tasbihList.first);
@@ -88,7 +93,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
         _updateCountForActiveId(activeId);
       }
     } catch (e) {
-      // ✨ [الإصلاح] هذا الخطأ لا يهم المستخدم.
       debugPrint("Failed to initialize TasbihStateNotifier: $e");
     }
   }
@@ -159,8 +163,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
             await _ref.read(incrementDailyCountUseCaseProvider.future);
         await useCase.execute(activeId!);
       } catch (e) {
-        // ✨ [الإصلاح] هذا الخطأ لا يهم المستخدم لأنه يحدث في الخلفية
-        // بعد أن تم تحديث الواجهة بالفعل (تحديث متفائل).
         debugPrint("Failed to persist increment: $e");
       }
     });
@@ -173,7 +175,6 @@ class TasbihStateNotifier extends StateNotifier<TasbihState> {
       final useCase = await _ref.read(resetDailyProgressUseCaseProvider.future);
       final result = await useCase.execute(activeId);
       result.fold(
-        // ✨ [الإصلاح] هذا الخطأ يهم المستخدم لأن طلبه فشل.
         (failure) => _ref
             .read(messengerServiceProvider)
             .showErrorSnackBar(failure.message),
