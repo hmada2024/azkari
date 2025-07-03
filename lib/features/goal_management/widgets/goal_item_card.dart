@@ -1,13 +1,13 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
-import 'package:azkari/core/constants/app_colors.dart';
+import 'package:azkari/core/utils/no_leading_zero_formatter.dart';
+import 'package:azkari/data/models/managed_goal_model.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
-import 'package:azkari/features/goal_management/widgets/management_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GoalItemCard extends ConsumerStatefulWidget {
-  final GoalManagementItem item;
+  final ManagedGoal item;
   const GoalItemCard({
     super.key,
     required this.item,
@@ -19,19 +19,34 @@ class GoalItemCard extends ConsumerStatefulWidget {
 class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   late final TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
-    _controller =
-        TextEditingController(text: widget.item.targetCount.toString());
+    _controller = TextEditingController(
+        text: (widget.item.targetCount > 0)
+            ? widget.item.targetCount.toString()
+            : '');
     _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void didUpdateWidget(covariant GoalItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.item.targetCount.toString() != _controller.text) {
-      _controller.text = widget.item.targetCount.toString();
+    if (widget.item.targetCount.toString() != _controller.text &&
+        !_focusNode.hasFocus) {
+      _controller.text = (widget.item.targetCount > 0)
+          ? widget.item.targetCount.toString()
+          : '';
+    }
+    if (widget.item.isActive != oldWidget.item.isActive) {
+      if (widget.item.isActive) {
+        _controller.text = (widget.item.targetCount > 0)
+            ? widget.item.targetCount.toString()
+            : '10';
+      } else {
+        _controller.text = '';
+      }
     }
   }
 
@@ -50,112 +65,147 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   }
 
   void _saveValue() {
-    final newCount = int.tryParse(_controller.text) ?? 0;
+    final notifier = ref.read(goalManagementStateProvider.notifier);
+    if (!widget.item.isActive) return;
+
+    int newCount = int.tryParse(_controller.text) ?? 0;
+    if (newCount == 0) {
+      newCount = 10;
+      _controller.text = '10';
+    }
     if (newCount == widget.item.targetCount) return;
-    ref
-        .read(goalManagementStateProvider.notifier)
-        .setGoal(widget.item.tasbih.id, newCount)
-        .then((success) {
-      if (!success && mounted) {
-        setState(() {
-          _controller.text = widget.item.targetCount.toString();
-        });
-      }
-    });
+
+    notifier.setGoal(widget.item.tasbih.id, newCount);
+  }
+
+  void _handleActivation(bool? isActivating) {
+    if (isActivating == null) return;
+    final notifier = ref.read(goalManagementStateProvider.notifier);
+    notifier.toggleActivation(widget.item.tasbih.id, isActivating);
+    if (isActivating) {
+      _focusNode.requestFocus();
+    }
+  }
+
+  String _getRepetitionWord(int count) {
+    if (count >= 3 && count <= 10) {
+      return 'مرات';
+    }
+    return 'مرة';
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
-    final isDeletable = widget.item.tasbih.isDeletable;
+    final isDefault = widget.item.tasbih.isDefault;
+    final count = int.tryParse(_controller.text) ?? 0;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      height: 68,
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
       decoration: BoxDecoration(
-        gradient: isDarkMode
-            ? AppColors.cardGradientDark
-            : AppColors.cardGradientLight,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: isDarkMode
-                ? Colors.black.withOpacity(0.25)
-                : Colors.blueGrey.withOpacity(0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(
-              widget.item.tasbih.displayName,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontSize: 16, height: 1.4),
-            ),
-          ),
-          const SizedBox(width: 16),
-          SizedBox(
-            width: 70,
-            child: TextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              textAlign: TextAlign.center,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: theme.colorScheme.secondary,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: isDarkMode
-                    ? Colors.black.withOpacity(0.2)
-                    : Colors.black.withOpacity(0.05),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide:
-                      BorderSide(color: theme.colorScheme.secondary, width: 2),
+          // السطر الأول: الذكر والتحكم
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              isDefault
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+                      child: Icon(Icons.lock_rounded,
+                          size: 20, color: theme.primaryColor.withOpacity(0.7)),
+                    )
+                  : Checkbox(
+                      value: widget.item.isActive,
+                      onChanged: _handleActivation,
+                      activeColor: theme.colorScheme.secondary,
+                    ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    widget.item.tasbih.displayName,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 17,
+                        height: 1.5,
+                        color:
+                            widget.item.isActive ? null : theme.disabledColor),
+                  ),
                 ),
               ),
-              onSubmitted: (_) => _saveValue(),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // السطر الثاني: الهدف
+          if (widget.item.isActive)
+            Padding(
+              padding:
+                  const EdgeInsets.only(right: 40.0), // للمحاذاة مع نص الذكر
+              child: Row(
+                children: [
+                  Text(
+                    'هدفي اليومي بإذن الله سيكون:',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 70,
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      enabled: widget.item.isActive,
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(4),
+                        NoLeadingZeroFormatter(),
+                      ],
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: theme.colorScheme.secondary,
+                      ),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 4),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: theme.scaffoldBackgroundColor,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                              color: theme.colorScheme.secondary, width: 2),
+                        ),
+                      ),
+                      onEditingComplete: _saveValue,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _getRepetitionWord(count),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: 48,
-            child: isDeletable
-                ? IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: Icon(Icons.delete_outline_rounded,
-                        color: theme.colorScheme.error.withOpacity(0.8)),
-                    onPressed: () {
-                      showDeleteConfirmationDialog(
-                        context: context,
-                        tasbihName: widget.item.tasbih.displayName,
-                        onConfirm: () {
-                          ref
-                              .read(goalManagementStateProvider.notifier)
-                              .deleteTasbih(widget.item.tasbih.id);
-                        },
-                      );
-                    },
-                  )
-                : Icon(Icons.lock_outline_rounded, color: theme.disabledColor),
-          ),
         ],
       ),
     );

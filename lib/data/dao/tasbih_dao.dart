@@ -15,6 +15,17 @@ class TasbihDao {
     return List.generate(maps.length, (i) => TasbihModel.fromMap(maps[i]));
   }
 
+  Future<List<TasbihModel>> getActiveTasbihList() async {
+    final query = '''
+      SELECT t.*
+      FROM ${DbConstants.customTasbih.name} t
+      JOIN ${DbConstants.dailyGoals.name} g ON t.${DbConstants.customTasbih.colId} = g.${DbConstants.dailyGoals.colTasbihId}
+      ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC
+    ''';
+    final List<Map<String, dynamic>> maps = await _db.rawQuery(query);
+    return List.generate(maps.length, (i) => TasbihModel.fromMap(maps[i]));
+  }
+
   Future<TasbihModel> addTasbih(String text) async {
     final lastItem = await _db.rawQuery(
         "SELECT MAX(${DbConstants.customTasbih.colSortOrder}) as max_order FROM ${DbConstants.customTasbih.name}");
@@ -22,20 +33,11 @@ class TasbihDao {
     final newTasbih = {
       DbConstants.customTasbih.colText: text,
       DbConstants.customTasbih.colSortOrder: newSortOrder,
-      DbConstants.customTasbih.colIsDeletable: 1,
+      DbConstants.customTasbih.colIsDefault: 1, // كل ذكر جديد هو اختياري
     };
     final id = await _db.insert(DbConstants.customTasbih.name, newTasbih);
     return TasbihModel(
-        id: id, text: text, sortOrder: newSortOrder, isDeletable: true);
-  }
-
-  Future<void> deleteTasbih(int id) async {
-    await _db.delete(
-      DbConstants.customTasbih.name,
-      where:
-          '${DbConstants.customTasbih.colId} = ? AND ${DbConstants.customTasbih.colIsDeletable} = ?',
-      whereArgs: [id, 1],
-    );
+        id: id, text: text, sortOrder: newSortOrder, isDefault: false);
   }
 
   Future<void> updateTasbihText(int id, String newText) async {
@@ -43,7 +45,7 @@ class TasbihDao {
       DbConstants.customTasbih.name,
       {DbConstants.customTasbih.colText: newText},
       where:
-          '${DbConstants.customTasbih.colId} = ? AND ${DbConstants.customTasbih.colIsDeletable} = ?',
+          '${DbConstants.customTasbih.colId} = ? AND ${DbConstants.customTasbih.colIsDefault} = ?',
       whereArgs: [id, 1],
     );
   }

@@ -1,30 +1,44 @@
 // lib/data/dao/goal_dao.dart
 import 'package:azkari/core/constants/database_constants.dart';
+import 'package:azkari/data/models/managed_goal_model.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/daily_goal_model.dart';
 
 class GoalDao {
   final Database _db;
   GoalDao(this._db);
+
   Future<void> setGoal(int tasbihId, int targetCount) async {
-    if (targetCount <= 0) {
-      await removeGoal(tasbihId);
-    } else {
-      await _db.insert(
-        DbConstants.dailyGoals.name,
-        {
-          DbConstants.dailyGoals.colTasbihId: tasbihId,
-          DbConstants.dailyGoals.colTargetCount: targetCount
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-    }
+    await _db.insert(
+      DbConstants.dailyGoals.name,
+      {
+        DbConstants.dailyGoals.colTasbihId: tasbihId,
+        DbConstants.dailyGoals.colTargetCount: targetCount
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> removeGoal(int tasbihId) async {
     await _db.delete(DbConstants.dailyGoals.name,
         where: '${DbConstants.dailyGoals.colTasbihId} = ?',
         whereArgs: [tasbihId]);
+  }
+
+  Future<List<ManagedGoal>> getManagedGoals() async {
+    final query = '''
+      SELECT
+        t.${DbConstants.customTasbih.colId},
+        t.${DbConstants.customTasbih.colText},
+        t.${DbConstants.customTasbih.colSortOrder},
+        t.${DbConstants.customTasbih.colIsDefault},
+        g.${DbConstants.dailyGoals.colTargetCount}
+      FROM ${DbConstants.customTasbih.name} t
+      LEFT JOIN ${DbConstants.dailyGoals.name} g ON t.${DbConstants.customTasbih.colId} = g.${DbConstants.dailyGoals.colTasbihId}
+      ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC
+    ''';
+    final List<Map<String, dynamic>> maps = await _db.rawQuery(query);
+    return List.generate(maps.length, (i) => ManagedGoal.fromMap(maps[i]));
   }
 
   Future<List<DailyGoalModel>> getGoalsWithProgressForDate(String date) async {

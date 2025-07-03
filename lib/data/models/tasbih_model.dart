@@ -2,24 +2,25 @@
 class TasbihModel {
   final int id;
   final String text;
-  final String? alias;
   final int sortOrder;
-  final bool isDeletable;
+  final bool isDefault;
+
   TasbihModel({
     required this.id,
     required this.text,
-    this.alias,
     required this.sortOrder,
-    required this.isDeletable,
+    required this.isDefault,
   });
-  String get displayName => alias ?? text;
+
+  String get displayName => text; // الاعتماد على النص الكامل دائماً
+
   factory TasbihModel.fromMap(Map<String, dynamic> map) {
     return TasbihModel(
       id: map['id'],
       text: map['text'],
-      alias: map['alias'],
+      // alias: map['alias'], // <-- تم الحذف
       sortOrder: map['sort_order'],
-      isDeletable: map['is_deletable'] == 1,
+      isDefault: map['is_default'] == 0,
     );
   }
 }

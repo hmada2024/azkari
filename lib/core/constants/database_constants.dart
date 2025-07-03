@@ -1,4 +1,4 @@
-// lib/data/constants/database_constants.dart
+// lib/core/constants/database_constants.dart
 class DbConstants {
   DbConstants._();
   static const adhkar = _AdhkarTable();
@@ -24,9 +24,9 @@ class _CustomTasbihTable {
   final String name = 'custom_tasbih';
   final String colId = 'id';
   final String colText = 'text';
-  final String colAlias = 'alias';
+  // final String colAlias = 'alias'; // <-- تم الحذف
   final String colSortOrder = 'sort_order';
-  final String colIsDeletable = 'is_deletable';
+  final String colIsDefault = 'is_default';
 }
 
 class _DailyGoalsTable {
