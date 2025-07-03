@@ -15,9 +15,9 @@ class ManagedGoal {
   factory ManagedGoal.fromMap(Map<String, dynamic> map) {
     final tasbih = TasbihModel.fromMap(map);
     final targetCountFromDb = map['target_count'];
-    final bool isDefault = tasbih.isMandatory;
+    final bool isMandatory = tasbih.isMandatory;
 
-    final bool isActive = isDefault || (targetCountFromDb != null);
+    final bool isActive = isMandatory || (targetCountFromDb != null);
 
     final int currentTarget = isActive ? (targetCountFromDb ?? 100) : 0;
 

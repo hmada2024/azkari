@@ -6,21 +6,24 @@ class TasbihProgressDao {
   final Database _db;
   TasbihProgressDao(this._db);
   final String _today = DateTime.now().toIso8601String().substring(0, 10);
+
   Future<void> incrementCount(int tasbihId) async {
-    await _db.insert(
-      DbConstants.tasbihDailyProgress.name,
-      {
-        DbConstants.tasbihDailyProgress.colTasbihId: tasbihId,
-        DbConstants.tasbihDailyProgress.colDate: _today,
-        DbConstants.tasbihDailyProgress.colCount: 0
-      },
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
-    await _db.rawUpdate('''
-      UPDATE ${DbConstants.tasbihDailyProgress.name} 
-      SET ${DbConstants.tasbihDailyProgress.colCount} = ${DbConstants.tasbihDailyProgress.colCount} + 1 
-      WHERE ${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?
-    ''', [tasbihId, _today]);
+    await _db.transaction((txn) async {
+      await txn.insert(
+        DbConstants.tasbihDailyProgress.name,
+        {
+          DbConstants.tasbihDailyProgress.colTasbihId: tasbihId,
+          DbConstants.tasbihDailyProgress.colDate: _today,
+          DbConstants.tasbihDailyProgress.colCount: 0
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      await txn.rawUpdate('''
+        UPDATE ${DbConstants.tasbihDailyProgress.name} 
+        SET ${DbConstants.tasbihDailyProgress.colCount} = ${DbConstants.tasbihDailyProgress.colCount} + 1 
+        WHERE ${DbConstants.tasbihDailyProgress.colTasbihId} = ? AND ${DbConstants.tasbihDailyProgress.colDate} = ?
+      ''', [tasbihId, _today]);
+    });
   }
 
   Future<void> resetCountForTasbih(int tasbihId) async {

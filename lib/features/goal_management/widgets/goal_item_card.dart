@@ -99,7 +99,7 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDefault = widget.item.tasbih.isMandatory;
+    final isMandatory = widget.item.tasbih.isMandatory;
     final count = int.tryParse(_controller.text) ?? 0;
     final defaultCheckColor = Colors.green.shade800;
 
@@ -129,11 +129,11 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                 child: Checkbox(
                   value: widget.item.isActive,
                   onChanged: _handleActivation,
-                  activeColor: isDefault
+                  activeColor: isMandatory
                       ? Colors.green.withOpacity(0.3)
                       : theme.colorScheme.secondary,
                   checkColor: Colors.white,
-                  side: isDefault
+                  side: isMandatory
                       ? BorderSide(color: defaultCheckColor, width: 2)
                       : null,
                   shape: RoundedRectangleBorder(

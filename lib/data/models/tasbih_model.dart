@@ -12,13 +12,12 @@ class TasbihModel {
     required this.isMandatory,
   });
 
-  String get displayName => text; // الاعتماد على النص الكامل دائماً
+  String get displayName => text;
 
   factory TasbihModel.fromMap(Map<String, dynamic> map) {
     return TasbihModel(
       id: map['id'],
       text: map['text'],
-      // alias: map['alias'], // <-- تم الحذف
       sortOrder: map['sort_order'],
       isMandatory: map['is_default'] == 0,
     );

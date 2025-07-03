@@ -1,4 +1,4 @@
-// lib/features/adhkar_list/providers/adhkar_card_provider.dart
+// lib/features/azkar_list/providers/azkar_card_provider.dart
 import 'package:azkari/data/models/azkar_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

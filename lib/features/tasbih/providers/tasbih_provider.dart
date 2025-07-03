@@ -14,7 +14,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 final tasbihListProvider =
     FutureProvider.autoDispose<List<TasbihModel>>((ref) async {
-  // Now gets only ACTIVATED tasbih
   final repository = await ref.watch(tasbihRepositoryProvider.future);
   return repository.getActiveTasbihList();
 });
@@ -26,12 +25,11 @@ final activeTasbihProvider =
       ref.watch(tasbihStateProvider.select((s) => s.activeTasbihId));
 
   if (tasbihList.isEmpty) {
-    // تم إصلاح الخطأ هنا
     return TasbihModel(
         id: -1,
         text: 'قم بتفعيل أهدافك للبدء',
         sortOrder: 0,
-        isMandatory: false); // استخدام isDefault بدلاً من isDeletable
+        isMandatory: false);
   }
   return tasbihList.firstWhere((t) => t.id == activeId,
       orElse: () => tasbihList.first);
@@ -67,7 +65,7 @@ class TasbihState {
 }
 
 final tasbihStateProvider =
-    StateNotifierProvider.autoDispose<TasbihStateNotifier, TasbihState>((ref) {
+    StateNotifierProvider<TasbihStateNotifier, TasbihState>((ref) {
   return TasbihStateNotifier(ref);
 });
 
