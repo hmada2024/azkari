@@ -1,5 +1,6 @@
 // lib/features/goal_management/widgets/goal_item_card.dart
 import 'package:azkari/core/utils/no_leading_zero_formatter.dart';
+import 'package:azkari/core/utils/size_config.dart';
 import 'package:azkari/data/models/managed_goal_model.dart';
 import 'package:azkari/features/goal_management/providers/goal_management_provider.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,6 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   }
 
   void _handleActivation(bool? isActivating) {
-    // لا تفعل شيئًا إذا كان الذكر أساسيًا
     if (isActivating == null || widget.item.tasbih.isDefault) return;
 
     final notifier = ref.read(goalManagementStateProvider.notifier);
@@ -101,22 +101,20 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
     final theme = Theme.of(context);
     final isDefault = widget.item.tasbih.isDefault;
     final count = int.tryParse(_controller.text) ?? 0;
-
-    // اللون الخاص بعلامة الصح للذكر الأساسي
-    final Color defaultCheckColor = Colors.green.shade800;
+    final defaultCheckColor = Colors.green.shade800;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0),
+      margin: EdgeInsets.symmetric(vertical: context.responsiveSize(4)),
+      padding: EdgeInsets.all(context.responsiveSize(10)),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(context.responsiveSize(12)),
         border: Border.all(color: theme.dividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -126,9 +124,8 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // بناء Checkbox مع منطق التمييز
               Transform.scale(
-                scale: 1.2,
+                scale: context.responsiveSize(1.0),
                 child: Checkbox(
                   value: widget.item.isActive,
                   onChanged: _handleActivation,
@@ -136,21 +133,21 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                       ? Colors.green.withOpacity(0.3)
                       : theme.colorScheme.secondary,
                   checkColor: Colors.white,
-                  // شكل علامة الصح نفسها
                   side: isDefault
                       ? BorderSide(color: defaultCheckColor, width: 2)
                       : null,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4)),
+                      borderRadius:
+                          BorderRadius.circular(context.responsiveSize(4))),
                 ),
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0, right: 4.0),
+                  padding: EdgeInsets.only(top: context.responsiveSize(8.0)),
                   child: Text(
                     widget.item.tasbih.displayName,
                     style: theme.textTheme.titleMedium?.copyWith(
-                        fontSize: 17,
+                        fontSize: context.responsiveSize(16),
                         height: 1.5,
                         color:
                             widget.item.isActive ? null : theme.disabledColor),
@@ -160,19 +157,21 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
             ],
           ),
           if (widget.item.isActive) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: context.responsiveSize(4)),
             Padding(
-              padding: const EdgeInsets.only(right: 48.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              padding: EdgeInsets.only(right: context.responsiveSize(40.0)),
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: context.responsiveSize(6),
+                runSpacing: context.responsiveSize(4),
                 children: [
                   Text(
                     'هدفي اليومي بإذن الله سيكون:',
-                    style: theme.textTheme.bodyMedium,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontSize: context.responsiveSize(13)),
                   ),
-                  const SizedBox(width: 8),
                   SizedBox(
-                    width: 70,
+                    width: context.responsiveSize(65),
                     child: TextField(
                       controller: _controller,
                       focusNode: _focusNode,
@@ -186,21 +185,24 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                       ],
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: context.responsiveSize(15),
                         color: theme.colorScheme.secondary,
                       ),
                       decoration: InputDecoration(
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 8, horizontal: 4),
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: context.responsiveSize(8),
+                            horizontal: context.responsiveSize(4)),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius:
+                              BorderRadius.circular(context.responsiveSize(8)),
                           borderSide: BorderSide.none,
                         ),
                         filled: true,
                         fillColor: theme.scaffoldBackgroundColor,
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius:
+                              BorderRadius.circular(context.responsiveSize(8)),
                           borderSide: BorderSide(
                               color: theme.colorScheme.secondary, width: 2),
                         ),
@@ -208,12 +210,10 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                       onEditingComplete: _saveValue,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      _getRepetitionWord(count),
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                  Text(
+                    _getRepetitionWord(count),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontSize: context.responsiveSize(13)),
                   ),
                 ],
               ),

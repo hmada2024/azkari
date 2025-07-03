@@ -35,8 +35,8 @@ class GoalDao {
         g.${DbConstants.dailyGoals.colTargetCount}
       FROM ${DbConstants.customTasbih.name} t
       LEFT JOIN ${DbConstants.dailyGoals.name} g ON t.${DbConstants.customTasbih.colId} = g.${DbConstants.dailyGoals.colTasbihId}
-      ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC
-    ''';
+      ORDER BY t.${DbConstants.customTasbih.colIsDefault} ASC, t.${DbConstants.customTasbih.colSortOrder} ASC
+    '''; // <-- تم تعديل ORDER BY هنا
     final List<Map<String, dynamic>> maps = await _db.rawQuery(query);
     return List.generate(maps.length, (i) => ManagedGoal.fromMap(maps[i]));
   }
@@ -51,8 +51,8 @@ class GoalDao {
       FROM ${DbConstants.dailyGoals.name} g
       JOIN ${DbConstants.customTasbih.name} t ON g.${DbConstants.dailyGoals.colTasbihId} = t.${DbConstants.customTasbih.colId}
       LEFT JOIN ${DbConstants.tasbihDailyProgress.name} p ON g.${DbConstants.dailyGoals.colTasbihId} = p.${DbConstants.tasbihDailyProgress.colTasbihId} AND p.${DbConstants.tasbihDailyProgress.colDate} = ?
-      ORDER BY t.${DbConstants.customTasbih.colSortOrder} ASC, t.${DbConstants.customTasbih.colId} ASC
-    ''';
+      ORDER BY t.${DbConstants.customTasbih.colIsDefault} ASC, t.${DbConstants.customTasbih.colSortOrder} ASC
+    '''; // <-- تم تعديل ORDER BY هنا أيضًا للاتساق
     final List<Map<String, dynamic>> maps = await _db.rawQuery(query, [date]);
     return List.generate(maps.length, (i) => DailyGoalModel.fromMap(maps[i]));
   }
