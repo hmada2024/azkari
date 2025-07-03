@@ -79,7 +79,7 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   }
 
   void _handleActivation(bool? isActivating) {
-    if (isActivating == null || widget.item.tasbih.isDefault) return;
+    if (isActivating == null || widget.item.tasbih.isMandatory) return;
 
     final notifier = ref.read(goalManagementStateProvider.notifier);
     notifier.toggleActivation(widget.item.tasbih.id, isActivating);
@@ -99,7 +99,7 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDefault = widget.item.tasbih.isDefault;
+    final isDefault = widget.item.tasbih.isMandatory;
     final count = int.tryParse(_controller.text) ?? 0;
     final defaultCheckColor = Colors.green.shade800;
 

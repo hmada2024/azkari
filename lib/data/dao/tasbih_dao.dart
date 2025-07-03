@@ -37,7 +37,7 @@ class TasbihDao {
     };
     final id = await _db.insert(DbConstants.customTasbih.name, newTasbih);
     return TasbihModel(
-        id: id, text: text, sortOrder: newSortOrder, isDefault: false);
+        id: id, text: text, sortOrder: newSortOrder, isMandatory: false);
   }
 
   Future<void> updateTasbihText(int id, String newText) async {

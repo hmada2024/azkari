@@ -31,7 +31,7 @@ final activeTasbihProvider =
         id: -1,
         text: 'قم بتفعيل أهدافك للبدء',
         sortOrder: 0,
-        isDefault: false); // استخدام isDefault بدلاً من isDeletable
+        isMandatory: false); // استخدام isDefault بدلاً من isDeletable
   }
   return tasbihList.firstWhere((t) => t.id == activeId,
       orElse: () => tasbihList.first);
