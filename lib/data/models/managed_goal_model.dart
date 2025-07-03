@@ -14,11 +14,17 @@ class ManagedGoal {
 
   factory ManagedGoal.fromMap(Map<String, dynamic> map) {
     final tasbih = TasbihModel.fromMap(map);
-    final target = map['target_count'];
+    final targetCountFromDb = map['target_count'];
+    final bool isDefault = tasbih.isDefault;
+
+    final bool isActive = isDefault || (targetCountFromDb != null);
+
+    final int currentTarget = isActive ? (targetCountFromDb ?? 100) : 0;
+
     return ManagedGoal(
       tasbih: tasbih,
-      isActive: target != null,
-      targetCount: target ?? 0,
+      isActive: isActive,
+      targetCount: currentTarget,
     );
   }
 

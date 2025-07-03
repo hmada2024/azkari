@@ -33,11 +33,10 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   @override
   void didUpdateWidget(covariant GoalItemCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.item.targetCount.toString() != _controller.text &&
-        !_focusNode.hasFocus) {
-      _controller.text = (widget.item.targetCount > 0)
-          ? widget.item.targetCount.toString()
-          : '';
+    final newText =
+        (widget.item.targetCount > 0) ? widget.item.targetCount.toString() : '';
+    if (newText != _controller.text && !_focusNode.hasFocus) {
+      _controller.text = newText;
     }
     if (widget.item.isActive != oldWidget.item.isActive) {
       if (widget.item.isActive) {
@@ -79,7 +78,9 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   }
 
   void _handleActivation(bool? isActivating) {
-    if (isActivating == null) return;
+    // لا تفعل شيئًا إذا كان الذكر أساسيًا
+    if (isActivating == null || widget.item.tasbih.isDefault) return;
+
     final notifier = ref.read(goalManagementStateProvider.notifier);
     notifier.toggleActivation(widget.item.tasbih.id, isActivating);
     if (isActivating) {
@@ -88,6 +89,7 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
   }
 
   String _getRepetitionWord(int count) {
+    if (count == 2) return 'مرتان';
     if (count >= 3 && count <= 10) {
       return 'مرات';
     }
@@ -99,6 +101,9 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
     final theme = Theme.of(context);
     final isDefault = widget.item.tasbih.isDefault;
     final count = int.tryParse(_controller.text) ?? 0;
+
+    // اللون الخاص بعلامة الصح للذكر الأساسي
+    final Color defaultCheckColor = Colors.green.shade800;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -118,24 +123,30 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // السطر الأول: الذكر والتحكم
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              isDefault
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 4.0, right: 8.0),
-                      child: Icon(Icons.lock_rounded,
-                          size: 20, color: theme.primaryColor.withOpacity(0.7)),
-                    )
-                  : Checkbox(
-                      value: widget.item.isActive,
-                      onChanged: _handleActivation,
-                      activeColor: theme.colorScheme.secondary,
-                    ),
+              // بناء Checkbox مع منطق التمييز
+              Transform.scale(
+                scale: 1.2,
+                child: Checkbox(
+                  value: widget.item.isActive,
+                  onChanged: _handleActivation,
+                  activeColor: isDefault
+                      ? Colors.green.withOpacity(0.3)
+                      : theme.colorScheme.secondary,
+                  checkColor: Colors.white,
+                  // شكل علامة الصح نفسها
+                  side: isDefault
+                      ? BorderSide(color: defaultCheckColor, width: 2)
+                      : null,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4)),
+                ),
+              ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
+                  padding: const EdgeInsets.only(top: 8.0, right: 4.0),
                   child: Text(
                     widget.item.tasbih.displayName,
                     style: theme.textTheme.titleMedium?.copyWith(
@@ -148,13 +159,12 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // السطر الثاني: الهدف
-          if (widget.item.isActive)
+          if (widget.item.isActive) ...[
+            const SizedBox(height: 8),
             Padding(
-              padding:
-                  const EdgeInsets.only(right: 40.0), // للمحاذاة مع نص الذكر
+              padding: const EdgeInsets.only(right: 48.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     'هدفي اليومي بإذن الله سيكون:',
@@ -199,13 +209,16 @@ class _GoalItemCardState extends ConsumerState<GoalItemCard> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    _getRepetitionWord(count),
-                    style: theme.textTheme.bodyMedium,
+                  Flexible(
+                    child: Text(
+                      _getRepetitionWord(count),
+                      style: theme.textTheme.bodyMedium,
+                    ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
