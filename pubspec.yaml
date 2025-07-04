@@ -50,6 +50,10 @@ dev_dependencies:
   mockito: 5.4.4
   sqlite3_flutter_libs: ^0.5.18
 
+analyzer:
+  exclude:
+    - '**/*.mocks.dart'
+
 dependency_overrides:
   meta: ^1.12.0
 
