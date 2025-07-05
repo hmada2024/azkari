@@ -10,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
 import '../../../test_helpers.dart';
-import '../../../test_helpers.mocks.dart';
 
 void main() {
   late MockGoalsRepository mockGoalsRepository;
@@ -25,14 +24,14 @@ void main() {
     mockMessengerService = MockMessengerService();
     mockAddTasbihUseCase = MockAddTasbihUseCase();
 
-    container = createContainer(
-      overrides: {
-        goalsRepositoryProvider.overrideWith((ref) async => mockGoalsRepository),
-        tasbihRepositoryProvider.overrideWith((ref) async => mockTasbihRepository),
-        messengerServiceProvider.overrideWithValue(mockMessengerService),
-        addTasbihUseCaseProvider.overrideWith((ref) async => mockAddTasbihUseCase),
-      },
-    );
+    container = createContainer(overrides: [
+      goalsRepositoryProvider.overrideWith((ref) async => mockGoalsRepository),
+      tasbihRepositoryProvider
+          .overrideWith((ref) async => mockTasbihRepository),
+      messengerServiceProvider.overrideWithValue(mockMessengerService),
+      addTasbihUseCaseProvider
+          .overrideWith((ref) async => mockAddTasbihUseCase),
+    ]);
   });
 
   group('GoalManagementNotifier', () {
@@ -42,8 +41,8 @@ void main() {
       expect(state.isSaving, false);
     });
 
-    test(
-        'fetches and updates items from repository on initialization', () async {
+    test('fetches and updates items from repository on initialization',
+        () async {
       when(mockGoalsRepository.getManagedGoals())
           .thenAnswer((_) async => [tManagedGoal]);
 
@@ -71,8 +70,7 @@ void main() {
 
     test('toggleActivation calls activateGoal and shows success message',
         () async {
-      when(mockGoalsRepository.activateGoal(any, any))
-          .thenAnswer((_) async => {});
+      when(mockGoalsRepository.activateGoal(any, any)).thenAnswer((_) async {});
 
       final notifier = container.read(goalManagementStateProvider.notifier);
       await notifier.toggleActivation(1, true);
@@ -84,14 +82,13 @@ void main() {
 
     test('toggleActivation calls deactivateGoal and shows success message',
         () async {
-      when(mockGoalsRepository.deactivateGoal(any)).thenAnswer((_) async => {});
+      when(mockGoalsRepository.deactivateGoal(any)).thenAnswer((_) async {});
 
       final notifier = container.read(goalManagementStateProvider.notifier);
       await notifier.toggleActivation(1, false);
 
       verify(mockGoalsRepository.deactivateGoal(1)).called(1);
-      verify(mockMessengerService
-              .showSuccessSnackBar('تم إلغاء تفعيل الهدف'))
+      verify(mockMessengerService.showSuccessSnackBar('تم إلغاء تفعيل الهدف'))
           .called(1);
     });
 
@@ -109,10 +106,10 @@ void main() {
       verify(mockAddTasbihUseCase.execute(text)).called(1);
       verify(mockMessengerService.showSuccessSnackBar('تمت الإضافة بنجاح'))
           .called(1);
-      
-      expect(container.read(managedGoalsProvider), isA<AsyncValue<void>>());
-      expect(container.read(dailyGoalsStateProvider), isA<DailyGoalsState>());
-      expect(container.read(tasbihListProvider), isA<AsyncValue<void>>());
+
+      expect(container.exists(managedGoalsProvider), isFalse);
+      expect(container.exists(dailyGoalsStateProvider), isFalse);
+      expect(container.exists(tasbihListProvider), isFalse);
     });
 
     test('addTasbih calls use case and shows error on failure', () async {

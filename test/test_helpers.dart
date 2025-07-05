@@ -24,25 +24,25 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@GenerateMocks([
-  TasbihRepository,
-  GoalsRepository,
-  AzkarRepository,
-  PrayerSettingsRepository,
-  LocationService,
-  NotificationService,
-  SharedPreferences,
-  MessengerService,
-  AddTasbihUseCase,
-  UpdateThemeUseCase,
-  UpdateFontScaleUseCase,
-  UpdateMorningNotificationUseCase,
-  UpdateEveningNotificationUseCase,
-  IncrementDailyCountUseCase,
-  ResetDailyProgressUseCase,
-  SetActiveTasbihUseCase,
+@GenerateNiceMocks([
+  MockSpec<TasbihRepository>(),
+  MockSpec<GoalsRepository>(),
+  MockSpec<AzkarRepository>(),
+  MockSpec<PrayerSettingsRepository>(),
+  MockSpec<LocationService>(),
+  MockSpec<NotificationService>(),
+  MockSpec<SharedPreferences>(),
+  MockSpec<MessengerService>(),
+  MockSpec<AddTasbihUseCase>(),
+  MockSpec<UpdateThemeUseCase>(),
+  MockSpec<UpdateFontScaleUseCase>(),
+  MockSpec<UpdateMorningNotificationUseCase>(),
+  MockSpec<UpdateEveningNotificationUseCase>(),
+  MockSpec<IncrementDailyCountUseCase>(),
+  MockSpec<ResetDailyProgressUseCase>(),
+  MockSpec<SetActiveTasbihUseCase>(),
 ])
-void main() {}
+export 'test_helpers.mocks.dart';
 
 class Listener<T> extends Mock {
   void call(T? previous, T value);
@@ -62,11 +62,9 @@ final tManagedGoal = ManagedGoal(
 const tDatabaseFailure = DatabaseFailure('Test DB Failure');
 
 ProviderContainer createContainer({
-  Map<ProviderBase, Object> overrides = const {},
+  List<Override> overrides = const [],
 }) {
-  final container = ProviderContainer(overrides: overrides.entries.map((e) {
-    return e.key.overrideWithValue(e.value);
-  }).toList());
+  final container = ProviderContainer(overrides: overrides);
   addTearDown(container.dispose);
   return container;
 }
